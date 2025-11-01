@@ -1,0 +1,83 @@
+/* ---------- Global ---------- */
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #f8fafc;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* ---------- Container ---------- */
+.container {
+  background: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem 3rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.container:hover {
+  transform: translateY(-4px);
+}
+
+/* ---------- Heading ---------- */
+h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #38bdf8; /* sky blue */
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+/* ---------- Achievements List ---------- */
+#achievements-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1.5rem;
+}
+
+#achievements-list li {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+#achievements-list li:hover {
+  background: rgba(56, 189, 248, 0.2);
+  transform: scale(1.03);
+}
+
+/* ---------- Button ---------- */
+button {
+  background: #38bdf8;
+  border: none;
+  border-radius: 12px;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.8rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: #0ea5e9;
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.98);
+}

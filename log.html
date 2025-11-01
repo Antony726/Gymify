@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log Workout | Gymify</title>
+  <link rel="stylesheet" href="css/log.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>📓 Log Your Workout</h2>
+
+    <form id="log-form">
+      <label for="workout-select">Select Workout</label>
+      <select id="workout-select" required>
+        <option value="">-- Choose a Workout --</option>
+      </select>
+
+      <div class="sets-container">
+        <h3>Sets</h3>
+        <div class="set">
+          <h4>Set 1</h4>
+          <input type="number" placeholder="Reps" id="set1-reps" min="1" required />
+          <input type="number" placeholder="Weight (kg)" id="set1-weight" min="0" required />
+        </div>
+        <div class="set">
+          <h4>Set 2</h4>
+          <input type="number" placeholder="Reps" id="set2-reps" min="1" required />
+          <input type="number" placeholder="Weight (kg)" id="set2-weight" min="0" required />
+        </div>
+        <div class="set">
+          <h4>Set 3</h4>
+          <input type="number" placeholder="Reps" id="set3-reps" min="1" required />
+          <input type="number" placeholder="Weight (kg)" id="set3-weight" min="0" required />
+        </div>
+      </div>
+
+      <label for="date">Date</label>
+      <input type="date" id="date" required />
+
+      <label for="notes">Notes (optional)</label>
+      <textarea id="notes" rows="3" placeholder="E.g. Felt strong today"></textarea>
+
+      <button type="submit">💾 Save Log</button>
+    </form>
+
+    <div id="status"></div>
+    <button id="back-btn">⬅ Back to Dashboard</button>
+  </div>
+
+  <script type="module" src="js/log.js"></script>
+</body>
+</html>

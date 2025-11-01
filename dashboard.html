@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gymify Dashboard</title>
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-top">
+        <h2>Hi, <span id="username">User</span> 👋</h2>
+        <button id="logout-btn" class="logout-btn">🚪 Logout</button>
+      </div>
+      <p id="xp-display">⭐ XP: 0</p>
+      <div id="xp-bar-wrap"><div id="xp-bar"></div></div>
+      
+    </header>
+
+    <section class="stats">
+      <div class="card">
+        <h3>🔥 Streak</h3>
+        <p id="streak-display">🔥 Streak: 0 days</p>
+      </div>
+      <div class="card">
+        <h3>❤️ Life</h3>
+        <p id="energy">❤️❤️❤️❤️</p>
+      </div>
+      <div class="card">
+        <h3>🧠 Level</h3>
+        <p id="gymify-level">Bronze I</p>
+      </div>
+    </section>
+
+    <section class="today-workout">
+      <h3>Today's Workout</h3>
+      <p id="workout-split">Loading...</p>
+      <button onclick="window.location.href='plan.html'" class="plan-btn">🗓️ Edit Workout Plan</button>
+    </section>
+    <section class="next-workout">
+      <h3>💡 Next Workout Recommendation</h3>
+      <p id="next-workout">Loading next workout...</p>
+    </section>
+
+
+    <section class="daily-quest">
+      <h3>🎯 Daily Quest</h3>
+      <p id="daily-quest">Loading quest...</p>
+      <button id="complete-quest">Mark as Done</button>
+    </section>
+
+    <section class="coach-tip">
+      <h3>🧠 Daily Quotes</h3>
+      <p id="coach-quote">"Progress comes to those who show up daily."</p>
+    </section>
+
+    <nav class="nav">
+      <button onclick="window.location.href='log.html'">📝 Log Workout</button>
+      <button onclick="window.location.href='history.html'">📜 View History</button>
+      <button onclick="window.location.href='progress.html'">📈 XP Progress</button>
+      <button onclick="window.location.href='weight_track.html'">🏋️ Progress Tracker</button>
+      <button onclick="window.location.href='achievements.html'">🏅 Achievements</button>
+      <button onclick="window.location.href='leaderboard.html'">🏆 Leaderboard</button>
+      <button onclick="window.location.href='friends.html'">👥 Friends</button>
+    </nav>
+
+
+    <footer>
+      <canvas id="consistency-chart"></canvas>
+    </footer>
+  </div>
+
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

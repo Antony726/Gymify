@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Records</title>
+  <link rel="stylesheet" href="css/weig.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>🏋️ Personal Records</h2>
+    <table id="personal-records" class="records-table">
+    <thead>
+        <tr>
+        <th>Workout</th>
+        <th>Personal Best (kg)</th>
+        <th>Date</th>
+        </tr>
+    </thead>
+    <tbody id="recordsBody">
+        <tr><td colspan="3">Loading...</td></tr>
+    </tbody>
+    </table>
+
+    <button onclick="window.location.href='dashboard.html'">⬅️ Back to Dashboard</button>
+  </div>
+
+  <script type="module" src="js/weight_track.js"></script>
+</body>
+</html>

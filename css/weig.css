@@ -1,0 +1,117 @@
+/* ---------- General Page Styling ---------- */
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #f8fafc;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 2.5rem 3rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  max-width: 700px;
+  width: 90%;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.container:hover {
+  transform: translateY(-4px);
+}
+
+h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #38bdf8;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+/* ---------- Table ---------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 1rem;
+  text-align: left;
+}
+
+th {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  color: #f1f5f9;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover {
+  background: rgba(56, 189, 248, 0.08);
+  transition: background 0.3s ease;
+}
+
+/* ---------- Empty Table Message ---------- */
+#personal-records td[colspan] {
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 1.5rem;
+}
+
+/* ---------- Button ---------- */
+button {
+  background: #38bdf8;
+  border: none;
+  border-radius: 12px;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.8rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: #0ea5e9;
+  transform: scale(1.05);
+}
+
+/* ---------- Small Device Adjustments ---------- */
+@media (max-width: 600px) {
+  .container {
+    padding: 1.5rem 1.8rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  th, td {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
+
+  button {
+    width: 100%;
+  }
+}

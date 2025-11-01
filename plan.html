@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workout Plan | Gymify</title>
+  <link rel="stylesheet" href="css/plan.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>🏋️‍♂️ Weekly Workout Plan</h2>
+    <form id="plan-form">
+      <div id="days-container"></div>
+      <button type="submit">💾 Save Plan</button>
+    </form>
+    <div id="status"></div>
+    <button id="back-btn">⬅ Back to Dashboard</button>
+  </div>
+
+  <!-- Only import plan.js - it will import firebase-config.js -->
+  <script type="module" src="js/plan.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signup | Gymify</title>
+  <link rel="stylesheet" href="css/auth.css" />
+  <script type="module" src="js/auth.js" defer></script>
+</head>
+<body>
+  <div class="auth-container">
+    <h2>Join Gymify 💪</h2>
+    <form id="signup-form">
+        <input type="text" id="signup-username" placeholder="Username" required />
+      <input type="email" id="signup-email" placeholder="Email" required />
+      <input type="password" id="signup-password" placeholder="Password" required />
+      <button type="submit">Create Account</button>
+    </form>
+    <p>Already have an account? <a href="login.html">Login here</a></p>
+    <div id="message"></div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      updateProfile, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      const form = document.getElementById("signup-form");
+      const msg = document.getElementById("message");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById("signup-username").value.trim().toLowerCase();
+        const email = document.getElementById("signup-email").value;
+        const password = document.getElementById("signup-password").value;
+
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+
+          await updateProfile(user, { displayName: username });
+
+          await setDoc(doc(db, "users", user.uid), {
+            username: username,
+            email: email,
+            xp: 0,
+            friends: [],
+            createdAt: new Date().toISOString(),
+          });
+
+          msg.textContent = "✅ Signup successful! Redirecting...";
+          setTimeout(() => (window.location.href = "dashboard.html"), 1500);
+        } catch (error) {
+          console.error("Signup error:", error);
+          msg.textContent = error.message;
+        }
+      });
+
+      // Redirect logged-in users automatically
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          window.location.href = "dashboard.html";
+        }
+      });
+    });
+  </script>
+
+  <script type="module" src="js/redirectIfLoggedIn.js" defer></script>
+
+</body>
+</html>
