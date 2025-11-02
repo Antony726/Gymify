@@ -33,5 +33,6 @@
 ## ⚙️ Tech Stack
 - **Frontend:** HTML, CSS, JavaScript (ES6 Modules)
 - **Backend:** Firebase Firestore + Firebase Auth
-- **Hosting:** Firebase Hosting or any static web host
+- **Hosting:** Github
+
 
