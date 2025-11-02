@@ -17,68 +17,102 @@ const auth = getAuth(app);
 const leaderboardSection = document.getElementById("leaderboard");
 
 onAuthStateChanged(auth, async (user) => {
-
   if (!user) {
     leaderboardSection.innerHTML = "<p>Please login first.</p>";
     return;
   }
 
-  const usersRef = collection(db, "users");
-  const userDocs = await getDocs(usersRef);
+  leaderboardSection.innerHTML = "<p>Loading leaderboard...</p>";
 
-  let users = [];
+  try {
+    const usersRef = collection(db, "users");
+    const snapshot = await getDocs(usersRef);
 
-  for (const userDoc of userDocs.docs) {
-    const userId = userDoc.id;
-    const statsRef = doc(db, "users", userId, "data", "stats");
-    const statsSnap = await getDoc(statsRef);
+    const users = [];
 
-    console.log("Stats for user:", userId, statsSnap.exists() ? statsSnap.data() : "No data");
+    // 🔁 Loop through all user documents
+    for (const userDoc of snapshot.docs) {
+      const userId = userDoc.id;
+      let username = "Unknown";
+      let xp = 0;
 
-    let xp = 0;
-    if (statsSnap.exists()) {
-      // Convert string XP to number if necessary
-      xp = Number(statsSnap.data().xp) || 0;
+      try {
+        // Fetch nested profile document
+        const profileRef = doc(db, "users", userId, "data", "profile");
+        const profileSnap = await getDoc(profileRef);
+        if (profileSnap.exists()) {
+          username =
+            profileSnap.data().username ||
+            userDoc.data().displayName ||
+            userDoc.data().email ||
+            "Unknown";
+        }
+
+        // Fetch stats document for XP
+        const statsRef = doc(db, "users", userId, "data", "stats");
+        const statsSnap = await getDoc(statsRef);
+        if (statsSnap.exists()) {
+          xp = Number(statsSnap.data().xp) || 0;
+        }
+      } catch (e) {
+        console.warn(`⚠️ Could not fetch data for ${userId}:`, e);
+      }
+
+      users.push({
+        id: userId,
+        name: username,
+        xp,
+      });
     }
 
-    users.push({
-      id: userId,
-      name: userDoc.data().name || "Unknown User",
-      xp,
+    // Ensure current user always appears even if missing
+    if (!users.some((u) => u.id === user.uid)) {
+      const yourProfileRef = doc(db, "users", user.uid, "data", "profile");
+      const yourProfileSnap = await getDoc(yourProfileRef);
+      const yourStatsRef = doc(db, "users", user.uid, "data", "stats");
+      const yourStatsSnap = await getDoc(yourStatsRef);
+
+      const yourName =
+        (yourProfileSnap.exists() && yourProfileSnap.data().username) ||
+        user.displayName ||
+        user.email;
+
+      const yourXp =
+        yourStatsSnap.exists() ? Number(yourStatsSnap.data().xp) || 0 : 0;
+
+      users.push({
+        id: user.uid,
+        name: yourName,
+        xp: yourXp,
+      });
+    }
+
+    // Sort by XP (highest first)
+    users.sort((a, b) => b.xp - a.xp);
+
+    // 🎨 Build leaderboard UI
+    leaderboardSection.innerHTML = "";
+    users.forEach((u, i) => {
+      const div = document.createElement("div");
+      div.classList.add("user-entry");
+
+      if (i === 0) div.classList.add("top1");
+      else if (i === 1) div.classList.add("top2");
+      else if (i === 2) div.classList.add("top3");
+      if (u.id === user.uid) div.classList.add("current-user");
+
+      const medal =
+        i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
+
+      div.innerHTML = `
+        <span>${medal} ${u.name}</span>
+        <span>${u.xp} XP</span>
+      `;
+      leaderboardSection.appendChild(div);
     });
+
+  } catch (err) {
+    console.error("❌ Error loading leaderboard:", err);
+    leaderboardSection.innerHTML = "<p>❌ Failed to load leaderboard.</p>";
   }
-
-  // Ensure your own profile appears even if others are missing
-  if (!users.some((u) => u.id === user.uid)) {
-    const yourStatsRef = doc(db, "users", user.uid, "data", "stats");
-    const yourStatsSnap = await getDoc(yourStatsRef);
-    const yourXp = yourStatsSnap.exists() ? Number(yourStatsSnap.data().xp) || 0 : 0;
-
-    users.push({
-      id: user.uid,
-      name: user.displayName || user.email,
-      xp: yourXp,
-    });
-  }
-
-  // Sort users by XP descending
-  users.sort((a, b) => b.xp - a.xp);
-
-  // 🧱 Build leaderboard UI
-  leaderboardSection.innerHTML = "";
-  users.forEach((u, i) => {
-    const div = document.createElement("div");
-    div.classList.add("user-entry");
-    if (i === 0) div.classList.add("top1");
-    else if (i === 1) div.classList.add("top2");
-    else if (i === 2) div.classList.add("top3");
-    if (u.id === user.uid) div.classList.add("current-user");
-
-    const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
-    div.innerHTML = `
-      <span>${medal} ${u.name}</span>
-      <span>${u.xp} XP</span>
-    `;
-    leaderboardSection.appendChild(div);
-  });
 });

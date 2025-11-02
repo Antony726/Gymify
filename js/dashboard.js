@@ -71,61 +71,79 @@ function getLevelProgress(xp) {
 
 // 💪 Next workout loader
 async function loadNextWorkout(user) {
+  const todayDiv = document.getElementById("workout-split");
   const nextDiv = document.getElementById("next-workout");
+
+  todayDiv.textContent = "Loading...";
+  nextDiv.textContent = "Loading...";
+
   try {
     const planRef = doc(db, "users", user.uid, "data", "plan");
     const planSnap = await getDoc(planRef);
+
     if (!planSnap.exists()) {
-      nextDiv.textContent = "⚠️ No workout plan found. Create one first.";
+      todayDiv.textContent = "⚠️ No workout plan found.";
+      nextDiv.textContent = "";
       return;
     }
 
     const plan = planSnap.data();
-    const planDays = Object.keys(plan);
-    if (planDays.length === 0) {
-      nextDiv.textContent = "No workouts in your plan.";
+    const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
+
+    if (!plan[todayName] || !plan[todayName].exercises) {
+      todayDiv.textContent = `🗓️ Rest day or no plan found for ${todayName}.`;
+      nextDiv.textContent = "";
       return;
     }
 
+    // 💪 Exercises for today
+    const todayExercises = plan[todayName].exercises.split(",").map(e => e.trim());
+
+    // 🕒 Get today's logs
     const logsRef = collection(db, "users", user.uid, "logs");
-    const q = query(logsRef, orderBy("timestamp", "desc"), limit(1));
+    const q = query(logsRef, orderBy("timestamp", "desc"), limit(50));
     const snapshot = await getDocs(q);
+    const todayDate = new Date().toISOString().split("T")[0];
 
-    let nextWorkout, nextDayName;
-    if (snapshot.empty) {
-      const firstDay = planDays[0];
-      const exercises = plan[firstDay]?.exercises?.split(",").map(e => e.trim()) || [];
-      nextWorkout = exercises[0] || "Start your first workout!";
-      nextDayName = firstDay;
-    } else {
-      const lastLog = snapshot.docs[0].data();
-      const lastExercise = lastLog.exerciseName || "";
+    const todayLogs = snapshot.docs
+      .map(d => d.data())
+      .filter(log => log.date && log.date.startsWith(todayDate));
 
-      for (let i = 0; i < planDays.length; i++) {
-        const day = planDays[i];
-        const exercises = plan[day]?.exercises?.split(",").map(e => e.trim()) || [];
-        if (exercises.includes(lastExercise)) {
-          const nextIndex = exercises.indexOf(lastExercise) + 1;
-          if (nextIndex < exercises.length) {
-            nextWorkout = exercises[nextIndex];
-            nextDayName = day;
-          } else {
-            const nextDay = planDays[(i + 1) % planDays.length];
-            const nextExercises = plan[nextDay]?.exercises?.split(",").map(e => e.trim()) || [];
-            nextWorkout = nextExercises[0];
-            nextDayName = nextDay;
-          }
-          break;
-        }
+    const doneExercises = todayLogs
+    .map(l => {
+      // Extract just the exercise name portion
+      if (l.workout?.includes(" - ")) {
+        return l.workout.split(" - ")[1].trim();
       }
-    }
+      return l.workout?.trim();
+    })
+    .filter(Boolean);
 
-    nextDiv.innerHTML = `<b>${nextDayName}</b>: ${nextWorkout}`;
+    const nextExercise = todayExercises.find(e => !doneExercises.includes(e));
+
+    // 🧾 Update today's workout section
+    todayDiv.innerHTML = `
+      <b>${todayName} Workout:</b><br>
+      ${todayExercises.map(ex => 
+        doneExercises.includes(ex)
+          ? `✅ ${ex}`
+          : `⬜ ${ex}`
+      ).join("<br>")}
+    `;
+
+    // 🎯 Next workout suggestion
+    if (!nextExercise) {
+      nextDiv.textContent = "✅ All workouts completed for today!";
+    } else {
+      nextDiv.innerHTML = `<b>Next up:</b> ${nextExercise}`;
+    }
   } catch (err) {
-    console.error("Error loading next workout:", err);
+    console.error("❌ Error loading next workout:", err);
+    todayDiv.textContent = "❌ Error loading workout.";
     nextDiv.textContent = "❌ Error loading next workout.";
   }
 }
+
 
 // 🧩 Daily Quest loader
 async function loadDailyQuest(user) {
@@ -251,6 +269,17 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   // Load workouts + quest
+// 🔁 Check if dashboard needs refresh after logging
+  // Always load today's workout first
   await loadNextWorkout(user);
+
+  // If user just came from workout page after logging
+  if (localStorage.getItem("refreshDashboardWorkout") === "true") {
+    console.log("Detected refresh flag — reloading next workout...");
+    await loadNextWorkout(user);
+    localStorage.removeItem("refreshDashboardWorkout");
+  }
+
+
   await loadDailyQuest(user);
 });

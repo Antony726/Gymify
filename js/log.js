@@ -132,9 +132,16 @@ logForm.addEventListener("submit", async (e) => {
     statusDiv.textContent = "✅ Workout logged and XP updated!";
     statusDiv.style.color = "green";
     logForm.reset();
-
-    // Re-fill today's date again after reset
     dateInput.value = todayISO;
+
+    // 🟢 Tell dashboard to refresh workout section
+    localStorage.setItem("refreshDashboardWorkout", "true");
+
+    // 🔁 Redirect to dashboard
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 1500);
+
 
   } catch (err) {
     console.error("🔥 Error logging workout:", err);
