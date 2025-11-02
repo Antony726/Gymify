@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnose & Fix Users</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 15px;
+      padding: 40px;
+      max-width: 700px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      color: #667eea;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      flex: 1;
+      padding: 15px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.fix-btn {
+      background: #28a745;
+    }
+
+    button.fix-btn:hover {
+      background: #218838;
+    }
+
+    #status {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      max-height: 500px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    #status p {
+      margin: 5px 0;
+      padding: 5px;
+      word-wrap: break-word;
+    }
+
+    #status p.success {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    #status p.error {
+      color: #dc3545;
+    }
+
+    #status p.info {
+      color: #667eea;
+    }
+
+    #status p.warning {
+      color: #ffc107;
+    }
+
+    .divider {
+      border-bottom: 2px solid #e9ecef;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 User Database Tool</h1>
+    
+    <div class="btn-group">
+      <button id="diagnose-btn">🔍 Diagnose Users</button>
+      <button id="fix-btn" class="fix-btn">🚀 Create All Data</button>
+    </div>
+    
+    <div id="status"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      setDoc,
+      getDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const status = document.getElementById("status");
+    const diagnoseBtn = document.getElementById("diagnose-btn");
+    const fixBtn = document.getElementById("fix-btn");
+
+    function addStatus(message, type = 'info') {
+      const p = document.createElement('p');
+      p.className = type;
+      p.innerHTML = message;
+      status.appendChild(p);
+      status.scrollTop = status.scrollHeight;
+    }
+
+    function addDivider() {
+      const div = document.createElement('div');
+      div.className = 'divider';
+      status.appendChild(div);
+    }
+
+    // Get users from Firebase Auth and their emails
+    const userEmails = {
+      "8KYfJnj8XPdHIXILBPUNEe38O1M2": "www@123.com",
+      "626itM1J20d2vjLW5ppNa2hqKVy2": "ant@123.com",
+      "eG5tFUq9blX3y3Soa70KAaPb7OZ2": "ak@123.com",
+      "v1NqiL8ROpdXbeM2u9AEijTN7zM2": "dd@123.com",
+      "BCwGThyAD9QGLXAey05A13ozbRC3": "pp@123.com",
+      "ZVvYVx5uFbYFM4zTsrHRPWliYZU2": "as@123.com",
+      "ZD4AG45s3PZNXyHdiDJqpH1aWJI2": "alex@123.com"
+    };
+
+    // DIAGNOSE BUTTON
+    diagnoseBtn.addEventListener("click", async () => {
+      diagnoseBtn.disabled = true;
+      diagnoseBtn.textContent = "⏳ Diagnosing...";
+      status.innerHTML = "";
+      addStatus("🔍 <strong>DIAGNOSING DATABASE...</strong>", 'info');
+      addDivider();
+
+      try {
+        // Check what exists in Firestore
+        const usersRef = collection(db, "users");
+        const snapshot = await getDocs(usersRef);
+        
+        addStatus(`📊 Found ${snapshot.size} documents in 'users' collection`, 'info');
+        addDivider();
+
+        for (const [uid, email] of Object.entries(userEmails)) {
+          addStatus(`\n<strong>User: ${email}</strong> (${uid.substring(0, 10)}...)`, 'info');
+
+          // Check parent document
+          const parentRef = doc(db, "users", uid);
+          const parentSnap = await getDoc(parentRef);
+          addStatus(`  └─ Parent doc: ${parentSnap.exists() ? '✅ EXISTS' : '❌ MISSING'}`, 
+            parentSnap.exists() ? 'success' : 'error');
+
+          // Check profile
+          const profileRef = doc(db, "users", uid, "data", "profile");
+          const profileSnap = await getDoc(profileRef);
+          addStatus(`  └─ Profile: ${profileSnap.exists() ? '✅ EXISTS' : '❌ MISSING'}`, 
+            profileSnap.exists() ? 'success' : 'error');
+          if (profileSnap.exists()) {
+            const data = profileSnap.data();
+            addStatus(`     Username: ${data.username || 'N/A'}`, 'info');
+          }
+
+          // Check stats
+          const statsRef = doc(db, "users", uid, "data", "stats");
+          const statsSnap = await getDoc(statsRef);
+          addStatus(`  └─ Stats: ${statsSnap.exists() ? '✅ EXISTS' : '❌ MISSING'}`, 
+            statsSnap.exists() ? 'success' : 'error');
+
+          // Check social
+          const socialRef = doc(db, "users", uid, "data", "social");
+          const socialSnap = await getDoc(socialRef);
+          addStatus(`  └─ Social: ${socialSnap.exists() ? '✅ EXISTS' : '❌ MISSING'}`, 
+            socialSnap.exists() ? 'success' : 'error');
+
+          addDivider();
+        }
+
+        addStatus("\n✅ <strong>DIAGNOSIS COMPLETE!</strong>", 'success');
+      } catch (error) {
+        addStatus(`❌ Error: ${error.message}`, 'error');
+        console.error(error);
+      }
+
+      diagnoseBtn.disabled = false;
+      diagnoseBtn.textContent = "🔍 Diagnose Users";
+    });
+
+    // FIX BUTTON
+    fixBtn.addEventListener("click", async () => {
+      if (!confirm("This will create ALL missing documents for all users. Continue?")) {
+        return;
+      }
+
+      fixBtn.disabled = true;
+      fixBtn.textContent = "⏳ Fixing...";
+      status.innerHTML = "";
+      addStatus("🚀 <strong>CREATING USER DATA...</strong>", 'info');
+      addDivider();
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const [uid, email] of Object.entries(userEmails)) {
+        const username = email.split('@')[0]; // Extract username from email
+        addStatus(`\n<strong>Processing: ${email}</strong>`, 'info');
+
+        try {
+          // 1. Create parent document
+          await setDoc(doc(db, "users", uid), {
+            uid: uid,
+            email: email,
+            createdAt: serverTimestamp()
+          }, { merge: true });
+          addStatus(`  ✅ Parent document created`, 'success');
+
+          // 2. Create profile
+          await setDoc(doc(db, "users", uid, "data", "profile"), {
+            username: username,
+            email: email,
+            createdAt: serverTimestamp()
+          }, { merge: true });
+          addStatus(`  ✅ Profile created (username: ${username})`, 'success');
+
+          // 3. Create stats
+          await setDoc(doc(db, "users", uid, "data", "stats"), {
+            xp: 0,
+            streak: 0,
+            lastWorkoutDate: null,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+          addStatus(`  ✅ Stats initialized`, 'success');
+
+          // 4. Create social data
+          await setDoc(doc(db, "users", uid, "data", "social"), {
+            friends: [],
+            sentRequests: [],
+            receivedRequests: [],
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+          addStatus(`  ✅ Social data initialized`, 'success');
+
+          addStatus(`✅ <strong>${email} completed successfully!</strong>`, 'success');
+          successCount++;
+
+        } catch (error) {
+          addStatus(`  ❌ Error: ${error.message}`, 'error');
+          console.error("Error details:", error);
+          errorCount++;
+        }
+
+        addDivider();
+      }
+
+      addStatus(`\n🎉 <strong>FIX COMPLETE!</strong>`, 'success');
+      addStatus(`✅ Success: ${successCount} users`, 'success');
+      if (errorCount > 0) {
+        addStatus(`❌ Errors: ${errorCount} users`, 'error');
+      }
+      addStatus(`\n✨ Refresh your friends page to see all users!`, 'info');
+
+      fixBtn.disabled = false;
+      fixBtn.textContent = "✅ Fix Complete";
+    });
+  </script>
+</body>
+</html>

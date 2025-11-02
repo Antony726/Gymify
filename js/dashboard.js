@@ -27,6 +27,7 @@ const db = getFirestore(app);
 const usernameEl = document.getElementById("username");
 const logoutBtn = document.getElementById("logout-btn");
 const workoutSplitEl = document.getElementById("workout-split");
+const questBtn = document.getElementById("complete-quest");
 const questEl = document.getElementById("daily-quest");
 const quoteEl = document.getElementById("coach-quote");
 const xpEl = document.getElementById("xp-display");
@@ -68,10 +69,9 @@ function getLevelProgress(xp) {
   return Math.min(100, Math.round(((xp - level.min) / (nextMin - level.min)) * 100));
 }
 
-// 💡 Next Workout (show 1 at a time)
+// 💪 Next workout loader
 async function loadNextWorkout(user) {
   const nextDiv = document.getElementById("next-workout");
-
   try {
     const planRef = doc(db, "users", user.uid, "data", "plan");
     const planSnap = await getDoc(planRef);
@@ -87,25 +87,20 @@ async function loadNextWorkout(user) {
       return;
     }
 
-    // Get last logged workout
     const logsRef = collection(db, "users", user.uid, "logs");
     const q = query(logsRef, orderBy("timestamp", "desc"), limit(1));
     const snapshot = await getDocs(q);
 
-    let nextWorkout = null;
-    let nextDayName = null;
-
+    let nextWorkout, nextDayName;
     if (snapshot.empty) {
-      // No log yet → show first exercise of first day
       const firstDay = planDays[0];
-      const firstExercises = plan[firstDay]?.exercises?.split(",").map(e => e.trim()) || [];
-      nextWorkout = firstExercises[0] || "Start your first workout!";
+      const exercises = plan[firstDay]?.exercises?.split(",").map(e => e.trim()) || [];
+      nextWorkout = exercises[0] || "Start your first workout!";
       nextDayName = firstDay;
     } else {
       const lastLog = snapshot.docs[0].data();
       const lastExercise = lastLog.exerciseName || "";
 
-      // Find last exercise position in plan
       for (let i = 0; i < planDays.length; i++) {
         const day = planDays[i];
         const exercises = plan[day]?.exercises?.split(",").map(e => e.trim()) || [];
@@ -115,7 +110,6 @@ async function loadNextWorkout(user) {
             nextWorkout = exercises[nextIndex];
             nextDayName = day;
           } else {
-            // Move to next day
             const nextDay = planDays[(i + 1) % planDays.length];
             const nextExercises = plan[nextDay]?.exercises?.split(",").map(e => e.trim()) || [];
             nextWorkout = nextExercises[0];
@@ -123,14 +117,6 @@ async function loadNextWorkout(user) {
           }
           break;
         }
-      }
-
-      // Fallback if not found
-      if (!nextWorkout) {
-        const firstDay = planDays[0];
-        const firstExercises = plan[firstDay]?.exercises?.split(",").map(e => e.trim()) || [];
-        nextWorkout = firstExercises[0];
-        nextDayName = firstDay;
       }
     }
 
@@ -141,96 +127,130 @@ async function loadNextWorkout(user) {
   }
 }
 
-// 👀 Auth State
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
+// 🧩 Daily Quest loader
+async function loadDailyQuest(user) {
+  const today = new Date().toISOString().split("T")[0];
+  const questRef = doc(db, "users", user.uid, "data", "dailyQuest");
+  const questSnap = await getDoc(questRef);
+
+  let questData;
+  if (questSnap.exists()) {
+    questData = questSnap.data();
+    if (questData.date === today) {
+      questEl.textContent = questData.text;
+      quoteEl.textContent = `"${questData.quote}"`;
+      if (questData.completed) {
+        questBtn.disabled = true;
+        questBtn.textContent = "✅ Quest Completed";
+      }
+      return;
+    }
   }
 
-  usernameEl.textContent = user.displayName || user.email;
+  // New daily quest
+  const randomQuest = quests[Math.floor(Math.random() * quests.length)];
+  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+  const isSpecial = Math.random() < 0.2;
+  const questText = isSpecial ? `🌟 SPECIAL QUEST: ${randomQuest}` : randomQuest;
 
-  const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
+  questData = {
+    text: questText,
+    quote: randomQuote,
+    date: today,
+    isSpecial,
+    completed: false,
+  };
+  await setDoc(questRef, questData);
 
-  // ✅ Fetch today’s workout plan
-  const planRef = doc(db, "users", user.uid, "data", "plan");
-  const planSnap = await getDoc(planRef);
-  let todayIsRestDay = false;
+  questEl.textContent = questText;
+  quoteEl.textContent = `"${randomQuote}"`;
+}
 
-  if (planSnap.exists()) {
-    const plan = planSnap.data();
-    const todayName = today.toLocaleDateString("en-US", { weekday: "long" });
-    const todayPlan = plan[todayName];
-    if (todayPlan?.type === "Rest") {
-      workoutSplitEl.textContent = "Rest Day 💤";
-      todayIsRestDay = true;
-    } else {
-      workoutSplitEl.textContent = `${todayPlan?.type || "No plan"} – ${todayPlan?.exercises || ""}`;
-    }
+// 🧠 Quest Completion
+questBtn?.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const questRef = doc(db, "users", user.uid, "data", "dailyQuest");
+  const questSnap = await getDoc(questRef);
+  if (!questSnap.exists()) return alert("No quest found for today.");
+
+  const quest = questSnap.data();
+  if (quest.completed) return alert("🎯 You already completed today's quest!");
+
+  const statsRef = doc(db, "users", user.uid, "data", "stats");
+  const statsSnap = await getDoc(statsRef);
+  if (!statsSnap.exists()) return alert("No stats found yet.");
+
+  let { xp = 0, hearts = 4 } = statsSnap.data();
+  const xpGain = quest.isSpecial ? 20 : 10;
+
+  if (quest.isSpecial && hearts < 4) {
+    hearts += 1;
+    alert("🌟 Special Quest Complete! +1 ❤️ and +20 XP!");
+  } else if (quest.isSpecial) {
+    alert("🌟 Special Quest Complete! ❤️ Full, +20 XP!");
   } else {
-    workoutSplitEl.textContent = "No workout plan found. Go create one 💪";
+    alert("🎯 Quest Completed! +10 XP!");
   }
 
-  // ✅ Load XP + streak
-  try {
-    const statsRef = doc(db, "users", user.uid, "data", "stats");
-    const statsSnap = await getDoc(statsRef);
+  xp += xpGain;
 
-    let xp = 0;
-    let streak = 0;
-    let lastWorkoutDate = null;
-    if (statsSnap.exists()) ({ xp, streak, lastWorkoutDate } = statsSnap.data());
+  await setDoc(statsRef, { ...statsSnap.data(), xp, hearts, updatedAt: serverTimestamp() });
+  await setDoc(questRef, { ...quest, completed: true });
 
-    const logsRef = collection(db, "users", user.uid, "logs");
-    const logsSnap = await getDocs(logsRef);
-    const logDates = new Set();
-    logsSnap.forEach((log) => {
-      const data = log.data();
-      if (data.date) logDates.add(data.date);
-    });
-
-    const hasWorkedOutToday = logDates.has(todayStr);
-
-    if (todayIsRestDay) {
-      // rest day → keep streak
-    } else if (hasWorkedOutToday && lastWorkoutDate !== todayStr) {
-      if (lastWorkoutDate === yesterdayStr) streak += 1;
-      else streak = 1;
-      xp += 10;
-      lastWorkoutDate = todayStr;
-    } else if (!hasWorkedOutToday && lastWorkoutDate !== yesterdayStr && !todayIsRestDay) {
-      streak = 0;
-    }
-
-    await setDoc(statsRef, { xp, streak, lastWorkoutDate, updatedAt: serverTimestamp() });
-
-    xpEl.textContent = `⭐ XP: ${xp}`;
-    streakEl.textContent = `🔥 Streak: ${streak} days`;
-
-    const level = getLevelFromXP(xp);
-    gymifyLevelEl.textContent = `${level.icon} ${level.tier}`;
-
-    const progress = getLevelProgress(xp);
-    const xpBar = document.getElementById("xp-bar");
-    if (xpBar) xpBar.style.width = `${progress}%`;
-  } catch (err) {
-    console.error("⚠️ Error updating XP/streak:", err);
-  }
-
-  // 🧠 Daily Quest + Quote
-  questEl.textContent = quests[Math.floor(Math.random() * quests.length)];
-  quoteEl.textContent = quotes[Math.floor(Math.random() * quotes.length)];
-
-  // 💡 Load Next Workout
-  loadNextWorkout(user);
+  xpEl.textContent = `⭐ XP: ${xp}`;
+  document.getElementById("energy").textContent = "❤️".repeat(hearts) + "🖤".repeat(4 - hearts);
+  questBtn.disabled = true;
+  questBtn.textContent = "✅ Quest Completed";
 });
 
 // 🚪 Logout
 logoutBtn?.addEventListener("click", async () => {
   await signOut(auth);
   window.location.href = "login.html";
+});
+
+// 👀 Auth State (main block)
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  console.log("Logged in user:", user.uid, user.email);
+
+  // Profile
+  const profileRef = doc(db, "users", user.uid, "data", "profile");
+  const profileSnap = await getDoc(profileRef);
+  usernameEl.textContent =
+    (profileSnap.exists() && profileSnap.data().username) ||
+    user.displayName ||
+    user.email.split("@")[0];
+
+  // Stats + XP + Hearts + Streak
+  try {
+    const statsRef = doc(db, "users", user.uid, "data", "stats");
+    const statsSnap = await getDoc(statsRef);
+    let xp = 0, streak = 0, hearts = 4;
+
+    if (!statsSnap.exists()) {
+      await setDoc(statsRef, { xp, streak, hearts, lastWorkoutDate: "", updatedAt: serverTimestamp() });
+    } else ({ xp, streak, hearts } = statsSnap.data());
+
+    xpEl.textContent = `⭐ XP: ${xp}`;
+    streakEl.textContent = `🔥 Streak: ${streak} days`;
+    document.getElementById("energy").textContent = "❤️".repeat(hearts) + "🖤".repeat(4 - hearts);
+
+    const level = getLevelFromXP(xp);
+    gymifyLevelEl.textContent = `${level.icon} ${level.tier}`;
+    const xpBar = document.getElementById("xp-bar");
+    if (xpBar) xpBar.style.width = `${getLevelProgress(xp)}%`;
+  } catch (e) {
+    console.error("⚠️ Error loading stats:", e);
+  }
+
+  // Load workouts + quest
+  await loadNextWorkout(user);
+  await loadDailyQuest(user);
 });

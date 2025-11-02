@@ -32,55 +32,107 @@
     import {
       getFirestore,
       doc,
-      setDoc
+      setDoc,
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
     import { firebaseConfig } from "./js/firebase-config.js";
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-      const form = document.getElementById("signup-form");
-      const msg = document.getElementById("message");
+    const form = document.getElementById("signup-form");
+    const msg = document.getElementById("message");
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-        const username = document.getElementById("signup-username").value.trim().toLowerCase();
-        const email = document.getElementById("signup-email").value;
-        const password = document.getElementById("signup-password").value;
+      const username = document.getElementById("signup-username").value.trim();
+      const email = document.getElementById("signup-email").value.trim();
+      const password = document.getElementById("signup-password").value;
 
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
+      if (username.length < 3) {
+        msg.textContent = "❌ Username must be at least 3 characters";
+        msg.style.color = "red";
+        return;
+      }
 
-          await updateProfile(user, { displayName: username });
+      msg.textContent = "⏳ Creating account...";
+      msg.style.color = "orange";
 
-          await setDoc(doc(db, "users", user.uid), {
-            username: username,
-            email: email,
-            xp: 0,
-            friends: [],
-            createdAt: new Date().toISOString(),
-          });
+      try {
+        // Step 1: Create auth user
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-          msg.textContent = "✅ Signup successful! Redirecting...";
-          setTimeout(() => (window.location.href = "dashboard.html"), 1500);
-        } catch (error) {
-          console.error("Signup error:", error);
-          msg.textContent = error.message;
-        }
-      });
+        // Step 2: Update displayName
+        await updateProfile(user, { displayName: username });
 
-      // Redirect logged-in users automatically
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
+        // Step 3: 🔥 CREATE PARENT DOCUMENT FIRST (Critical!)
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          email: email,
+          createdAt: serverTimestamp()
+        });
+
+        // Step 4: Create profile
+        await setDoc(doc(db, "users", user.uid, "data", "profile"), {
+          username: username,
+          email: email,
+          createdAt: serverTimestamp()
+        });
+
+        // Step 5: Create stats
+        await setDoc(doc(db, "users", user.uid, "data", "stats"), {
+          xp: 0,
+          streak: 0,
+          hearts: 4,
+          lastWorkoutDate: null,
+          updatedAt: serverTimestamp()
+        });
+
+        // Step 6: Create social data
+        await setDoc(doc(db, "users", user.uid, "data", "social"), {
+          friends: [],
+          sentRequests: [],
+          receivedRequests: [],
+          updatedAt: serverTimestamp()
+        });
+
+        msg.textContent = "✅ Account created! Redirecting...";
+        msg.style.color = "green";
+
+        setTimeout(() => {
           window.location.href = "dashboard.html";
+        }, 1000);
+
+      } catch (error) {
+        console.error("❌ Signup error:", error);
+        
+        let errorMsg = "❌ Signup failed: ";
+        if (error.code === "auth/email-already-in-use") {
+          errorMsg += "Email already registered";
+        } else if (error.code === "auth/weak-password") {
+          errorMsg += "Password too weak (min 6 characters)";
+        } else if (error.code === "auth/invalid-email") {
+          errorMsg += "Invalid email format";
+        } else {
+          errorMsg += error.message;
         }
-      });
+        
+        msg.textContent = errorMsg;
+        msg.style.color = "red";
+      }
+    });
+
+    // Auto-redirect if already logged in
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "dashboard.html";
+      }
     });
   </script>
+
 
   <script type="module" src="js/redirectIfLoggedIn.js" defer></script>
 
