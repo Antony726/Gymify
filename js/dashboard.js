@@ -52,22 +52,36 @@ const quotes = [
 ];
 
 // 🏅 XP → Level Mapping
-function getLevelFromXP(xp) {
-  if (xp >= 500) return { tier: "Platinum", icon: "💎", min: 500 };
-  if (xp >= 250) return { tier: "Gold", icon: "🥇", min: 250 };
-  if (xp >= 100) return { tier: "Silver", icon: "🥈", min: 100 };
-  return { tier: "Bronze", icon: "🥉", min: 0 };
-}
+// function getLevelFromXP(xp) {
+//   if (xp >= 500) return { tier: "Platinum", icon: "💎", min: 500 };
+//   if (xp >= 250) return { tier: "Gold", icon: "🥇", min: 250 };
+//   if (xp >= 100) return { tier: "Silver", icon: "🥈", min: 100 };
+//   return { tier: "Bronze", icon: "🥉", min: 0 };
+// }
 
-// 📈 Level progress %
-function getLevelProgress(xp) {
-  const level = getLevelFromXP(xp);
-  const nextMin =
-    level.min === 0 ? 100 :
-    level.min === 100 ? 250 :
-    level.min === 250 ? 500 : level.min;
-  return Math.min(100, Math.round(((xp - level.min) / (nextMin - level.min)) * 100));
-}
+// // 📈 Level progress %
+// function getLevelProgress(xp) {
+//   const level = getLevelFromXP(xp);
+//   const nextMin =
+//     level.min === 0 ? 100 :
+//     level.min === 100 ? 250 :
+//     level.min === 250 ? 500 : level.min;
+//   return Math.min(100, Math.round(((xp - level.min) / (nextMin - level.min)) * 100));
+// }
+  // 🧩 Level calculation — 200 XP per level
+  function getLevelFromXP(xp) {
+    const xpPerLevel = 200;
+    const level = Math.floor(xp / xpPerLevel) + 1;
+    const currentMin = (level - 1) * xpPerLevel;
+    return { level, min: currentMin, xpPerLevel };
+  }
+
+  // 📈 Level progress %
+  function getLevelProgress(xp) {
+    const { min, xpPerLevel } = getLevelFromXP(xp);
+    return Math.min(100, Math.round(((xp - min) / xpPerLevel) * 100));
+  }
+
 
 // 💪 Next workout loader
 async function loadNextWorkout(user) {
@@ -260,8 +274,11 @@ onAuthStateChanged(auth, async (user) => {
     streakEl.textContent = `🔥 Streak: ${streak} days`;
     document.getElementById("energy").textContent = "❤️".repeat(hearts) + "🖤".repeat(4 - hearts);
 
-    const level = getLevelFromXP(xp);
-    gymifyLevelEl.textContent = `${level.icon} ${level.tier}`;
+    const levelInfo = getLevelFromXP(xp);
+    // gymifyLevelEl.textContent = `🏆 Level <b>${levelInfo.level}</b>`;
+    gymifyLevelEl.innerHTML = `<b style="color:#ffcc00;">${levelInfo.level}</b>`;
+
+
     const xpBar = document.getElementById("xp-bar");
     if (xpBar) xpBar.style.width = `${getLevelProgress(xp)}%`;
   } catch (e) {
