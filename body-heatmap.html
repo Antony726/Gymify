@@ -111,7 +111,7 @@
     }
 
     .info-panel {
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      background: linear-gradient(135deg, #0c1118 0%, #0f172a 100%);
       color: #f8fafc;
       border-radius: 15px;
       padding: 25px;
@@ -121,8 +121,10 @@
     }
     .info-card {
     background: #111827;
-    color: #e2e8f0;
-    box-shadow: 0 0 10px rgba(102, 252, 241, 0.2);
+    color: #ffffff;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
     }
 
 
@@ -149,7 +151,7 @@
     }
 
     .info-header h3 {
-      color: #667eea;
+      color: #fbfcff;
       font-size: 24px;
     }
 
@@ -184,14 +186,14 @@
 
     .info-label {
       font-size: 12px;
-      color: #666;
+      color: #d3d3d3;
       text-transform: uppercase;
       margin-bottom: 5px;
     }
 
     .info-value {
       font-size: 18px;
-      color: #333;
+      color: #cfcfcf;
       font-weight: 600;
     }
 
@@ -265,6 +267,12 @@
 
     @media (max-width: 768px) {
     .container {
+    width: 95%;
+    margin: 10px auto;
+    padding: 15px;
+    }
+
+    .container {
         padding: 20px;
         border-radius: 12px;
     }
@@ -296,6 +304,23 @@
         font-size: 14px;
     }
     }
+    @media (max-width: 480px) {
+        
+    .container {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    header h2 {
+        font-size: 20px;
+    }
+
+    header p {
+        font-size: 13px;
+    }
+    }
+
 
   </style>
 </head>
@@ -614,5 +639,4 @@
     });
   </script>
 </body>
-
 </html>

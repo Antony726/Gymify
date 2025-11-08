@@ -1,0 +1,126 @@
+body {
+  font-family: "Poppins", sans-serif;
+  background: #121212;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* prevents vertical cutoff on short screens */
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px; /* adds breathing space */
+}
+
+.container {
+  background: #1e1e1e;
+  padding: 25px 35px;
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 400px; /* allows shrink on mobile */
+  box-sizing: border-box;
+}
+
+
+h2, h3, h4 {
+  text-align: center;
+  color: #00bcd4;
+  margin-bottom: 10px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+label {
+  font-weight: 500;
+  color: #ccc;
+}
+
+select, input, textarea {
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+select:focus, input:focus, textarea:focus {
+  border-color: #00bcd4;
+  box-shadow: 0 0 5px #00bcd4;
+}
+
+.sets-container {
+  background: #242424;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.set h4 {
+  color: #ffcc00;
+  margin-bottom: 5px;
+}
+
+button {
+  background: linear-gradient(135deg, #00bcd4, #2196f3);
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: 600;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #2196f3, #00bcd4);
+  transform: scale(1.03);
+}
+
+#status {
+  text-align: center;
+  margin-top: 10px;
+  color: #00e676;
+  font-weight: 500;
+}
+
+#back-btn {
+  margin-top: 15px;
+  width: 100%;
+  background: #444;
+  color: #fff;
+}
+
+#back-btn:hover {
+  background: #555;
+}
+@media (max-width: 480px) {
+  body {
+    align-items: center; /* center vertically on very small devices */
+    padding: 10px;
+  }
+
+  .container {
+    padding: 20px;
+    border-radius: 15px;
+    width: 95%; /* fits within mobile screen */
+  }
+
+  h2, h3, h4 {
+    font-size: 18px;
+  }
+
+  select, input, textarea {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
