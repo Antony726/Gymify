@@ -1,55 +1,77 @@
-/* Global dark theme consistent with dashboard and plan pages */
+/* 🌙 Global Dark Mobile Theme */
 body {
   font-family: "Poppins", sans-serif;
   background: #121212;
-  color: #fff;
+  color: #ffffff;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   height: 100vh;
   margin: 0;
+  padding: 20px 10px;
+  overflow-y: auto;
 }
 
+/* 🧱 Main Container */
 .container {
   background: #1e1e1e;
-  padding: 25px 35px;
-  border-radius: 20px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-  width: 400px;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 450px;
+  box-sizing: border-box;
 }
 
+/* 📘 Headings */
 h2, h3, h4 {
   text-align: center;
   color: #00bcd4;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
+/* 🧾 Form Styles */
 form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  width: 100%;
 }
 
+/* 🏷️ Labels */
 label {
   font-weight: 500;
   color: #ccc;
+  font-size: 14px;
+  margin-bottom: 5px;
 }
 
-select, input, textarea {
+/* 🧩 Inputs, Selects, Textareas */
+select,
+input,
+textarea {
+  width: 100%;
   background: #2a2a2a;
   color: #fff;
   border: 1px solid #444;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 14px;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 15px;
   outline: none;
+  transition: 0.3s;
+  box-sizing: border-box;
 }
 
-select:focus, input:focus, textarea:focus {
+select:focus,
+input:focus,
+textarea:focus {
   border-color: #00bcd4;
   box-shadow: 0 0 5px #00bcd4;
 }
 
+/* 📦 Sets Container */
 .sets-container {
   background: #242424;
   padding: 10px;
@@ -60,38 +82,69 @@ select:focus, input:focus, textarea:focus {
 .set h4 {
   color: #ffcc00;
   margin-bottom: 5px;
+  font-size: 15px;
 }
 
+/* 🔘 Buttons */
 button {
   background: linear-gradient(135deg, #00bcd4, #2196f3);
   color: white;
   border: none;
-  padding: 10px;
+  padding: 12px;
   border-radius: 10px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: all 0.3s ease;
   font-weight: 600;
+  font-size: 15px;
+  width: 100%;
 }
 
 button:hover {
   background: linear-gradient(135deg, #2196f3, #00bcd4);
-  transform: scale(1.03);
+  transform: scale(1.02);
 }
 
+/* ✅ Status Text */
 #status {
   text-align: center;
-  margin-top: 10px;
+  margin-top: 12px;
   color: #00e676;
   font-weight: 500;
+  font-size: 14px;
 }
 
+/* ◀️ Back Button */
 #back-btn {
   margin-top: 15px;
-  width: 100%;
   background: #444;
   color: #fff;
 }
 
 #back-btn:hover {
   background: #555;
+}
+
+/* 📱 Extra Mobile Tweaks */
+@media (max-width: 480px) {
+  body {
+    padding: 15px 8px;
+  }
+
+  .container {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  input, select, textarea, button {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  h3, h4 {
+    font-size: 16px;
+  }
 }

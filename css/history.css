@@ -4,10 +4,11 @@ body {
   color: #c5c6c7;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; /* align top to allow natural scroll */
   height: 100vh;
   margin: 0;
-  overflow: hidden;
+  overflow-y: auto; /* page scrolls */
+  padding: 20px 0; /* small breathing space */
 }
 
 .container {
@@ -19,21 +20,25 @@ body {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  height: 90vh;
+  min-height: 90vh;
+  box-sizing: border-box;
 }
 
+/* title */
 h2 {
   color: #66fcf1;
   text-align: center;
   margin-bottom: 15px;
 }
 
+/* make this flow naturally (no inner scroll) */
 #history-container {
   flex: 1;
-  overflow-y: auto;
   padding-right: 10px;
+  overflow: visible; /* remove independent scroll */
 }
 
+/* log boxes */
 .log-entry {
   background-color: #1e1e2f;
   color: #fff;
@@ -48,12 +53,14 @@ h2 {
   background: #45a29e;
 }
 
+/* button container fixed below log list */
 .button-container {
   display: flex;
   justify-content: space-between;
   margin-top: 15px;
 }
 
+/* buttons */
 button {
   background: #66fcf1;
   color: #0b0c10;
@@ -69,4 +76,23 @@ button {
 
 button:hover {
   background: #45a29e;
+}
+
+/* 📱 mobile spacing tweaks */
+@media (max-width: 480px) {
+  .container {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  .button-container {
+    flex-direction: column;
+    gap: 10px;
+  }
 }
