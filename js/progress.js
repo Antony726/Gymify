@@ -8,6 +8,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+const calendarEl = document.getElementById("calendar");
+const summaryEl = document.getElementById("summary");
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -17,38 +20,35 @@ onAuthStateChanged(auth, async (user) => {
   const logsRef = collection(db, "users", user.uid, "logs");
   const logsSnap = await getDocs(logsRef);
 
-  const dailyXP = {};
-
-  logsSnap.forEach((doc) => {
+  const workoutDates = new Set();
+  logsSnap.forEach(doc => {
     const data = doc.data();
-    if (data.date) {
-      if (!dailyXP[data.date]) dailyXP[data.date] = 0;
-      dailyXP[data.date] += 10; // each log = +10 XP
-    }
+    if (data.date) workoutDates.add(data.date);
   });
 
-  // Sort by date
-  const dates = Object.keys(dailyXP).sort();
-  const xpValues = dates.map((d) => dailyXP[d]);
+  const totalWorkoutDays = workoutDates.size;
+  const totalDays = 60; // last 60 days
+  const today = new Date();
 
-  // Chart.js
-  const ctx = document.getElementById("progressChart").getContext("2d");
-  new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: dates,
-      datasets: [{
-        label: "Daily XP",
-        data: xpValues,
-        borderWidth: 2
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
+  const days = [];
+  for (let i = totalDays - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+
+    const dayDiv = document.createElement("div");
+    dayDiv.classList.add("day");
+
+    if (workoutDates.has(dateStr)) {
+      dayDiv.classList.add("workout");
+      dayDiv.title = `${dateStr} ✅ Workout`;
+    } else {
+      dayDiv.classList.add("rest");
+      dayDiv.title = `${dateStr} 💤 Rest Day`;
     }
-  });
+
+    calendarEl.appendChild(dayDiv);
+  }
+
+  summaryEl.textContent = `🏋️ Total Gym Days: ${totalWorkoutDays} / ${totalDays}`;
 });

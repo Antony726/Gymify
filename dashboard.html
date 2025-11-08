@@ -44,6 +44,23 @@
       <h3>💡 Next Workout Recommendation</h3>
       <p id="next-workout">Loading next workout...</p>
     </section>
+    <!-- 💧 Water Reminder -->
+    <!-- 💧 + ⏱️ Combined Section -->
+    <section class="hydration-rest">
+      <div class="card water-card">
+        <h3>💧 Water Tracker</h3>
+        <p>You've had <span id="waterCount">0</span>/10 glasses today</p>
+        <button id="addWater">+ Add Glass</button>
+      </div>
+
+      <div class="card rest-card">
+        <h3>⏱️ Rest Timer</h3>
+        <input type="number" id="restInput" placeholder="Enter seconds" min="10" />
+        <button id="startTimer">Start</button>
+        <p id="timerDisplay"></p>
+      </div>
+    </section>
+
 
 
     <section class="daily-quest">
@@ -61,11 +78,13 @@
     <nav class="nav">
       <button onclick="window.location.href='log.html'">📝 Log Workout</button>
       <button onclick="window.location.href='history.html'">📜 View History</button>
-      <button onclick="window.location.href='progress.html'">📈 XP Progress</button>
       <button onclick="window.location.href='weight_track.html'">🏋️ Progress Tracker</button>
+      <button onclick="window.location.href='progress.html'">📈 Tracker</button>
+      <button onclick="window.location.href='body-heatmap.html'">🧍 Heatmap</button>
       <button onclick="window.location.href='achievements.html'">🏅 Achievements</button>
       <button onclick="window.location.href='leaderboard.html'">🏆 Leaderboard</button>
       <button onclick="window.location.href='friends.html'">👥 Friends</button>
+      <button onclick="window.location.href='feedback.html'">✍️ Feedback</button>
     </nav>
 
 

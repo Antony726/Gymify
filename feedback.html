@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💬 Feedback | Gymify</title>
+  <link rel="stylesheet" href="css/feedback.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="config.js"></script> <!-- 🔒 Your hidden keys -->
+</head>
+<body>
+  <div class="container">
+    <h2>💪 Help Improve Gymify</h2>
+    <p class="quote">“Your feedback helps make Gymify a smoother and stronger experience for everyone.”</p>
+
+    <form id="feedback-form">
+      <label for="name">👤 Your Name</label>
+      <input type="text" id="name" placeholder="Enter your name" required />
+
+      <label for="email">📧 Your Email</label>
+      <input type="email" id="email" placeholder="Enter your email" required />
+
+      <label for="type">📌 Feedback Type</label>
+      <select id="type" required>
+        <option value="">Select...</option>
+        <option value="Feature Request">Feature to Add</option>
+        <option value="Bug Report">Bug</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="details">📝 Detailed Description</label>
+      <textarea id="details" placeholder="Describe your feedback..." required></textarea>
+
+      <button type="submit">🚀 Submit Feedback</button>
+    </form>
+
+    <p id="status"></p>
+
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</button>
+  </div>
+
+  <script>
+    // ✅ Initialize EmailJS with hidden config
+    document.addEventListener("DOMContentLoaded", function() {
+      emailjs.init(window.EMAIL_CONFIG.PUBLIC_KEY);
+
+      const form = document.getElementById("feedback-form");
+      const status = document.getElementById("status");
+
+      form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const type = document.getElementById("type").value;
+        const message = document.getElementById("details").value;
+
+        const templateParams = {
+          user_name: name,
+          user_email: email,
+          feedback_type: type,
+          feedback_message: message,
+          time: new Date().toLocaleString()
+        };
+
+        emailjs.send(window.EMAIL_CONFIG.SERVICE_ID, window.EMAIL_CONFIG.TEMPLATE_ID, templateParams)
+          .then(() => {
+            status.textContent = "✅ Thank you! Your feedback has been sent successfully.";
+            status.style.color = "#66fcf1";
+            form.reset();
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            status.textContent = "❌ Failed to send feedback. Please try again later.";
+            status.style.color = "red";
+          });
+      });
+    });
+  </script>
+</body>
+</html>

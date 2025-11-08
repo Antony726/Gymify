@@ -3,15 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Progress | Gymify</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>🏋️‍♂️ Progress | Gymify</title>
   <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/progress.css" />
 </head>
 <body>
-  <div class="container">
-    <h2>📊 Your Progress</h2>
-    <canvas id="progressChart" width="400" height="200"></canvas>
-    <button onclick="window.location.href='dashboard.html'">⬅️ Back</button>
+  <div class="progress-container">
+    <h2>📆 Your Gymify Activity</h2>
+    <p id="summary" class="summary">Loading...</p>
+
+    <div id="calendar" class="calendar"></div>
+
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</button>
   </div>
 
   <script type="module" src="js/progress.js"></script>

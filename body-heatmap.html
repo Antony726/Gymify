@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gymify Body Heatmap</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+    color: #f0f0f0;
+    min-height: 100vh;
+    padding: 20px;
+    }
+
+
+    .container {
+    max-width: 80%;
+    margin: 0 auto;
+    background: #1f2937;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h2 {
+    color: #66fcf1;
+    font-size: 30px;
+    margin-bottom: 10px;
+    }
+
+    header p {
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .legend-color {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 2px solid #ddd;
+    }
+
+
+    .legend-text {
+      font-size: 14px;
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    .body-container {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+
+    .body-view {
+      text-align: center;
+    }
+
+    .body-view h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+
+    svg {
+      max-width: 300px;
+      height: auto;
+      filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.1));
+    }
+
+    .muscle {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      stroke: #333;
+      stroke-width: 2;
+    }
+
+    .muscle:hover {
+      opacity: 0.8;
+      stroke: #fff;
+      stroke-width: 3;
+      filter: brightness(1.1);
+    }
+
+    .info-panel {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #f8fafc;
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: 30px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+    .info-card {
+    background: #111827;
+    color: #e2e8f0;
+    box-shadow: 0 0 10px rgba(102, 252, 241, 0.2);
+    }
+
+
+    .info-panel.active {
+      display: block;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .info-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .info-header h3 {
+      color: #667eea;
+      font-size: 24px;
+    }
+
+    .close-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .close-btn:hover {
+      background: #c82333;
+      transform: scale(1.05);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    /* .info-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    } */
+
+    .info-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .info-value {
+      font-size: 18px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 5px;
+    }
+
+        .status-fresh {
+    background: #16a34a;
+    color: #fff;
+    }
+    .status-optimal {
+    background: #2563eb;
+    color: #fff;
+    }
+    .status-recovery {
+    background: #facc15;
+    color: #000;
+    }
+    .status-neglected {
+    background: #ef4444;
+    color: #fff;
+    }
+
+
+    .back-btn {
+    background: linear-gradient(135deg, #66fcf1, #45a29e);
+    /* margin-left: 50%; */
+    /* text-align: center; */
+    border-radius: 10px;
+    border: none;
+    height: 50px;
+    width: 400px;
+    color: #0d1117;
+    display: block;
+    margin: 0 auto;  
+    }
+    .back-btn:hover {
+    background: linear-gradient(135deg, #45a29e, #66fcf1);
+    }
+
+    .stats-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .stat-box {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    }
+
+    .stat-box h4 {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 5px;
+    }
+
+    .stat-box p {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+    .container {
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    header h2 {
+        font-size: 24px;
+    }
+
+    .body-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 25px;
+    }
+
+    svg {
+        max-width: 220px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-box p {
+        font-size: 22px;
+    }
+
+    .back-btn {
+        padding: 12px;
+        font-size: 14px;
+    }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h2>🗺️ Muscle Training Heatmap</h2>
+      <p>Visualize your training balance and identify neglected muscle groups</p>
+    </header>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: #4caf50;"></div>
+        <span class="legend-text">Fresh (0-2 days)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #2196f3;"></div>
+        <span class="legend-text">Optimal (Now’s the best time to train again) (3-5 days)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #ff9800;"></div>
+        <span class="legend-text">Recovery (6-7 days)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #f44336;"></div>
+        <span class="legend-text">Neglected (8+ days)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #9e9e9e;"></div>
+        <span class="legend-text">Never Trained</span>
+      </div>
+    </div>
+
+    <div class="stats-summary" id="statsSummary">
+      <div class="stat-box">
+        <h4>Muscles Trained</h4>
+        <p id="trainedCount">-</p>
+      </div>
+      <div class="stat-box">
+        <h4>Most Trained</h4>
+        <p id="mostTrained">-</p>
+      </div>
+      <div class="stat-box">
+        <h4>Needs Attention</h4>
+        <p id="needsAttention">-</p>
+      </div>
+    </div>
+
+    <div class="body-container">
+      <div class="body-view">
+        <h3>Front View</h3>
+        <svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+          <!-- Head -->
+          <circle cx="100" cy="25" r="20" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
+          
+          <!-- Neck -->
+          <rect x="92" y="40" width="16" height="15" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
+          
+          <!-- Shoulders -->
+          <ellipse id="shoulders" class="muscle" cx="70" cy="65" rx="20" ry="15" fill="#9e9e9e"/>
+          <ellipse id="shouldersR" class="muscle" cx="130" cy="65" rx="20" ry="15" fill="#9e9e9e"/>
+          
+          <!-- Chest -->
+          <ellipse id="chest" class="muscle" cx="100" cy="85" rx="35" ry="25" fill="#9e9e9e"/>
+          
+          <!-- Abs -->
+          <rect id="abs" class="muscle" x="85" y="105" width="30" height="45" rx="8" fill="#9e9e9e"/>
+          
+          <!-- Biceps -->
+          <ellipse id="biceps" class="muscle" cx="55" cy="95" rx="12" ry="20" fill="#9e9e9e"/>
+          <ellipse id="bicepsR" class="muscle" cx="145" cy="95" rx="12" ry="20" fill="#9e9e9e"/>
+          
+          <!-- Forearms -->
+          <rect id="forearms" class="muscle" x="48" y="115" width="12" height="35" rx="6" fill="#9e9e9e"/>
+          <rect id="forearmsR" class="muscle" x="140" y="115" width="12" height="35" rx="6" fill="#9e9e9e"/>
+          
+          <!-- Quads -->
+          <rect id="quads" class="muscle" x="82" y="155" width="16" height="60" rx="8" fill="#9e9e9e"/>
+          <rect id="quadsR" class="muscle" x="102" y="155" width="16" height="60" rx="8" fill="#9e9e9e"/>
+          
+          <!-- Calves -->
+          <ellipse id="calves" class="muscle" cx="90" cy="235" rx="8" ry="25" fill="#9e9e9e"/>
+          <ellipse id="calvesR" class="muscle" cx="110" cy="235" rx="8" ry="25" fill="#9e9e9e"/>
+        </svg>
+      </div>
+
+      <div class="body-view">
+        <h3>Back View</h3>
+        <svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+          <!-- Head -->
+          <circle cx="100" cy="25" r="20" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
+          
+          <!-- Neck -->
+          <rect x="92" y="40" width="16" height="15" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
+          
+          <!-- Traps -->
+          <path id="traps" class="muscle" d="M 75 55 Q 100 60 125 55 L 120 75 Q 100 80 80 75 Z" fill="#9e9e9e"/>
+          
+          <!-- Upper Back -->
+          <rect id="upperback" class="muscle" x="75" y="75" width="50" height="30" rx="10" fill="#9e9e9e"/>
+          
+          <!-- Lower Back -->
+          <rect id="lowerback" class="muscle" x="80" y="105" width="40" height="35" rx="8" fill="#9e9e9e"/>
+          
+          <!-- Triceps -->
+          <ellipse id="triceps" class="muscle" cx="55" cy="95" rx="12" ry="22" fill="#9e9e9e"/>
+          <ellipse id="tricepsR" class="muscle" cx="145" cy="95" rx="12" ry="22" fill="#9e9e9e"/>
+          
+          <!-- Glutes -->
+          <ellipse id="glutes" class="muscle" cx="100" cy="150" rx="30" ry="20" fill="#9e9e9e"/>
+          
+          <!-- Hamstrings -->
+          <rect id="hamstrings" class="muscle" x="82" y="165" width="16" height="50" rx="8" fill="#9e9e9e"/>
+          <rect id="hamstringsR" class="muscle" x="102" y="165" width="16" height="50" rx="8" fill="#9e9e9e"/>
+          
+          <!-- Calves -->
+          <ellipse id="calvesBack" class="muscle" cx="90" cy="235" rx="8" ry="25" fill="#9e9e9e"/>
+          <ellipse id="calvesBackR" class="muscle" cx="110" cy="235" rx="8" ry="25" fill="#9e9e9e"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+      <div class="info-header">
+        <h3 id="muscleName">-</h3>
+        <button class="close-btn" onclick="document.getElementById('infoPanel').classList.remove('active')">✕ Close</button>
+      </div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-label">Last Trained</div>
+          <div class="info-value" id="lastTrained">-</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Days Since</div>
+          <div class="info-value" id="daysSince">-</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Total Workouts</div>
+          <div class="info-value" id="totalWorkouts">-</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Status</div>
+          <div class="info-value">
+            <span class="status-badge" id="muscleStatus">-</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="window.location.href='dashboard.html'" class="back-btn">⬅️ Back to Dashboard</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const muscleMap = {
+      chest: "Chest",
+      shoulders: "Left Shoulder",
+      shouldersR: "Right Shoulder",
+      biceps: "Left Bicep",
+      bicepsR: "Right Bicep",
+      forearms: "Left Forearm",
+      forearmsR: "Right Forearm",
+      abs: "Abs",
+      quads: "Left Quad",
+      quadsR: "Right Quad",
+      calves: "Left Calf",
+      calvesR: "Right Calf",
+      traps: "Traps",
+      upperback: "Upper Back",
+      lowerback: "Lower Back",
+      triceps: "Left Tricep",
+      tricepsR: "Right Tricep",
+      glutes: "Glutes",
+      hamstrings: "Left Hamstring",
+      hamstringsR: "Right Hamstring",
+      calvesBack: "Left Calf",
+      calvesBackR: "Right Calf"
+    };
+
+    const muscleKeywords = {
+      chest: ["chest", "bench", "press", "fly", "pec"],
+      shoulders: ["shoulder", "press", "lateral", "front raise", "overhead"],
+      biceps: ["bicep", "curl", "preacher"],
+      triceps: ["tricep", "extension", "pushdown", "dip"],
+      forearms: ["forearm", "wrist", "grip"],
+      abs: ["abs", "crunch", "plank", "sit-up", "core"],
+      quads: ["quad", "squat", "leg press", "lunge", "leg extension"],
+      hamstrings: ["hamstring", "leg curl", "deadlift", "romanian"],
+      calves: ["calf", "raise"],
+      traps: ["trap", "shrug", "upright row"],
+      upperback: ["back", "row", "pulldown", "pull-up", "lat"],
+      lowerback: ["lower back", "deadlift", "hyperextension"],
+      glutes: ["glute", "hip thrust", "squat", "lunge"]
+    };
+
+    function identifyMuscleGroup(workoutName) {
+      const name = workoutName.toLowerCase();
+      for (const [muscle, keywords] of Object.entries(muscleKeywords)) {
+        if (keywords.some(kw => name.includes(kw))) {
+          return muscle;
+        }
+      }
+      return null;
+    }
+
+    function getColor(days) {
+      if (days === null || days === 999) return "#9e9e9e"; // Never trained
+      if (days <= 2) return "#4caf50";  // Fresh
+      if (days <= 5) return "#2196f3";  // Optimal
+      if (days <= 7) return "#ff9800";  // Recovery
+      return "#f44336";                 // Neglected
+    }
+
+    function getStatus(days) {
+      if (days === null || days === 999) return { text: "Never Trained", class: "status-neglected" };
+      if (days <= 2) return { text: "Fresh", class: "status-fresh" };
+      if (days <= 5) return { text: "Optimal", class: "status-optimal" };
+      if (days <= 7) return { text: "Recovery", class: "status-recovery" };
+      return { text: "Neglected", class: "status-neglected" };
+    }
+
+    async function loadMuscleData() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        const logsRef = collection(db, "users", user.uid, "logs");
+        const q = query(logsRef, orderBy("timestamp", "desc"));
+        const snap = await getDocs(q);
+
+        const muscleActivity = {};
+        const muscleCount = {};
+
+        snap.forEach(doc => {
+          const data = doc.data();
+          const workout = data.workout || "";
+          const date = data.date;
+
+          const muscle = identifyMuscleGroup(workout);
+          if (muscle) {
+            if (!muscleActivity[muscle] || new Date(date) > new Date(muscleActivity[muscle])) {
+              muscleActivity[muscle] = date;
+            }
+            muscleCount[muscle] = (muscleCount[muscle] || 0) + 1;
+          }
+        });
+
+        // Update all muscles
+        const today = new Date();
+        Object.keys(muscleMap).forEach(id => {
+          const baseMuscle = id.replace(/R$/, '').replace(/Back$/, '');
+          const date = muscleActivity[baseMuscle];
+          const daysAgo = date ? Math.floor((today - new Date(date)) / (1000 * 60 * 60 * 24)) : 999;
+          
+          const element = document.getElementById(id);
+          if (element) {
+            element.setAttribute("fill", getColor(daysAgo));
+            element.dataset.days = daysAgo;
+            element.dataset.lastDate = date || "Never";
+            element.dataset.count = muscleCount[baseMuscle] || 0;
+          }
+        });
+
+        // Update stats
+        const trainedMuscles = Object.keys(muscleActivity).length;
+        document.getElementById("trainedCount").textContent = trainedMuscles;
+
+        const mostTrained = Object.entries(muscleCount).sort((a, b) => b[1] - a[1])[0];
+        document.getElementById("mostTrained").textContent = mostTrained ? mostTrained[0] : "-";
+
+        const neglected = Object.entries(muscleActivity).filter(([m, date]) => {
+          const days = Math.floor((today - new Date(date)) / (1000 * 60 * 60 * 24));
+          return days >= 8;
+        }).length;
+        document.getElementById("needsAttention").textContent = neglected || "0";
+
+      } catch (err) {
+        console.error("Error loading muscle data:", err);
+      }
+    }
+
+    // Click handlers
+    document.querySelectorAll(".muscle").forEach(el => {
+      el.addEventListener("click", e => {
+        const id = e.target.id;
+        const name = muscleMap[id];
+        const days = parseInt(e.target.dataset.days);
+        const lastDate = e.target.dataset.lastDate;
+        const count = e.target.dataset.count;
+
+        document.getElementById("muscleName").textContent = name;
+        document.getElementById("lastTrained").textContent = lastDate === "Never" ? "Never" : new Date(lastDate).toLocaleDateString();
+        document.getElementById("daysSince").textContent = days === 999 ? "Never" : `${days} days`;
+        document.getElementById("totalWorkouts").textContent = count;
+
+        const status = getStatus(days);
+        const statusEl = document.getElementById("muscleStatus");
+        statusEl.textContent = status.text;
+        statusEl.className = `status-badge ${status.class}`;
+
+        document.getElementById("infoPanel").classList.add("active");
+      });
+    });
+
+    onAuthStateChanged(auth, user => {
+      if (user) loadMuscleData();
+      else window.location.href = "login.html";
+    });
+  </script>
+</body>
+</html>

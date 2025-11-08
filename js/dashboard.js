@@ -47,41 +47,23 @@ const quotes = [
   "No pain, no gain – but no rest, no growth either.",
   "Show up today for a stronger you tomorrow.",
   "Discipline beats motivation every time.",
-  "If it doesn’t challenge you, it won’t change you.",
+  "If it doesn't challenge you, it won't change you.",
   "Small progress is still progress!",
 ];
 
-// 🏅 XP → Level Mapping
-// function getLevelFromXP(xp) {
-//   if (xp >= 500) return { tier: "Platinum", icon: "💎", min: 500 };
-//   if (xp >= 250) return { tier: "Gold", icon: "🥇", min: 250 };
-//   if (xp >= 100) return { tier: "Silver", icon: "🥈", min: 100 };
-//   return { tier: "Bronze", icon: "🥉", min: 0 };
-// }
+// 🧩 Level calculation — 200 XP per level
+function getLevelFromXP(xp) {
+  const xpPerLevel = 200;
+  const level = Math.floor(xp / xpPerLevel) + 1;
+  const currentMin = (level - 1) * xpPerLevel;
+  return { level, min: currentMin, xpPerLevel };
+}
 
-// // 📈 Level progress %
-// function getLevelProgress(xp) {
-//   const level = getLevelFromXP(xp);
-//   const nextMin =
-//     level.min === 0 ? 100 :
-//     level.min === 100 ? 250 :
-//     level.min === 250 ? 500 : level.min;
-//   return Math.min(100, Math.round(((xp - level.min) / (nextMin - level.min)) * 100));
-// }
-  // 🧩 Level calculation — 200 XP per level
-  function getLevelFromXP(xp) {
-    const xpPerLevel = 200;
-    const level = Math.floor(xp / xpPerLevel) + 1;
-    const currentMin = (level - 1) * xpPerLevel;
-    return { level, min: currentMin, xpPerLevel };
-  }
-
-  // 📈 Level progress %
-  function getLevelProgress(xp) {
-    const { min, xpPerLevel } = getLevelFromXP(xp);
-    return Math.min(100, Math.round(((xp - min) / xpPerLevel) * 100));
-  }
-
+// 📈 Level progress %
+function getLevelProgress(xp) {
+  const { min, xpPerLevel } = getLevelFromXP(xp);
+  return Math.min(100, Math.round(((xp - min) / xpPerLevel) * 100));
+}
 
 // 💪 Next workout loader
 async function loadNextWorkout(user) {
@@ -124,14 +106,14 @@ async function loadNextWorkout(user) {
       .filter(log => log.date && log.date.startsWith(todayDate));
 
     const doneExercises = todayLogs
-    .map(l => {
-      // Extract just the exercise name portion
-      if (l.workout?.includes(" - ")) {
-        return l.workout.split(" - ")[1].trim();
-      }
-      return l.workout?.trim();
-    })
-    .filter(Boolean);
+      .map(l => {
+        // Extract just the exercise name portion
+        if (l.workout?.includes(" - ")) {
+          return l.workout.split(" - ")[1].trim();
+        }
+        return l.workout?.trim();
+      })
+      .filter(Boolean);
 
     const nextExercise = todayExercises.find(e => !doneExercises.includes(e));
 
@@ -157,7 +139,6 @@ async function loadNextWorkout(user) {
     nextDiv.textContent = "❌ Error loading next workout.";
   }
 }
-
 
 // 🧩 Daily Quest loader
 async function loadDailyQuest(user) {
@@ -198,6 +179,18 @@ async function loadDailyQuest(user) {
   quoteEl.textContent = `"${randomQuote}"`;
 }
 
+// 🔄 Update hearts display helper
+function updateHeartsDisplay(hearts) {
+  const energyEl = document.getElementById("energy");
+  if (energyEl) {
+    const maxHearts = 4;
+    const validHearts = Math.max(0, Math.min(maxHearts, hearts || 0));
+    energyEl.innerHTML = "❤️".repeat(validHearts) + "🖤".repeat(maxHearts - validHearts);
+    energyEl.classList.add("animate");
+    setTimeout(() => energyEl.classList.remove("animate"), 300);
+  }
+}
+
 // 🧠 Quest Completion
 questBtn?.addEventListener("click", async () => {
   const user = auth.currentUser;
@@ -232,7 +225,8 @@ questBtn?.addEventListener("click", async () => {
   await setDoc(questRef, { ...quest, completed: true });
 
   xpEl.textContent = `⭐ XP: ${xp}`;
-  document.getElementById("energy").textContent = "❤️".repeat(hearts) + "🖤".repeat(4 - hearts);
+  updateHeartsDisplay(hearts);
+  
   questBtn.disabled = true;
   questBtn.textContent = "✅ Quest Completed";
 });
@@ -267,17 +261,21 @@ onAuthStateChanged(auth, async (user) => {
     let xp = 0, streak = 0, hearts = 4;
 
     if (!statsSnap.exists()) {
-      await setDoc(statsRef, { xp, streak, hearts, lastWorkoutDate: "", updatedAt: serverTimestamp() });
-    } else ({ xp, streak, hearts } = statsSnap.data());
+      await setDoc(statsRef, { xp, streak, hearts, lastLogDate: "", updatedAt: serverTimestamp() });
+    } else {
+      const data = statsSnap.data();
+      xp = data.xp || 0;
+      streak = data.streak || 0;
+      hearts = data.hearts !== undefined ? data.hearts : 4;
+    }
 
+    // Display stats
     xpEl.textContent = `⭐ XP: ${xp}`;
     streakEl.textContent = `🔥 Streak: ${streak} days`;
-    document.getElementById("energy").textContent = "❤️".repeat(hearts) + "🖤".repeat(4 - hearts);
+    updateHeartsDisplay(hearts);
 
     const levelInfo = getLevelFromXP(xp);
-    // gymifyLevelEl.textContent = `🏆 Level <b>${levelInfo.level}</b>`;
     gymifyLevelEl.innerHTML = `<b style="color:#ffcc00;">${levelInfo.level}</b>`;
-
 
     const xpBar = document.getElementById("xp-bar");
     if (xpBar) xpBar.style.width = `${getLevelProgress(xp)}%`;
@@ -286,8 +284,6 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   // Load workouts + quest
-// 🔁 Check if dashboard needs refresh after logging
-  // Always load today's workout first
   await loadNextWorkout(user);
 
   // If user just came from workout page after logging
@@ -297,6 +293,67 @@ onAuthStateChanged(auth, async (user) => {
     localStorage.removeItem("refreshDashboardWorkout");
   }
 
-
   await loadDailyQuest(user);
+});
+
+// 💧 Water Tracker Logic
+const waterCountEl = document.getElementById("waterCount");
+const addWaterBtn = document.getElementById("addWater");
+
+// Load from localStorage
+let waterCount = parseInt(localStorage.getItem("waterCount")) || 0;
+const lastDate = localStorage.getItem("lastWaterDate");
+const today = new Date().toDateString();
+
+// Reset daily water count automatically
+if (lastDate !== today) {
+  waterCount = 0;
+  localStorage.setItem("lastWaterDate", today);
+}
+
+waterCountEl.textContent = waterCount;
+
+addWaterBtn.addEventListener("click", () => {
+  if (waterCount < 10) {
+    waterCount++;
+    localStorage.setItem("waterCount", waterCount);
+    localStorage.setItem("lastWaterDate", today);
+    waterCountEl.textContent = waterCount;
+  } else {
+    alert("💧 You've reached your daily goal of 10 glasses!");
+  }
+});
+
+// Optional reminder every 2 hours
+setInterval(() => {
+  alert("💧 Time to drink some water!");
+}, 2 * 60 * 60 * 1000); // every 2 hours
+
+
+// ⏱️ Rest Timer Logic
+const startTimerBtn = document.getElementById("startTimer");
+const timerDisplay = document.getElementById("timerDisplay");
+const restInput = document.getElementById("restInput");
+
+startTimerBtn.addEventListener("click", () => {
+  let timeLeft = parseInt(restInput.value);
+
+  if (isNaN(timeLeft) || timeLeft <= 0) {
+    alert("⏱️ Enter a valid rest time!");
+    return;
+  }
+
+  timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+
+  const interval = setInterval(() => {
+    timeLeft--;
+    timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      timerDisplay.textContent = "🔥 Time's up! Get back to work!";
+      const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+      audio.play();
+    }
+  }, 1000);
 });

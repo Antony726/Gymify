@@ -5,49 +5,257 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Log Workout | Gymify</title>
   <link rel="stylesheet" href="css/log.css" />
+
+  <style>
+    /* Enhanced input styling + compatibility with existing dark theme */
+/* === 🧩 Layout & Spacing Fix === */
+
+    .container {
+      width: 550px;
+      padding: 30px 35px;
+    }
+
+    /* Headings */
+    h1, h2, h3, h4 {
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+
+    /* Form Groups */
+    .form-group {
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Labels */
+    label {
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #ccc;
+    }
+
+    /* Inputs, Selects, and Textareas */
+    input, select, textarea {
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      font-size: 15px;
+    }
+
+    /* Section for Sets */
+    .sets-section {
+      background: #242424;
+      padding: 15px 18px;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+
+    /* Individual Sets */
+    .set-group {
+      margin-bottom: 20px;
+    }
+
+    .set-group h4 {
+      margin-bottom: 10px;
+      color: #ffcc00;
+      text-align: left;
+    }
+
+    /* Align Reps & Weight neatly */
+    .input-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .input-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-group label {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 4px;
+    }
+
+    /* Notes section */
+    textarea {
+      resize: none;
+      min-height: 70px;
+    }
+
+    /* Buttons */
+    .submit-btn {
+      margin-top: 15px;
+    }
+
+    #back-btn {
+      margin-top: 18px;
+      width: 100%;
+      background: #444;
+    }
+
+    #back-btn:hover {
+      background: #555;
+    }
+
+    /* Small tips */
+    small {
+      color: #888;
+      margin-top: 3px;
+      font-size: 13px;
+    }
+
+    /* Input focus styling (glow) */
+    input:focus, textarea:focus {
+      border-color: #00bcd4;
+      box-shadow: 0 0 8px rgba(0, 188, 212, 0.5);
+      outline: none;
+    }
+    /* === Dynamic Sets Controls === */
+    .set-controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    #set1-weight:focus, 
+    #set2-weight:focus, 
+    #set3-weight:focus {
+      outline: none;
+    }
+
+    #set1-reps:focus, 
+    #set2-reps:focus, 
+    #set3-reps:focus {
+      outline: none;
+    }
+
+    #set1-reps, #set2-reps, #set3-reps,
+    #set1-weight, #set2-weight, #set3-weight {
+      border-radius: 8px;
+    }
+
+    /* Add/Remove Buttons */
+    #set-controls button,
+    #set-controls .set-controls button {
+      background: #333;
+      border: 1px solid #555;
+      color: #fff;
+      font-size: 15px;
+      border-radius: 10px;
+      padding: 8px 16px;
+      transition: 0.3s;
+    }
+
+    .set-controls button:hover {
+      background: #00bcd4;
+      border-color: #00bcd4;
+      color: #000;
+      cursor: pointer;
+    }
+
+
+  </style>
 </head>
 <body>
   <div class="container">
-    <h2>📓 Log Your Workout</h2>
-
+    <header>
+      <h1>📝 Log Your Workout</h1>
+    </header>
+    
     <form id="log-form">
-      <label for="workout-select">Select Workout</label>
-      <select id="workout-select" required>
-        <option value="">-- Choose a Workout --</option>
-      </select>
-
-      <div class="sets-container">
-        <h3>Sets</h3>
-        <div class="set">
+      <div class="form-group">
+        <label for="workout-input">🏋️ Select Workout (Today's workouts shown first)</label>
+        <input 
+        type="text" 
+        id="workout-input" 
+        name="workout" 
+        list="workout-list" 
+        placeholder="Start typing to search..." 
+        required
+        autocomplete="off"
+        />
+        <datalist id="workout-list">
+          <!-- Options will be added by JS -->
+        </datalist>
+        <small>💡 Tip: Type to search or scroll to see all workouts</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="date">📅 Date</label>
+        <input type="date" id="date" name="date" required />
+      </div>
+      
+      <div class="sets-section">
+        <h3>💪 Sets & Reps</h3>
+        <p style="color: #999; font-size: 14px; margin-bottom: 15px;">
+          ⚖️ You can enter decimal weights (e.g., 7.5, 12.5, 15.25)
+        </p>
+        
+        <div class="set-group">
           <h4>Set 1</h4>
-          <input type="number" placeholder="Reps" id="set1-reps" min="1" required />
-          <input type="number" placeholder="Weight (kg)" id="set1-weight" min="0" required />
+          <div class="input-row">
+            <div class="input-group">
+              <label for="set1-reps">Reps</label>
+              <input type="number" id="set1-reps" min="0" placeholder="12" required />
+            </div>
+            <div class="input-group">
+              <label for="set1-weight">Weight (kg)</label>
+              <input type="number" id="set1-weight" min="0" step="0.5" placeholder="20.5" required />
+            </div>
+          </div>
         </div>
-        <div class="set">
+        
+        <div class="set-group">
           <h4>Set 2</h4>
-          <input type="number" placeholder="Reps" id="set2-reps" min="1" required />
-          <input type="number" placeholder="Weight (kg)" id="set2-weight" min="0" required />
+          <div class="input-row">
+            <div class="input-group">
+              <label for="set2-reps">Reps</label>
+              <input type="number" id="set2-reps" min="0" placeholder="10" required />
+            </div>
+            <div class="input-group">
+              <label for="set2-weight">Weight (kg)</label>
+              <input type="number" id="set2-weight" min="0" step="0.5" placeholder="22.5" required />
+            </div>
+          </div>
         </div>
-        <div class="set">
+        
+        <div class="set-group">
           <h4>Set 3</h4>
-          <input type="number" placeholder="Reps" id="set3-reps" min="1" required />
-          <input type="number" placeholder="Weight (kg)" id="set3-weight" min="0" required />
+          <div class="input-row">
+            <div class="input-group">
+              <label for="set3-reps">Reps</label>
+              <input type="number" id="set3-reps" min="0" placeholder="8" required />
+            </div>
+            <div class="input-group">
+              <label for="set3-weight">Weight (kg)</label>
+              <input type="number" id="set3-weight" min="0" step="0.5" placeholder="25" required />
+            </div>
+          </div>
         </div>
       </div>
+      <div class="set-controls">
+        <button type="button" id="add-set-btn">➕ Add Set</button>
+        <button type="button" id="remove-set-btn">➖ Remove Set</button>
+      </div>
 
-      <label for="date">Date</label>
-      <input type="date" id="date" required />
-
-      <label for="notes">Notes (optional)</label>
-      <textarea id="notes" rows="3" placeholder="E.g. Felt strong today"></textarea>
-
-      <button type="submit">💾 Save Log</button>
+      
+      <div class="form-group">
+        <label for="notes">📝 Notes (Optional)</label>
+        <textarea id="notes" name="notes" rows="4" placeholder="How did it feel? Any challenges?"></textarea>
+      </div>
+      
+      <button type="submit" class="submit-btn">✅ Log Workout</button>
     </form>
-
+    <button id="back-btn" class="back-btn">⬅️ Back to Dashboard</button>
+    
     <div id="status"></div>
-    <button id="back-btn">⬅ Back to Dashboard</button>
   </div>
-
+  
   <script type="module" src="js/log.js"></script>
 </body>
 </html>

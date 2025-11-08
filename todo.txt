@@ -1,0 +1,40 @@
+1. Boss Battles 🐉
+
+Every 10 levels, face a "Boss Challenge"
+Example: "Defeat the Deadlift Dragon - Log 5 deadlift sessions this week"
+Rewards: Special badges, bonus XP, exclusive titles
+Failure: Lose 1 heart but can retry
+
+2. Power-Ups & Buffs ⚡
+
+XP Multiplier (2x XP) - Activated for 24 hours after a 7-day streak
+Heart Shield - Protects 1 heart from breaking streak
+Quest Refresher - Swap daily quest if too hard
+Earn power-ups through achievements or special quests
+
+3. Guilds/Teams 👥
+
+Create or join gym crews (max 10 members)
+Team leaderboard with combined XP
+Team challenges: "Log 100 total workouts this week"
+Team chat for motivation
+Guild perks when reaching milestones
+6. Body Part Heatmap 🗺️
+
+Visual body diagram showing which muscles you've trained
+Color-coded: Red (overtrained), Green (optimal), Gray (neglected)
+Click a muscle to see last workout date and volume
+
+25. Motivational "Trash Talk" Mode 😤
+
+Optional: App roasts you for skipping workouts
+"3 days no gym? The couch misses you 🛋️"
+Customizable intensity (gentle/medium/brutal)
+Friends can send "trash talk" challenges
+
+28. Confession Wall 📝 (if they skip with there username send skip )
+
+Anonymous posts: "I skipped leg day... again 😔"
+Community support and motivation
+"Confession of the Week" featured
+Therapeutic and funny

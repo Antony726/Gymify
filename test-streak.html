@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gymify - Test Streak System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .warning {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 0;
+      color: #856404;
+    }
+    .current-stats {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      font-size: 18px;
+    }
+    .stat-label {
+      font-weight: bold;
+      color: #495057;
+    }
+    .stat-value {
+      color: #667eea;
+      font-weight: bold;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      background: #e7f3ff;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
+    }
+    .test-section h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    button {
+      padding: 15px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: white;
+    }
+    .btn-test {
+      background: #667eea;
+    }
+    .btn-test:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .btn-danger {
+      background: #dc3545;
+    }
+    .btn-danger:hover {
+      background: #c82333;
+    }
+    .btn-success {
+      background: #28a745;
+    }
+    .btn-success:hover {
+      background: #218838;
+    }
+    .btn-back {
+      background: #6c757d;
+      margin-top: 20px;
+    }
+    .btn-back:hover {
+      background: #5a6268;
+    }
+    #status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      text-align: center;
+      display: none;
+    }
+    #status.show {
+      display: block;
+    }
+    #status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #28a745;
+    }
+    #status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #dc3545;
+    }
+    .info-box {
+      background: #d1ecf1;
+      border-left: 4px solid #17a2b8;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+      color: #0c5460;
+    }
+    .info-box strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Streak & Heart Testing Tool</h1>
+    
+    <div class="warning">
+      ⚠️ <strong>Developer Tool:</strong> This page lets you manually test the streak and heart system by manipulating dates in your Firebase database.
+    </div>
+
+    <div class="current-stats">
+      <h3 style="color: #667eea; margin-bottom: 15px;">📊 Current Stats</h3>
+      <div class="stat-row">
+        <span class="stat-label">⭐ XP:</span>
+        <span class="stat-value" id="current-xp">Loading...</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">🔥 Streak:</span>
+        <span class="stat-value" id="current-streak">Loading...</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">❤️ Hearts:</span>
+        <span class="stat-value" id="current-hearts">Loading...</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">📅 Last Log Date:</span>
+        <span class="stat-value" id="current-date">Loading...</span>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h3>🎯 Test Scenarios</h3>
+      <div class="info-box">
+        <strong>How it works:</strong>
+        These buttons will change your <code>lastLogDate</code> in Firebase to simulate missing days. Then go to the Log Workout page and log any workout to see the streak reset and heart loss in action!
+      </div>
+      
+      <div class="button-group">
+        <button class="btn-test" onclick="setDateDaysAgo(2)">
+          📅 Set Last Workout: 2 Days Ago
+        </button>
+        <button class="btn-test" onclick="setDateDaysAgo(3)">
+          📅 Set Last Workout: 3 Days Ago
+        </button>
+        <button class="btn-test" onclick="setDateDaysAgo(7)">
+          📅 Set Last Workout: 7 Days Ago
+        </button>
+        <button class="btn-danger" onclick="setHearts(1)">
+          💔 Set Hearts to 1 (Test XP Reset)
+        </button>
+        <button class="btn-danger" onclick="setHearts(0)">
+          💀 Set Hearts to 0 (Force Reset)
+        </button>
+        <button class="btn-success" onclick="resetStats()">
+          🔄 Reset All Stats (Fresh Start)
+        </button>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>📝 Testing Steps:</strong>
+      1. Click a test button above<br>
+      2. Go to "Log Workout" page<br>
+      3. Log any workout<br>
+      4. Check if streak resets and heart is lost<br>
+      5. Return here to check updated stats
+    </div>
+
+    <div id="status"></div>
+
+    <button class="btn-back" onclick="window.location.href='dashboard.html'">
+      ⬅️ Back to Dashboard
+    </button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      serverTimestamp,
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js"
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `show ${type}`;
+      setTimeout(() => {
+        status.classList.remove('show');
+      }, 5000);
+    }
+
+    async function loadCurrentStats() {
+      if (!currentUser) return;
+      
+      try {
+        const statsRef = doc(db, "users", currentUser.uid, "data", "stats");
+        const statsSnap = await getDoc(statsRef);
+        
+        if (statsSnap.exists()) {
+          const data = statsSnap.data();
+          document.getElementById('current-xp').textContent = data.xp || 0;
+          document.getElementById('current-streak').textContent = `${data.streak || 0} days`;
+          document.getElementById('current-hearts').textContent = '❤️'.repeat(data.hearts || 4);
+          document.getElementById('current-date').textContent = data.lastLogDate || 'Never';
+        }
+      } catch (err) {
+        console.error('Error loading stats:', err);
+        showStatus('❌ Error loading stats', 'error');
+      }
+    }
+
+    window.setDateDaysAgo = async function(days) {
+      if (!currentUser) return alert('Not logged in!');
+      
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() - days);
+      const dateStr = targetDate.toISOString().split('T')[0];
+      
+      try {
+        const statsRef = doc(db, "users", currentUser.uid, "data", "stats");
+        const statsSnap = await getDoc(statsRef);
+        
+        if (statsSnap.exists()) {
+          await setDoc(statsRef, {
+            ...statsSnap.data(),
+            lastLogDate: dateStr,
+            updatedAt: serverTimestamp()
+          });
+          
+          showStatus(`✅ Set last workout date to ${days} days ago (${dateStr}). Now log a workout to test!`, 'success');
+          await loadCurrentStats();
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        showStatus('❌ Error updating date', 'error');
+      }
+    };
+
+    window.setHearts = async function(hearts) {
+      if (!currentUser) return alert('Not logged in!');
+      
+      try {
+        const statsRef = doc(db, "users", currentUser.uid, "data", "stats");
+        const statsSnap = await getDoc(statsRef);
+        
+        if (statsSnap.exists()) {
+          await setDoc(statsRef, {
+            ...statsSnap.data(),
+            hearts: hearts,
+            updatedAt: serverTimestamp()
+          });
+          
+          showStatus(`✅ Set hearts to ${hearts}. Now log a workout to test!`, 'success');
+          await loadCurrentStats();
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        showStatus('❌ Error updating hearts', 'error');
+      }
+    };
+
+    window.resetStats = async function() {
+      if (!currentUser) return alert('Not logged in!');
+      
+      if (!confirm('Are you sure you want to reset ALL stats? This will set XP, streak, and hearts to default values.')) {
+        return;
+      }
+      
+      try {
+        const statsRef = doc(db, "users", currentUser.uid, "data", "stats");
+        await setDoc(statsRef, {
+          xp: 0,
+          streak: 0,
+          hearts: 4,
+          lastLogDate: '',
+          updatedAt: serverTimestamp()
+        });
+        
+        showStatus('✅ All stats reset! XP: 0, Streak: 0, Hearts: 4', 'success');
+        await loadCurrentStats();
+      } catch (err) {
+        console.error('Error:', err);
+        showStatus('❌ Error resetting stats', 'error');
+      }
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      
+      currentUser = user;
+      await loadCurrentStats();
+    });
+  </script>
+</body>
+</html>
