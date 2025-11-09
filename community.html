@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Challenges | Gymify</title>
+  <link rel="stylesheet" href="css/community.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>🏆 Community Challenges</h2>
+
+    <!-- Create New Challenge -->
+    <div class="create-box">
+      <h3>Create a New Challenge</h3>
+      <input type="text" id="title" placeholder="Challenge Title" />
+      <input type="text" id="goal" placeholder="Goal (e.g., Run 10 km)" />
+      <input type="text" id="duration" placeholder="Duration (e.g., 7 days)" />
+      <button id="create-btn">➕ Create Challenge</button>
+    </div>
+
+    <hr>
+
+    <!-- Display Challenges -->
+    <h3>🔥 Ongoing Challenges</h3>
+    <div id="challenges-list"></div>
+
+    <button id="back-btn">⬅ Back to Dashboard</button>
+  </div>
+
+  <script type="module" src="js/community.js"></script>
+</body>
+</html>

@@ -1,148 +1,648 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🚧 Work in Progress | Gymify</title>
+  <title>👥 Friends - Gymify</title>
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #0b0c10;
-      color: #c5c6c7;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
-      overflow: hidden;
+      font-family: Poppins, sans-serif;
+      background: #0d1117;
+      color: #fff;
     }
 
-    .tape {
-      position: relative;
-      width: 100%;
-      height: 60px;
-      background: repeating-linear-gradient(
-        -45deg,
-        #ffcc00,
-        #ffcc00 25px,
-        #000 25px,
-        #000 50px
-      );
-      animation: slide 3s linear infinite;
-      transform: rotate(-2deg);
-      box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 15px;
     }
 
-    .tape:nth-child(1) {
-      transform: rotate(2deg);
-    }
-
-    @keyframes slide {
-      from { background-position: 0 0; }
-      to { background-position: 100px 0; }
-    }
-
-    .content {
+    .header {
       text-align: center;
-      margin-top: 50px;
+      margin-bottom: 20px;
     }
 
-    h1 {
-      color: #ffcc00;
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      letter-spacing: 1px;
-    }
-
-    p {
-      color: #c5c6c7;
-      font-size: 1.1rem;
-      max-width: 400px;
-    }
-
-    .gear {
-      font-size: 3rem;
-      margin-top: 25px;
-      animation: spin 3s linear infinite;
+    .header h2 {
       color: #66fcf1;
+      margin-bottom: 5px;
     }
 
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+    .header p {
+      color: #c5c6c7;
+      font-size: 14px;
+    }
+
+    .search-section {
+      background: #161b22;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+    }
+
+    input {
+      background: #2a2a2a;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 14px;
+      outline: none;
+      flex: 1;
+    }
+
+    input::placeholder {
+      color: #666;
     }
 
     button {
-      margin-top: 30px;
-      background: #45a29e;
-      color: #0b0c10;
-      padding: 10px 20px;
+      background: #238636;
+      color: white;
       border: none;
       border-radius: 8px;
-      font-weight: bold;
+      padding: 10px 15px;
       cursor: pointer;
-      transition: 0.3s;
+      font-weight: 600;
+      transition: background 0.3s;
     }
 
     button:hover {
-      background: #66fcf1;
+      background: #2ea043;
     }
 
+    .btn-secondary {
+      background: #444;
+    }
+
+    .btn-secondary:hover {
+      background: #555;
+    }
+
+    .section {
+      background: #161b22;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
+
+    .section h3 {
+      color: #66fcf1;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .friend-card {
+      background: #2a2a2a;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .friend-info {
+      flex: 1;
+    }
+
+    .friend-name {
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+
+    .friend-stats {
+      font-size: 13px;
+      color: #c5c6c7;
+    }
+
+    .friend-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .btn-danger {
+      background: #da3633;
+    }
+
+    .btn-danger:hover {
+      background: #b93431;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 20px;
+      color: #666;
+    }
+
+    .empty-state p {
+      margin-bottom: 15px;
+    }
+
+    .pending-badge {
+      background: #ff9800;
+      color: #000;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .back-btn {
+      width: 100%;
+      padding: 12px;
+      background: #444;
+      margin-top: 20px;
+    }
+
+    #status {
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+      display: none;
+    }
+
+    #status.show {
+      display: block;
+    }
+
+    #status.success {
+      background: #238636;
+      color: white;
+    }
+
+    #status.error {
+      background: #da3633;
+      color: white;
+    }
   </style>
 </head>
 <body>
-  <div class="tape"></div>
-
-  <div class="content">
-    <h1>🚧 Work in Progress</h1>
-    <p>We’re currently working on this feature to make it even better for you. Check back soon!</p>
-    <div class="gear">⚙️</div>
-    <button onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</button>
-  </div>
-
-  <div class="tape"></div>
-</body>
-</html>
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gymify | Friends</title>
-  <link rel="stylesheet" href="css/friends.css" />
-</head>
-<body>
   <div class="container">
-    <h1 class="title">🏋️‍♂️ Gymify Friends</h1>
+    <header class="header">
+      <h2>👥 Friends</h2>
+      <p>Connect with workout buddies and compete together!</p>
+    </header>
 
+    <div id="status"></div>
+
+    <!-- Suggested Users Section -->
     <div class="section">
-      <h2 class="sub-title">Friend Requests 📬</h2>
-      <div id="requestsList" class="friends-list"></div>
+      <h3>💡 Suggested Users</h3>
+      <div id="suggestedUsers">
+        <div class="empty-state">
+          <p style="color: #666;">Loading suggestions...</p>
+        </div>
+      </div>
     </div>
 
-    <div class="section">
-      <h2 class="sub-title">Your Friends 💪</h2>
-      <div id="friendsList" class="friends-list"></div>
-    </div>
-
-    <div class="section">
-      <h2 class="sub-title">Find Friends 👥</h2>
-      <div class="search-container">
+    <!-- Search Section -->
+    <div class="search-section">
+      <h3 style="color: #66fcf1; margin-bottom: 10px;">🔍 Find Friends</h3>
+      <div class="search-box">
         <input 
           type="text" 
           id="searchInput" 
-          placeholder="🔍 Search by username or email..." 
-          class="search-input"
+          placeholder="Search by username or email..."
         />
+        <button id="searchBtn" class="btn-small">Search</button>
       </div>
-      <div id="allUsersList" class="friends-list"></div>
+      <div id="searchResults" style="margin-top: 15px;"></div>
     </div>
 
-    <button class="back-btn" onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</button>
+    <!-- Pending Requests -->
+    <div class="section">
+      <h3>📬 Friend Requests <span id="requestCount" class="pending-badge" style="display: none;">0</span></h3>
+      <div id="pendingRequests">
+        <div class="empty-state">
+          <p>No pending friend requests</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Friends List -->
+    <div class="section">
+      <h3>✅ My Friends (<span id="friendCount">0</span>)</h3>
+      <div id="friendsList">
+        <div class="empty-state">
+          <p>You haven't added any friends yet</p>
+          <p style="font-size: 13px;">Search above to find workout buddies!</p>
+        </div>
+      </div>
+    </div>
+
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">
+      ⬅️ Back to Dashboard
+    </button>
   </div>
 
-  <script type="module" src="js/friends.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      doc, 
+      getDoc, 
+      setDoc, 
+      getDocs,
+      query,
+      where,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `show ${type}`;
+      setTimeout(() => status.classList.remove('show'), 3000);
+    }
+
+    // Search for users
+    document.getElementById('searchBtn').addEventListener('click', async () => {
+      const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+      if (!searchTerm) return showStatus('Please enter a username or email', 'error');
+
+      const resultsDiv = document.getElementById('searchResults');
+      resultsDiv.innerHTML = '<p style="color: #666;">Searching...</p>';
+
+      try {
+        // Get all users from leaderboard collection (faster than scanning all user docs)
+        const leaderboardRef = collection(db, "leaderboard");
+        const snapshot = await getDocs(leaderboardRef);
+        const results = [];
+
+        snapshot.forEach(doc => {
+          const userId = doc.id;
+          const username = doc.data().username || "";
+          const xp = doc.data().xp || 0;
+
+          // Skip current user
+          if (userId === currentUser.uid) return;
+
+          // Search by username (case insensitive)
+          if (username.toLowerCase().includes(searchTerm)) {
+            results.push({ userId, username, xp });
+          }
+        });
+
+        // If no results from leaderboard, fall back to searching user profiles
+        if (results.length === 0) {
+          const usersRef = collection(db, "users");
+          const usersSnapshot = await getDocs(usersRef);
+
+          for (const userDoc of usersSnapshot.docs) {
+            const userId = userDoc.id;
+            if (userId === currentUser.uid) continue;
+
+            const profileRef = doc(db, "users", userId, "data", "profile");
+            const profileSnap = await getDoc(profileRef);
+            const statsRef = doc(db, "users", userId, "data", "stats");
+            const statsSnap = await getDoc(statsRef);
+
+            const username = profileSnap.exists() ? profileSnap.data().username : "";
+            const email = userDoc.data()?.email || "";
+            const xp = statsSnap.exists() ? statsSnap.data().xp || 0 : 0;
+
+            if (username.toLowerCase().includes(searchTerm) || email.toLowerCase().includes(searchTerm)) {
+              results.push({ userId, username: username || email, xp });
+            }
+          }
+        }
+
+        if (results.length === 0) {
+          resultsDiv.innerHTML = '<p style="color: #666;">No users found. Try a different search term.</p>';
+          return;
+        }
+
+        resultsDiv.innerHTML = results.map(user => `
+          <div class="friend-card">
+            <div class="friend-info">
+              <div class="friend-name">${user.username}</div>
+              <div class="friend-stats">⭐ ${user.xp} XP</div>
+            </div>
+            <button class="btn-small" onclick="sendFriendRequest('${user.userId}', '${user.username}')">
+              + Add
+            </button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+        showStatus('Error searching users', 'error');
+      }
+    });
+
+    // Send friend request
+    window.sendFriendRequest = async (friendId, friendName) => {
+      try {
+        const requestRef = doc(db, "friendRequests", `${currentUser.uid}_${friendId}`);
+        await setDoc(requestRef, {
+          from: currentUser.uid,
+          to: friendId,
+          fromName: currentUser.displayName || currentUser.email,
+          toName: friendName,
+          status: "pending",
+          timestamp: new Date().toISOString()
+        });
+        showStatus(`Friend request sent to ${friendName}!`, 'success');
+      } catch (err) {
+        console.error(err);
+        showStatus('Error sending request', 'error');
+      }
+    };
+
+    // Load pending requests
+    async function loadPendingRequests() {
+      const requestsDiv = document.getElementById('pendingRequests');
+      
+      try {
+        const requestsRef = collection(db, "friendRequests");
+        const q = query(requestsRef, where("to", "==", currentUser.uid), where("status", "==", "pending"));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          requestsDiv.innerHTML = '<div class="empty-state"><p>No pending friend requests</p></div>';
+          document.getElementById('requestCount').style.display = 'none';
+          return;
+        }
+
+        document.getElementById('requestCount').textContent = snapshot.size;
+        document.getElementById('requestCount').style.display = 'inline-block';
+
+        requestsDiv.innerHTML = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return `
+            <div class="friend-card">
+              <div class="friend-info">
+                <div class="friend-name">${data.fromName}</div>
+                <div class="friend-stats">Wants to be friends</div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-small" onclick="acceptRequest('${doc.id}', '${data.from}')">
+                  ✓ Accept
+                </button>
+                <button class="btn-small btn-danger" onclick="rejectRequest('${doc.id}')">
+                  ✗ Reject
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Accept friend request
+    window.acceptRequest = async (requestId, friendId) => {
+      try {
+        // Get friend's profile to get their username
+        // const friendProfileRef = doc(db, "users", friendId, "data", "profile");
+        // const friendProfileSnap = await getDoc(friendProfileRef);
+        const friendStatsRef = doc(db, "users", friendId, "data", "stats");
+        const friendStatsSnap = await getDoc(friendStatsRef);
+        
+        // const friendUsername = friendProfileSnap.exists() 
+        //   ? friendProfileSnap.data().username 
+        //   : "Unknown User";
+          
+        const friendProfileRef = doc(db, "users", friendId, "data", "profile");
+        const friendProfileSnap = await getDoc(friendProfileRef);
+
+        let friendUsername = "Unknown User";
+
+        // 1️⃣ Check profile doc
+        if (friendProfileSnap.exists() && friendProfileSnap.data().username) {
+          friendUsername = friendProfileSnap.data().username;
+        } else {
+          // 2️⃣ Fallback to Firebase Auth
+          const userAuth = await getAuth().getUser(friendId).catch(() => null);
+          if (userAuth && userAuth.displayName) {
+            friendUsername = userAuth.displayName;
+          } else {
+            // 3️⃣ Fallback to email
+            const friendDoc = await getDoc(doc(db, "users", friendId));
+            if (friendDoc.exists() && friendDoc.data().email) {
+              friendUsername = friendDoc.data().email;
+            }
+          }
+        }
+
+        const friendXP = friendStatsSnap.exists() ? friendStatsSnap.data().xp || 0 : 0;
+        const friendStreak = friendStatsSnap.exists() ? friendStatsSnap.data().streak || 0 : 0;
+
+        // Get current user's profile
+        const myProfileRef = doc(db, "users", currentUser.uid, "data", "profile");
+        const myProfileSnap = await getDoc(myProfileRef);
+        const myStatsRef = doc(db, "users", currentUser.uid, "data", "stats");
+        const myStatsSnap = await getDoc(myStatsRef);
+        
+        const myUsername = myProfileSnap.exists() 
+          ? myProfileSnap.data().username 
+          : currentUser.displayName || currentUser.email;
+        const myXP = myStatsSnap.exists() ? myStatsSnap.data().xp || 0 : 0;
+        const myStreak = myStatsSnap.exists() ? myStatsSnap.data().streak || 0 : 0;
+
+        // Add to both users' friends lists WITH usernames
+        await setDoc(doc(db, "users", currentUser.uid, "friends", friendId), {
+          friendId,
+          username: friendUsername,
+          xp: friendXP,
+          streak: friendStreak,
+          addedAt: new Date().toISOString()
+        });
+        
+        await setDoc(doc(db, "users", friendId, "friends", currentUser.uid), {
+          friendId: currentUser.uid,
+          username: myUsername,
+          xp: myXP,
+          streak: myStreak,
+          addedAt: new Date().toISOString()
+        });
+
+        // Delete request
+        await deleteDoc(doc(db, "friendRequests", requestId));
+        
+        showStatus(`You and ${friendUsername} are now friends!`, 'success');
+        loadPendingRequests();
+        loadFriends();
+        loadSuggestedUsers();
+      } catch (err) {
+        console.error(err);
+        showStatus('Error accepting request: ' + err.message, 'error');
+      }
+    };
+
+    // Reject friend request
+    window.rejectRequest = async (requestId) => {
+      try {
+        await deleteDoc(doc(db, "friendRequests", requestId));
+        showStatus('Friend request rejected', 'success');
+        loadPendingRequests();
+      } catch (err) {
+        console.error(err);
+        showStatus('Error rejecting request', 'error');
+      }
+    };
+
+    // Load friends list
+    async function loadFriends() {
+      const friendsDiv = document.getElementById('friendsList');
+      
+      try {
+        const friendsRef = collection(db, "users", currentUser.uid, "friends");
+        const snapshot = await getDocs(friendsRef);
+
+        if (snapshot.empty) {
+          friendsDiv.innerHTML = `
+            <div class="empty-state">
+              <p>You haven't added any friends yet</p>
+              <p style="font-size: 13px;">Search above to find workout buddies!</p>
+            </div>
+          `;
+          document.getElementById('friendCount').textContent = '0';
+          return;
+        }
+
+        document.getElementById('friendCount').textContent = snapshot.size;
+
+        const friendsData = [];
+        for (const friendDoc of snapshot.docs) {
+          const friendId = friendDoc.data().friendId;
+          const profileRef = doc(db, "users", friendId, "data", "profile");
+          const profileSnap = await getDoc(profileRef);
+          const statsRef = doc(db, "users", friendId, "data", "stats");
+          const statsSnap = await getDoc(statsRef);
+
+          friendsData.push({
+            friendId,
+            username: profileSnap.exists() ? profileSnap.data().username : "Unknown",
+            xp: statsSnap.exists() ? statsSnap.data().xp || 0 : 0,
+            streak: statsSnap.exists() ? statsSnap.data().streak || 0 : 0
+          });
+        }
+
+        friendsDiv.innerHTML = friendsData.map(friend => `
+          <div class="friend-card">
+            <div class="friend-info">
+              <div class="friend-name">${friend.username}</div>
+              <div class="friend-stats">⭐ ${friend.xp} XP • 🔥 ${friend.streak} day streak</div>
+            </div>
+            <button class="btn-small btn-danger" onclick="removeFriend('${friend.friendId}', '${friend.username}')">
+              Remove
+            </button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Remove friend
+    window.removeFriend = async (friendId, friendName) => {
+      if (!confirm(`Remove ${friendName} from friends?`)) return;
+
+      try {
+        await deleteDoc(doc(db, "users", currentUser.uid, "friends", friendId));
+        await deleteDoc(doc(db, "users", friendId, "friends", currentUser.uid));
+        
+        showStatus('Friend removed', 'success');
+        loadFriends();
+      } catch (err) {
+        console.error(err);
+        showStatus('Error removing friend', 'error');
+      }
+    };
+
+    // Load suggested users (top users from leaderboard who aren't friends yet)
+    async function loadSuggestedUsers() {
+      const suggestedDiv = document.getElementById('suggestedUsers');
+      
+      try {
+        // Get current friends list
+        const friendsRef = collection(db, "users", currentUser.uid, "friends");
+        const friendsSnap = await getDocs(friendsRef);
+        const friendIds = new Set(friendsSnap.docs.map(d => d.data().friendId));
+
+        // Get top users from leaderboard
+        const leaderboardRef = collection(db, "leaderboard");
+        const snapshot = await getDocs(leaderboardRef);
+        
+        const suggestions = [];
+        snapshot.forEach(doc => {
+          const userId = doc.id;
+          // Skip if current user or already friends
+          if (userId === currentUser.uid || friendIds.has(userId)) return;
+          
+          suggestions.push({
+            userId,
+            username: doc.data().username || "User",
+            xp: doc.data().xp || 0,
+            streak: doc.data().streak || 0
+          });
+        });
+
+        // Sort by XP and take top 5
+        suggestions.sort((a, b) => b.xp - a.xp);
+        const topSuggestions = suggestions.slice(0, 5);
+
+        if (topSuggestions.length === 0) {
+          suggestedDiv.innerHTML = `
+            <div class="empty-state">
+              <p>No suggestions available</p>
+              <p style="font-size: 13px;">Search for users above!</p>
+            </div>
+          `;
+          return;
+        }
+
+        suggestedDiv.innerHTML = topSuggestions.map(user => `
+          <div class="friend-card">
+            <div class="friend-info">
+              <div class="friend-name">${user.username}</div>
+              <div class="friend-stats">⭐ ${user.xp} XP • 🔥 ${user.streak} streak</div>
+            </div>
+            <button class="btn-small" onclick="sendFriendRequest('${user.userId}', '${user.username}')">
+              + Add
+            </button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+        suggestedDiv.innerHTML = '<div class="empty-state"><p>Failed to load suggestions</p></div>';
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      
+      currentUser = user;
+      loadSuggestedUsers();
+      loadPendingRequests();
+      loadFriends();
+    });
+  </script>
 </body>
-</html> -->
+</html>

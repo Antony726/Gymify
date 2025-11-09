@@ -44,7 +44,10 @@ const quests = [
   "Take a cold shower post-workout",
 ];
 const quotes = [
+  "Stop being soft. You cannot become a monster by staying in your comfort zone.",
+  "The only time you grow, the only time you get better, is when you hit that point of wanting to quit and you keep going instead.",
   "No pain, no gain – but no rest, no growth either.",
+   "Why do we fall, Bruce? So we can learn to pick ourselves up",
   "Show up today for a stronger you tomorrow.",
   "Discipline beats motivation every time.",
   "If it doesn't challenge you, it won't change you.",

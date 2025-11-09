@@ -21,43 +21,7 @@ dateInput.value = todayISO;
 
 // 🔙 Back to Dashboard
 backBtn.addEventListener("click", () => (window.location.href = "dashboard.html"));
-const setsSection = document.querySelector('.sets-section');
-const addSetBtn = document.getElementById('add-set-btn');
-const removeSetBtn = document.getElementById('remove-set-btn');
 
-let setCount = 3; // start with 3 sets
-
-addSetBtn.addEventListener('click', () => {
-  setCount++;
-  const newSet = document.createElement('div');
-  newSet.classList.add('set-group');
-  newSet.innerHTML = `
-    <h4>Set ${setCount}</h4>
-    <div class="input-row">
-      <div class="input-group">
-        <label for="set${setCount}-reps">Reps</label>
-        <input type="number" id="set${setCount}-reps" min="0" placeholder="10" required />
-      </div>
-      <div class="input-group">
-        <label for="set${setCount}-weight">Weight (kg)</label>
-        <input type="number" id="set${setCount}-weight" min="0" step="0.5" placeholder="20" required />
-      </div>
-    </div>
-  `;
-  // setsSection.insertBefore(newSet, document.querySelector('.set-controls'));
-  setsSection.appendChild(newSet);
-
-});
-
-removeSetBtn.addEventListener('click', () => {
-  if (setCount > 1) {
-    const lastSet = setsSection.querySelector('.set-group:last-of-type');
-    if (lastSet) lastSet.remove();
-    setCount--;
-  } else {
-    alert('At least one set is required!');
-  }
-});
 // 🔐 Auth listener
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -128,37 +92,23 @@ logForm.addEventListener("submit", async (e) => {
   const date = dateInput.value;
   const notes = document.getElementById("notes").value;
 
-  // const sets = [
-  //   {
-  //     set: 1,
-  //     reps: parseInt(document.getElementById("set1-reps").value) || 0,
-  //     weight: parseFloat(document.getElementById("set1-weight").value) || 0,
-  //   },
-  //   {
-  //     set: 2,
-  //     reps: parseInt(document.getElementById("set2-reps").value) || 0,
-  //     weight: parseFloat(document.getElementById("set2-weight").value) || 0,
-  //   },
-  //   {
-  //     set: 3,
-  //     reps: parseInt(document.getElementById("set3-reps").value) || 0,
-  //     weight: parseFloat(document.getElementById("set3-weight").value) || 0,
-  //   },
-  // ];
-  const sets = [];
-  const allSetGroups = document.querySelectorAll(".set-group");
-  allSetGroups.forEach((group, i) => {
-    const repsInput = group.querySelector(`[id^="set${i + 1}-reps"]`);
-    const weightInput = group.querySelector(`[id^="set${i + 1}-weight"]`);
-    if (repsInput && weightInput) {
-      sets.push({
-        set: i + 1,
-        reps: parseInt(repsInput.value) || 0,
-        weight: parseFloat(weightInput.value) || 0,
-      });
-    }
-  });
-
+  const sets = [
+    {
+      set: 1,
+      reps: parseInt(document.getElementById("set1-reps").value) || 0,
+      weight: parseFloat(document.getElementById("set1-weight").value) || 0,
+    },
+    {
+      set: 2,
+      reps: parseInt(document.getElementById("set2-reps").value) || 0,
+      weight: parseFloat(document.getElementById("set2-weight").value) || 0,
+    },
+    {
+      set: 3,
+      reps: parseInt(document.getElementById("set3-reps").value) || 0,
+      weight: parseFloat(document.getElementById("set3-weight").value) || 0,
+    },
+  ];
 
   try {
     // 💾 Add workout log
@@ -169,8 +119,6 @@ logForm.addEventListener("submit", async (e) => {
       notes,
       timestamp: new Date(),
     });
-    
-    
 
     // ⭐ XP + 🔥 Streak + ❤️ Heart update
     const statsRef = doc(db, "users", user.uid, "data", "stats");
@@ -212,7 +160,9 @@ logForm.addEventListener("submit", async (e) => {
         } else if (diffDays === 1) {
           // ✅ Logged next day — increment streak by 1
           const currentStreak = data.streak || 0;
-          streak = currentStreak + 1;
+          // If streak was 0 (broken), start fresh at 1
+          // If streak was already going, increment it
+          streak = currentStreak === 0 ? 1 : currentStreak + 1;
           xp += gainedXP;
           console.log(`✅ Next day log - streak: ${currentStreak} → ${streak}`);
         } else if (diffDays > 1) {
@@ -261,12 +211,16 @@ logForm.addEventListener("submit", async (e) => {
         // First workout ever
         streak = 1;
         xp += gainedXP;
+        console.log("🎉 First workout ever! Starting streak at 1");
       }
     } else {
       // Brand new user
       streak = 1;
       xp = gainedXP;
+      console.log("🎉 Brand new user! Starting streak at 1");
     }
+
+    console.log(`📊 Final values - XP: ${xp}, Streak: ${streak}, Hearts: ${hearts}`);
 
     // 💾 Save updated stats
     await setDoc(statsRef, {
@@ -276,6 +230,25 @@ logForm.addEventListener("submit", async (e) => {
       lastLogDate: todayStr,
       lastWorkoutWasRest: selectedWorkout.toLowerCase().includes("rest"),
     });
+
+    // 🏆 Update leaderboard entry
+    try {
+      const profileRef = doc(db, "users", user.uid, "data", "profile");
+      const profileSnap = await getDoc(profileRef);
+      const username = profileSnap.exists() 
+        ? profileSnap.data().username 
+        : user.displayName || user.email || "Anonymous";
+      
+      const leaderboardRef = doc(db, "leaderboard", user.uid);
+      await setDoc(leaderboardRef, {
+        username,
+        xp,
+        streak,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (leaderboardErr) {
+      console.warn("⚠️ Could not update leaderboard:", leaderboardErr);
+    }
 
     // ✅ Success message
     if (resetXP) {

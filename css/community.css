@@ -1,0 +1,73 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #0b0c10;
+  color: #c5c6c7;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 30px;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  background: #1f2833;
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+}
+
+h2, h3 {
+  text-align: center;
+  color: #66fcf1;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+  border: none;
+  border-radius: 8px;
+  background: #0b0c10;
+  color: white;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #45a29e;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #66fcf1;
+  color: #0b0c10;
+}
+
+.challenge-card {
+  background: #0b0c10;
+  padding: 15px;
+  margin-top: 12px;
+  border-radius: 10px;
+}
+
+.challenge-card h4 {
+  color: #66fcf1;
+  margin-bottom: 5px;
+}
+
+.participants {
+  font-size: 0.9em;
+  color: #c5c6c7;
+}
+
+.join-btn {
+  background: #1f9a8f;
+  margin-top: 8px;
+}

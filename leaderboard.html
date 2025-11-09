@@ -1,133 +1,500 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🚧 Work in Progress | Gymify</title>
+  <title>🏆 Leaderboard - Gymify</title>
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #0b0c10;
-      color: #c5c6c7;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
-      overflow: hidden;
+      font-family: Poppins, sans-serif;
+      background: #0d1117;
+      color: #fff;
     }
 
-    .tape {
-      position: relative;
-      width: 100%;
-      height: 60px;
-      background: repeating-linear-gradient(
-        -45deg,
-        #ffcc00,
-        #ffcc00 25px,
-        #000 25px,
-        #000 50px
-      );
-      animation: slide 3s linear infinite;
-      transform: rotate(-2deg);
-      box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 15px;
     }
 
-    .tape:nth-child(1) {
-      transform: rotate(2deg);
-    }
-
-    @keyframes slide {
-      from { background-position: 0 0; }
-      to { background-position: 100px 0; }
-    }
-
-    .content {
+    .header {
       text-align: center;
-      margin-top: 50px;
+      margin-bottom: 20px;
     }
 
-    h1 {
-      color: #ffcc00;
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      letter-spacing: 1px;
-    }
-
-    p {
-      color: #c5c6c7;
-      font-size: 1.1rem;
-      max-width: 400px;
-    }
-
-    .gear {
-      font-size: 3rem;
-      margin-top: 25px;
-      animation: spin 3s linear infinite;
+    .header h2 {
       color: #66fcf1;
+      margin-bottom: 5px;
+      font-size: 26px;
     }
 
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+    .header p {
+      color: #c5c6c7;
+      font-size: 14px;
     }
 
-    button {
-      margin-top: 30px;
-      background: #45a29e;
-      color: #0b0c10;
-      padding: 10px 20px;
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      background: #161b22;
+      padding: 8px;
+      border-radius: 12px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      background: #2a2a2a;
       border: none;
       border-radius: 8px;
-      font-weight: bold;
+      color: #c5c6c7;
       cursor: pointer;
-      transition: 0.3s;
+      font-weight: 600;
+      transition: all 0.3s;
     }
 
-    button:hover {
+    .tab.active {
+      background: #238636;
+      color: white;
+    }
+
+    .podium {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    .podium-place {
+      text-align: center;
+      flex: 1;
+    }
+
+    .podium-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin: 0 auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .place-1 .podium-avatar {
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #000;
+      width: 70px;
+      height: 70px;
+      font-size: 28px;
+    }
+
+    .place-2 .podium-avatar {
+      background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+      color: #000;
+    }
+
+    .place-3 .podium-avatar {
+      background: linear-gradient(135deg, #cd7f32, #e69b5f);
+      color: #000;
+    }
+
+    .podium-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .podium-stats {
+      font-size: 12px;
+      color: #c5c6c7;
+    }
+
+    .podium-rank {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+
+    .leaderboard-section {
+      background: #161b22;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .rank-card {
+      background: #2a2a2a;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.2s;
+    }
+
+    .rank-card:active {
+      transform: scale(0.98);
+    }
+
+    .rank-card.current-user {
+      background: linear-gradient(135deg, #238636, #2ea043);
+      border: 2px solid #66fcf1;
+    }
+
+    .rank-number {
+      font-size: 18px;
+      font-weight: bold;
+      color: #66fcf1;
+      min-width: 35px;
+    }
+
+    .rank-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #444, #666);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .rank-info {
+      flex: 1;
+    }
+
+    .rank-name {
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+
+    .rank-stats {
+      font-size: 13px;
+      color: #c5c6c7;
+    }
+
+    .you-badge {
       background: #66fcf1;
+      color: #000;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 8px;
     }
 
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .back-btn {
+      width: 100%;
+      padding: 12px;
+      background: #444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 15px;
+    }
+
+    .back-btn:hover {
+      background: #555;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+    }
   </style>
-</head>
-<body>
-  <div class="tape"></div>
-
-  <div class="content">
-    <h1>🚧 Work in Progress</h1>
-    <p>We’re currently working on this feature to make it even better for you. Check back soon!</p>
-    <div class="gear">⚙️</div>
-    <button onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</button>
-  </div>
-
-  <div class="tape"></div>
-</body>
-</html>
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🏆 Gymify Leaderboard</title>
-  <link rel="stylesheet" href="css/leaderboard.css" />
 </head>
 <body>
   <div class="container">
     <header class="header">
-      <h2>🏆 Global Leaderboard</h2>
-      <p>See how you rank among other Gymify warriors!</p>
+      <h2>🏆 Leaderboard</h2>
+      <p>See how you rank among Gymify warriors!</p>
     </header>
 
-    <section id="leaderboard" class="leaderboard">
-      <p>Loading leaderboard...</p>
-    </section>
+    <div class="tabs">
+      <button class="tab active" data-tab="global">🌍 Global</button>
+      <button class="tab" data-tab="friends">👥 Friends</button>
+    </div>
 
-    <button onclick="window.location.href='dashboard.html'" class="back-btn">⬅ Back to Dashboard</button>
+    <!-- Top 3 Podium -->
+    <div class="podium" id="podium" style="display: none;">
+      <div class="podium-place place-2" id="place2"></div>
+      <div class="podium-place place-1" id="place1"></div>
+      <div class="podium-place place-3" id="place3"></div>
+    </div>
+
+    <!-- Rest of Leaderboard -->
+    <div class="leaderboard-section">
+      <div id="leaderboard">
+        <div class="loading">Loading leaderboard...</div>
+      </div>
+    </div>
+
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">
+      ⬅️ Back to Dashboard
+    </button>
   </div>
 
-  <script type="module" src="js/leaderboard.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      doc, 
+      getDoc,
+      getDocs,
+      query,
+      orderBy,
+      limit,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let currentTab = 'global';
+
+    // Update leaderboard entry
+    async function updateLeaderboardEntry(userId) {
+      try {
+        const profileRef = doc(db, "users", userId, "data", "profile");
+        const profileSnap = await getDoc(profileRef);
+        const statsRef = doc(db, "users", userId, "data", "stats");
+        const statsSnap = await getDoc(statsRef);
+        
+        if (!statsSnap.exists()) return;
+        
+        const username = profileSnap.exists() 
+          ? profileSnap.data().username 
+          : auth.currentUser?.displayName || auth.currentUser?.email || "Anonymous";
+        
+        const xp = statsSnap.data().xp || 0;
+        const streak = statsSnap.data().streak || 0;
+        
+        await setDoc(doc(db, "leaderboard", userId), {
+          username,
+          xp,
+          streak,
+          updatedAt: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error("Error updating leaderboard:", err);
+      }
+    }
+
+    // Load global leaderboard
+    async function loadGlobalLeaderboard() {
+      const leaderboardDiv = document.getElementById('leaderboard');
+      leaderboardDiv.innerHTML = '<div class="loading">Loading...</div>';
+
+      try {
+        const leaderboardRef = collection(db, "leaderboard");
+        const q = query(leaderboardRef, orderBy("xp", "desc"), limit(100));
+        const snapshot = await getDocs(q);
+
+        const users = [];
+        snapshot.forEach(doc => {
+          users.push({
+            id: doc.id,
+            username: doc.data().username || "Anonymous",
+            xp: doc.data().xp || 0,
+            streak: doc.data().streak || 0
+          });
+        });
+
+        if (!users.some(u => u.id === currentUser.uid)) {
+          const statsRef = doc(db, "users", currentUser.uid, "data", "stats");
+          const statsSnap = await getDoc(statsRef);
+          const profileRef = doc(db, "users", currentUser.uid, "data", "profile");
+          const profileSnap = await getDoc(profileRef);
+          
+          if (statsSnap.exists()) {
+            users.push({
+              id: currentUser.uid,
+              username: profileSnap.exists() ? profileSnap.data().username : "You",
+              xp: statsSnap.data().xp || 0,
+              streak: statsSnap.data().streak || 0
+            });
+            await updateLeaderboardEntry(currentUser.uid);
+          }
+        }
+
+        users.sort((a, b) => b.xp - a.xp);
+        renderLeaderboard(users);
+      } catch (err) {
+        console.error(err);
+        leaderboardDiv.innerHTML = '<div class="empty-state"><p>Failed to load leaderboard</p></div>';
+      }
+    }
+
+    // Load friends leaderboard
+    async function loadFriendsLeaderboard() {
+      const leaderboardDiv = document.getElementById('leaderboard');
+      leaderboardDiv.innerHTML = '<div class="loading">Loading...</div>';
+
+      try {
+        const friendsRef = collection(db, "users", currentUser.uid, "friends");
+        const snapshot = await getDocs(friendsRef);
+
+        if (snapshot.empty) {
+          leaderboardDiv.innerHTML = `
+            <div class="empty-state">
+              <p>You have no friends yet!</p>
+              <p style="font-size: 13px; margin-top: 10px;">Add friends to see their rankings</p>
+            </div>
+          `;
+          document.getElementById('podium').style.display = 'none';
+          return;
+        }
+
+        const users = [];
+        for (const friendDoc of snapshot.docs) {
+          const friendId = friendDoc.data().friendId;
+          const profileRef = doc(db, "users", friendId, "data", "profile");
+          const profileSnap = await getDoc(profileRef);
+          const statsRef = doc(db, "users", friendId, "data", "stats");
+          const statsSnap = await getDoc(statsRef);
+
+          users.push({
+            id: friendId,
+            username: profileSnap.exists() ? profileSnap.data().username : "Unknown",
+            xp: statsSnap.exists() ? statsSnap.data().xp || 0 : 0,
+            streak: statsSnap.exists() ? statsSnap.data().streak || 0 : 0
+          });
+        }
+
+        // Add current user
+        const myStatsRef = doc(db, "users", currentUser.uid, "data", "stats");
+        const myStatsSnap = await getDoc(myStatsRef);
+        const myProfileRef = doc(db, "users", currentUser.uid, "data", "profile");
+        const myProfileSnap = await getDoc(myProfileRef);
+
+        users.push({
+          id: currentUser.uid,
+          username: myProfileSnap.exists() ? myProfileSnap.data().username : "You",
+          xp: myStatsSnap.exists() ? myStatsSnap.data().xp || 0 : 0,
+          streak: myStatsSnap.exists() ? myStatsSnap.data().streak || 0 : 0
+        });
+
+        users.sort((a, b) => b.xp - a.xp);
+        renderLeaderboard(users);
+      } catch (err) {
+        console.error(err);
+        leaderboardDiv.innerHTML = '<div class="empty-state"><p>Failed to load leaderboard</p></div>';
+      }
+    }
+
+    // Render leaderboard
+    function renderLeaderboard(users) {
+      const leaderboardDiv = document.getElementById('leaderboard');
+
+      if (users.length === 0) {
+        leaderboardDiv.innerHTML = '<div class="empty-state"><p>No users found</p></div>';
+        document.getElementById('podium').style.display = 'none';
+        return;
+      }
+
+      // Show top 3 podium
+      if (users.length >= 3) {
+        document.getElementById('podium').style.display = 'flex';
+        renderPodium(users[0], users[1], users[2]);
+      } else {
+        document.getElementById('podium').style.display = 'none';
+      }
+
+      // Render rest
+      const startFrom = users.length >= 3 ? 3 : 0;
+      leaderboardDiv.innerHTML = users.slice(startFrom).map((user, i) => {
+        const rank = startFrom + i + 1;
+        const isCurrentUser = user.id === currentUser.uid;
+        return `
+          <div class="rank-card ${isCurrentUser ? 'current-user' : ''}">
+            <div class="rank-number">#${rank}</div>
+            <div class="rank-avatar">${user.username.charAt(0).toUpperCase()}</div>
+            <div class="rank-info">
+              <div class="rank-name">
+                ${user.username}
+                ${isCurrentUser ? '<span class="you-badge">YOU</span>' : ''}
+              </div>
+              <div class="rank-stats">⭐ ${user.xp} XP • 🔥 ${user.streak} day streak</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render podium
+    function renderPodium(first, second, third) {
+      document.getElementById('place1').innerHTML = `
+        <div class="podium-rank">🥇</div>
+        <div class="podium-avatar">${first.username.charAt(0).toUpperCase()}</div>
+        <div class="podium-name">${first.username}${first.id === currentUser.uid ? ' (You)' : ''}</div>
+        <div class="podium-stats">⭐ ${first.xp} XP</div>
+      `;
+
+      document.getElementById('place2').innerHTML = `
+        <div class="podium-rank">🥈</div>
+        <div class="podium-avatar">${second.username.charAt(0).toUpperCase()}</div>
+        <div class="podium-name">${second.username}${second.id === currentUser.uid ? ' (You)' : ''}</div>
+        <div class="podium-stats">⭐ ${second.xp} XP</div>
+      `;
+
+      document.getElementById('place3').innerHTML = `
+        <div class="podium-rank">🥉</div>
+        <div class="podium-avatar">${third.username.charAt(0).toUpperCase()}</div>
+        <div class="podium-name">${third.username}${third.id === currentUser.uid ? ' (You)' : ''}</div>
+        <div class="podium-stats">⭐ ${third.xp} XP</div>
+      `;
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentTab = tab.dataset.tab;
+        
+        if (currentTab === 'global') {
+          loadGlobalLeaderboard();
+        } else {
+          loadFriendsLeaderboard();
+        }
+      });
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      
+      currentUser = user;
+      await updateLeaderboardEntry(user.uid);
+      loadGlobalLeaderboard();
+    });
+  </script>
 </body>
-</html> -->
+</html>

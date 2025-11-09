@@ -99,3 +99,77 @@ form.addEventListener("submit", async (e) => {
 backBtn.addEventListener("click", () => {
   window.location.href = "dashboard.html";
 });
+const exportBtn = document.getElementById("export-btn");
+const importBtn = document.getElementById("import-btn");
+const importBox = document.getElementById("import-box");
+
+// 📤 EXPORT PLAN
+exportBtn.addEventListener("click", async () => {
+  if (!userId) {
+    statusMsg.textContent = "❌ Please log in first.";
+    return;
+  }
+
+  const planRef = doc(db, "users", userId, "data", "plan");
+
+  try {
+    const planSnap = await getDoc(planRef);
+    if (!planSnap.exists()) {
+      statusMsg.textContent = "⚠️ No plan found to export.";
+      return;
+    }
+
+    const plan = planSnap.data();
+    const encodedPlan = btoa(JSON.stringify(plan)); // Base64 encode
+
+    // Copy to clipboard
+    await navigator.clipboard.writeText(encodedPlan);
+
+    statusMsg.innerHTML = "✅ Plan copied to clipboard! You can share this code.";
+    statusMsg.style.color = "#00e676";
+  } catch (err) {
+    console.error("Export failed:", err);
+    statusMsg.textContent = "❌ Failed to export plan.";
+    statusMsg.style.color = "red";
+  }
+});
+
+// 📥 IMPORT PLAN
+importBtn.addEventListener("click", async () => {
+  const code = importBox.value.trim();
+
+  if (!code) {
+    statusMsg.textContent = "⚠️ Please paste a valid plan code.";
+    return;
+  }
+
+  if (!userId) {
+    statusMsg.textContent = "❌ Please log in first.";
+    return;
+  }
+
+  try {
+    const decodedPlan = JSON.parse(atob(code)); // decode Base64 → JSON
+
+    const planRef = doc(db, "users", userId, "data", "plan");
+    await setDoc(planRef, decodedPlan);
+
+    // update UI immediately
+    days.forEach(day => {
+      const typeSelect = document.querySelector(`[name='${day}-type']`);
+      const exercisesTextarea = document.querySelector(`[name='${day}-exercises']`);
+
+      if (decodedPlan[day]) {
+        typeSelect.value = decodedPlan[day].type || "Rest";
+        exercisesTextarea.value = decodedPlan[day].exercises || "";
+      }
+    });
+
+    statusMsg.textContent = "✅ Plan imported successfully!";
+    statusMsg.style.color = "#00e676";
+  } catch (err) {
+    console.error("Import failed:", err);
+    statusMsg.textContent = "❌ Invalid or corrupted plan code!";
+    statusMsg.style.color = "red";
+  }
+});
