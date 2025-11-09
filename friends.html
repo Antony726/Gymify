@@ -277,6 +277,70 @@
       setTimeout(() => status.classList.remove('show'), 3000);
     }
 
+    // Helper function to get username from user ID
+    async function getUsername(userId) {
+      try {
+        console.log("🔍 Getting username for:", userId);
+        
+        // Step 1: Check leaderboard first (fastest)
+        try {
+          const leaderboardRef = doc(db, "leaderboard", userId);
+          const leaderboardSnap = await getDoc(leaderboardRef);
+          
+          if (leaderboardSnap.exists() && leaderboardSnap.data()?.username) {
+            console.log("✅ Found username in leaderboard:", leaderboardSnap.data().username);
+            return leaderboardSnap.data().username;
+          }
+        } catch (leaderboardErr) {
+          console.log("⚠️ Leaderboard check failed, trying profile...");
+        }
+        
+        // Step 2: Try profile subcollection
+        try {
+          const profileRef = doc(db, "users", userId, "data", "profile");
+          const profileSnap = await getDoc(profileRef);
+          
+          if (profileSnap.exists() && profileSnap.data()?.username) {
+            console.log("✅ Found username in profile:", profileSnap.data().username);
+            return profileSnap.data().username;
+          }
+        } catch (profileErr) {
+          console.log("⚠️ Profile check failed, trying parent doc...");
+        }
+        
+        // Step 3: Fallback to parent user document
+        const userRef = doc(db, "users", userId);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          console.log("📄 User document data:", userData);
+          
+          // Try displayName first
+          if (userData.displayName) {
+            console.log("✅ Found displayName:", userData.displayName);
+            return userData.displayName;
+          }
+          
+          // Then try email (show full email as fallback)
+          if (userData.email) {
+            console.log("✅ Using email as username:", userData.email);
+            return userData.email; // Show full email
+          }
+        }
+        
+        // If everything fails, show helpful message
+        console.error("❌ PROFILE MISSING for user:", userId);
+        console.error("⚠️ This user's profile was not created during signup!");
+        console.error("💡 Use the repair tool at repair.html to fix this");
+        return `⚠️ Profile Missing - ${userId.substring(0, 8)}`; // Clear indication
+        
+      } catch (err) {
+        console.error("❌ Error getting username:", err);
+        return `Error: ${userId.substring(0, 8)}`;
+      }
+    }
+
     // Search for users
     document.getElementById('searchBtn').addEventListener('click', async () => {
       const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -314,17 +378,13 @@
             const userId = userDoc.id;
             if (userId === currentUser.uid) continue;
 
-            const profileRef = doc(db, "users", userId, "data", "profile");
-            const profileSnap = await getDoc(profileRef);
+            const username = await getUsername(userId);
             const statsRef = doc(db, "users", userId, "data", "stats");
             const statsSnap = await getDoc(statsRef);
-
-            const username = profileSnap.exists() ? profileSnap.data().username : "";
-            const email = userDoc.data()?.email || "";
             const xp = statsSnap.exists() ? statsSnap.data().xp || 0 : 0;
 
-            if (username.toLowerCase().includes(searchTerm) || email.toLowerCase().includes(searchTerm)) {
-              results.push({ userId, username: username || email, xp });
+            if (username.toLowerCase().includes(searchTerm)) {
+              results.push({ userId, username, xp });
             }
           }
         }
@@ -354,15 +414,18 @@
     // Send friend request
     window.sendFriendRequest = async (friendId, friendName) => {
       try {
-        const requestRef = doc(db, "friendRequests", `${currentUser.uid}_${friendId}`);
+        const myUsername = await getUsername(currentUser.uid);
+        
+        const requestRef = doc(collection(db, "friendRequests"));
         await setDoc(requestRef, {
           from: currentUser.uid,
           to: friendId,
-          fromName: currentUser.displayName || currentUser.email,
+          fromName: myUsername,
           toName: friendName,
           status: "pending",
           timestamp: new Date().toISOString()
         });
+
         showStatus(`Friend request sent to ${friendName}!`, 'success');
       } catch (err) {
         console.error(err);
@@ -412,82 +475,66 @@
       }
     }
 
-    // Accept friend request
+    // Accept friend request - FIXED VERSION
     window.acceptRequest = async (requestId, friendId) => {
       try {
-        // Get friend's profile to get their username
-        // const friendProfileRef = doc(db, "users", friendId, "data", "profile");
-        // const friendProfileSnap = await getDoc(friendProfileRef);
+        console.log("🤝 Accepting friend request from:", friendId);
+        
+        // Get usernames using helper function
+        const friendUsername = await getUsername(friendId);
+        const myUsername = await getUsername(currentUser.uid);
+        
+        console.log("✅ Friend username resolved to:", friendUsername);
+        console.log("✅ My username resolved to:", myUsername);
+        
+        // Get stats
         const friendStatsRef = doc(db, "users", friendId, "data", "stats");
         const friendStatsSnap = await getDoc(friendStatsRef);
-        
-        // const friendUsername = friendProfileSnap.exists() 
-        //   ? friendProfileSnap.data().username 
-        //   : "Unknown User";
-          
-        const friendProfileRef = doc(db, "users", friendId, "data", "profile");
-        const friendProfileSnap = await getDoc(friendProfileRef);
-
-        let friendUsername = "Unknown User";
-
-        // 1️⃣ Check profile doc
-        if (friendProfileSnap.exists() && friendProfileSnap.data().username) {
-          friendUsername = friendProfileSnap.data().username;
-        } else {
-          // 2️⃣ Fallback to Firebase Auth
-          const userAuth = await getAuth().getUser(friendId).catch(() => null);
-          if (userAuth && userAuth.displayName) {
-            friendUsername = userAuth.displayName;
-          } else {
-            // 3️⃣ Fallback to email
-            const friendDoc = await getDoc(doc(db, "users", friendId));
-            if (friendDoc.exists() && friendDoc.data().email) {
-              friendUsername = friendDoc.data().email;
-            }
-          }
-        }
-
         const friendXP = friendStatsSnap.exists() ? friendStatsSnap.data().xp || 0 : 0;
         const friendStreak = friendStatsSnap.exists() ? friendStatsSnap.data().streak || 0 : 0;
 
-        // Get current user's profile
-        const myProfileRef = doc(db, "users", currentUser.uid, "data", "profile");
-        const myProfileSnap = await getDoc(myProfileRef);
         const myStatsRef = doc(db, "users", currentUser.uid, "data", "stats");
         const myStatsSnap = await getDoc(myStatsRef);
-        
-        const myUsername = myProfileSnap.exists() 
-          ? myProfileSnap.data().username 
-          : currentUser.displayName || currentUser.email;
         const myXP = myStatsSnap.exists() ? myStatsSnap.data().xp || 0 : 0;
         const myStreak = myStatsSnap.exists() ? myStatsSnap.data().streak || 0 : 0;
 
-        // Add to both users' friends lists WITH usernames
-        await setDoc(doc(db, "users", currentUser.uid, "friends", friendId), {
+        // Prepare friend data objects
+        const myFriendData = {
           friendId,
           username: friendUsername,
           xp: friendXP,
           streak: friendStreak,
           addedAt: new Date().toISOString()
-        });
+        };
         
-        await setDoc(doc(db, "users", friendId, "friends", currentUser.uid), {
+        const theirFriendData = {
           friendId: currentUser.uid,
           username: myUsername,
           xp: myXP,
           streak: myStreak,
           addedAt: new Date().toISOString()
-        });
+        };
+        
+        console.log("📝 Storing in my friends list:", myFriendData);
+        console.log("📝 Storing in their friends list:", theirFriendData);
+
+        // Add to both users' friends lists WITH usernames
+        await setDoc(doc(db, "users", currentUser.uid, "friends", friendId), myFriendData);
+        console.log("✅ Added to my friends list");
+        
+        await setDoc(doc(db, "users", friendId, "friends", currentUser.uid), theirFriendData);
+        console.log("✅ Added to their friends list");
 
         // Delete request
         await deleteDoc(doc(db, "friendRequests", requestId));
+        console.log("✅ Deleted friend request");
         
         showStatus(`You and ${friendUsername} are now friends!`, 'success');
         loadPendingRequests();
         loadFriends();
         loadSuggestedUsers();
       } catch (err) {
-        console.error(err);
+        console.error("❌ Error accepting request:", err);
         showStatus('Error accepting request: ' + err.message, 'error');
       }
     };
@@ -504,7 +551,7 @@
       }
     };
 
-    // Load friends list
+    // Load friends list - FIXED VERSION
     async function loadFriends() {
       const friendsDiv = document.getElementById('friendsList');
       
@@ -527,15 +574,38 @@
 
         const friendsData = [];
         for (const friendDoc of snapshot.docs) {
-          const friendId = friendDoc.data().friendId;
-          const profileRef = doc(db, "users", friendId, "data", "profile");
-          const profileSnap = await getDoc(profileRef);
+          const friendData = friendDoc.data();
+          const friendId = friendData.friendId;
+          
+          console.log("📋 Friend document data:", friendData);
+          
+          // Try to use stored username first, then fallback to fetching
+          let username = friendData.username || "Unknown";
+          
+          // If username is not stored or is "Unknown", try to fetch it
+          if (!friendData.username || friendData.username === "Unknown") {
+            console.log("⚠️ Username not stored, fetching for:", friendId);
+            username = await getUsername(friendId);
+            
+            // Update the friend document with the fetched username
+            try {
+              await setDoc(doc(db, "users", currentUser.uid, "friends", friendId), {
+                ...friendData,
+                username: username
+              });
+              console.log("✅ Updated friend document with username:", username);
+            } catch (updateErr) {
+              console.error("Failed to update friend username:", updateErr);
+            }
+          }
+          
+          // Get latest stats
           const statsRef = doc(db, "users", friendId, "data", "stats");
           const statsSnap = await getDoc(statsRef);
 
           friendsData.push({
             friendId,
-            username: profileSnap.exists() ? profileSnap.data().username : "Unknown",
+            username,
             xp: statsSnap.exists() ? statsSnap.data().xp || 0 : 0,
             streak: statsSnap.exists() ? statsSnap.data().streak || 0 : 0
           });
@@ -553,7 +623,7 @@
           </div>
         `).join('');
       } catch (err) {
-        console.error(err);
+        console.error("❌ Error loading friends:", err);
       }
     }
 
@@ -567,13 +637,14 @@
         
         showStatus('Friend removed', 'success');
         loadFriends();
+        loadSuggestedUsers();
       } catch (err) {
         console.error(err);
         showStatus('Error removing friend', 'error');
       }
     };
 
-    // Load suggested users (top users from leaderboard who aren't friends yet)
+    // Load suggested users
     async function loadSuggestedUsers() {
       const suggestedDiv = document.getElementById('suggestedUsers');
       

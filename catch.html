@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>🥦 Diet Ninja Mobile</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%);
+      font-family: "Poppins", -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #fff;
+      touch-action: none;
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      height: -webkit-fill-available;
+    }
+
+    #gameContainer {
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      height: -webkit-fill-available;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 15px;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+    }
+
+    .hud-item {
+      background: rgba(15, 15, 30, 0.95);
+      padding: 12px 18px;
+      border-radius: 25px;
+      border: 2px solid #00ff88;
+      font-size: 0.95rem;
+      font-weight: 700;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+      transition: transform 0.2s;
+      min-width: 90px;
+      text-align: center;
+    }
+
+    .hud-item.pulse {
+      animation: pulse 0.3s ease;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(0, 255, 136, 0.8); }
+    }
+
+    #combo {
+      position: fixed;
+      top: 25%;
+      left: 50%;
+      transform: translateX(-50%) scale(0);
+      font-size: 4rem;
+      font-weight: 900;
+      color: #ffcc00;
+      text-shadow: 
+        0 0 20px rgba(255, 204, 0, 1),
+        0 0 40px rgba(255, 204, 0, 0.8),
+        0 5px 10px rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    #combo.show {
+      display: block;
+      animation: comboBlast 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes comboBlast {
+      0% { transform: translateX(-50%) scale(0) rotate(-10deg); opacity: 0; }
+      50% { transform: translateX(-50%) scale(1.3) rotate(5deg); }
+      100% { transform: translateX(-50%) scale(1) rotate(0); opacity: 1; }
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: -webkit-fill-available;
+      touch-action: none;
+      cursor: none;
+    }
+
+    .game-over, .start-screen {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 200, 255, 0.1));
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 40px 30px;
+      border-radius: 30px;
+      text-align: center;
+      z-index: 100;
+      border: 3px solid #00ff88;
+      box-shadow: 0 0 60px rgba(0, 255, 136, 0.6);
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .game-over {
+      display: none;
+      animation: slideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .start-screen h1 {
+      font-size: 3rem;
+      color: #00ff88;
+      margin-bottom: 10px;
+      text-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+      animation: glow 2s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 20px rgba(0, 255, 136, 0.8); }
+      50% { text-shadow: 0 0 40px rgba(0, 255, 136, 1), 0 0 60px rgba(0, 255, 136, 0.6); }
+    }
+
+    @keyframes slideIn {
+      from { 
+        opacity: 0; 
+        transform: translate(-50%, -40%) scale(0.8);
+      }
+      to { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    button {
+      background: linear-gradient(135deg, #00ff88, #00cc88);
+      color: #0a0a0a;
+      border: none;
+      padding: 18px 50px;
+      font-size: 1.3rem;
+      font-weight: 900;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 8px 30px rgba(0, 255, 136, 0.5);
+      margin: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    button:active {
+      transform: scale(0.95);
+      box-shadow: 0 4px 15px rgba(0, 255, 136, 0.7);
+    }
+
+    .instructions {
+      margin: 25px 0;
+      font-size: 1rem;
+      color: #ffffff;
+      line-height: 1.8;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .instructions p {
+      margin: 8px 0;
+    }
+
+    .stats {
+      margin: 20px 0;
+      font-size: 1.2rem;
+    }
+
+    .stat-good {
+      color: #00ff88;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+    }
+
+    .stat-bad {
+      color: #ff4444;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(255, 68, 68, 0.6);
+    }
+
+    #lives {
+      display: flex;
+      gap: 8px;
+      font-size: 1.8rem;
+      justify-content: center;
+      filter: drop-shadow(0 0 10px rgba(255, 68, 68, 0.6));
+    }
+
+    .subtitle {
+      color: #00cc88;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      opacity: 0.9;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .floating-icon {
+      display: inline-block;
+      animation: float 2s ease-in-out infinite;
+    }
+
+    /* Critical points popup */
+    .points-popup {
+      position: fixed;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #00ff88;
+      text-shadow: 0 0 20px rgba(0, 255, 136, 1);
+      pointer-events: none;
+      z-index: 25;
+      animation: popupFloat 1s ease-out forwards;
+    }
+
+    @keyframes popupFloat {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <div class="start-screen" id="startScreen">
+      <h1><span class="floating-icon">🥗</span> DIET NINJA</h1>
+      <div class="subtitle">Master Your Macros!</div>
+      <div class="instructions">
+        <p>🥦 <strong>SWIPE</strong> healthy foods!</p>
+        <p>🍕 <strong>AVOID</strong> junk food!</p>
+        <p>⚡ <strong>COMBO</strong> for mega points!</p>
+      </div>
+      <button onclick="startGame()">🎮 START</button>
+    </div>
+
+    <div class="hud">
+      <div class="hud-item" id="score">0</div>
+      <div class="hud-item" id="bombsHud">
+        <div id="lives">❤️❤️❤️</div>
+      </div>
+      <div class="hud-item" id="protein">0g</div>
+    </div>
+
+    <div id="combo"></div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="game-over" id="gameOver">
+      <h2 style="font-size: 2.5rem; margin-bottom: 15px;">💀 GAME OVER!</h2>
+      <div class="stats">
+        <p>Score: <span class="stat-good" id="finalScore">0</span></p>
+        <p>Protein: <span class="stat-good" id="finalProtein">0g</span></p>
+        <p>Junk Hit: <span class="stat-bad" id="finalBombs">0</span></p>
+        <p>Max Combo: <span class="stat-good" id="maxCombo">0x</span></p>
+      </div>
+      <button onclick="restartGame()">🔄 RETRY</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Full mobile screen setup
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    const healthy = [
+      { icon: "🥦", name: "Broccoli", protein: 4 },
+      { icon: "🍗", name: "Chicken", protein: 10 },
+      { icon: "🥚", name: "Egg", protein: 7 },
+      { icon: "🍎", name: "Apple", protein: 3 },
+      { icon: "🥕", name: "Carrot", protein: 2 },
+      { icon: "🍌", name: "Banana", protein: 3 },
+      { icon: "🥑", name: "Avocado", protein: 5 },
+      { icon: "🐟", name: "Fish", protein: 9 },
+      { icon: "🥛", name: "Milk", protein: 8 },
+      { icon: "🫘", name: "Beans", protein: 6 },
+    ];
+
+    const junk = [
+      { icon: "🍕", name: "Pizza" },
+      { icon: "🍔", name: "Burger" },
+      { icon: "🍩", name: "Donut" },
+      { icon: "🍫", name: "Chocolate" },
+      { icon: "🍟", name: "Fries" },
+      { icon: "🌭", name: "Hot Dog" },
+      { icon: "🥤", name: "Soda" },
+    ];
+
+    let foods = [];
+    let particles = [];
+    let sliceTrail = [];
+    let score = 0, protein = 0, bombHits = 0;
+    let gameOver = false;
+    let gameStarted = false;
+    let combo = 0;
+    let maxCombo = 0;
+    let comboTimer = null;
+    let lastSpawn = 0;
+    let spawnRate = 900;
+    let difficultyLevel = 1;
+    let junkChance = 0.30; // Start with 30% junk food
+
+    function startGame() {
+      document.getElementById("startScreen").style.display = "none";
+      gameStarted = true;
+      requestAnimationFrame(gameLoop);
+    }
+
+    function spawnFood() {
+      const isHealthy = Math.random() > junkChance; // Use dynamic junk chance
+      const foodData = isHealthy
+        ? healthy[Math.floor(Math.random() * healthy.length)]
+        : junk[Math.floor(Math.random() * junk.length)];
+      
+      // Spawn from bottom with HIGH arc
+      const spawnSide = Math.random();
+      let x, speedX;
+      
+      if (spawnSide < 0.33) {
+        // Left side
+        x = canvas.width * 0.15;
+        speedX = Math.random() * 3 + 2;
+      } else if (spawnSide < 0.66) {
+        // Center
+        x = canvas.width * 0.5;
+        speedX = (Math.random() - 0.5) * 4;
+      } else {
+        // Right side
+        x = canvas.width * 0.85;
+        speedX = -(Math.random() * 3 + 2);
+      }
+
+      // Higher arc with slightly slower speed
+      const speedY = -(Math.random() * 6 + 20 + (difficultyLevel * 0.5)); // Speed increases with difficulty
+      const rotation = (Math.random() - 0.5) * (0.25 + difficultyLevel * 0.02);
+
+      foods.push({
+        ...foodData,
+        isHealthy,
+        x,
+        y: canvas.height,
+        size: 55, // Even bigger icons
+        speedY,
+        speedX,
+        rotation: 0,
+        rotationSpeed: rotation,
+        sliced: false,
+        gravity: 0.45, // Slightly slower fall
+      });
+    }
+
+    function drawFoods() {
+      foods.forEach(f => {
+        ctx.save();
+        ctx.translate(f.x, f.y);
+        ctx.rotate(f.rotation);
+        ctx.font = `${f.size}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        
+        // Strong glow for healthy food
+        if (f.isHealthy && !f.sliced) {
+          ctx.shadowColor = "#00ff88";
+          ctx.shadowBlur = 25;
+        } else if (!f.isHealthy && !f.sliced) {
+          ctx.shadowColor = "#ff4444";
+          ctx.shadowBlur = 20;
+        }
+        
+        ctx.fillText(f.icon, 0, 0);
+        ctx.restore();
+      });
+    }
+
+    function createParticles(x, y, isHealthy, isCritical = false) {
+      const color = isHealthy ? "#00ff88" : "#ff4444";
+      const count = isCritical ? 30 : 20;
+      
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count;
+        const speed = Math.random() * 6 + 3;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1,
+          decay: 0.015,
+          color,
+          size: Math.random() * 6 + 3,
+        });
+      }
+
+      // Extra sparkles for critical hits
+      if (isCritical) {
+        for (let i = 0; i < 15; i++) {
+          particles.push({
+            x,
+            y,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            life: 1,
+            decay: 0.02,
+            color: "#ffcc00",
+            size: Math.random() * 4 + 2,
+          });
+        }
+      }
+    }
+
+    function drawParticles() {
+      particles.forEach((p, i) => {
+        ctx.save();
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.3;
+        p.life -= p.decay;
+
+        if (p.life <= 0) particles.splice(i, 1);
+      });
+    }
+
+    function drawSliceTrail() {
+      if (sliceTrail.length < 2) return;
+
+      // Multiple trail layers for cool effect
+      for (let layer = 0; layer < 3; layer++) {
+        ctx.strokeStyle = `rgba(0, 255, 136, ${0.6 - layer * 0.15})`;
+        ctx.lineWidth = 8 - layer * 2;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.shadowColor = "#00ff88";
+        ctx.shadowBlur = 20;
+
+        ctx.beginPath();
+        ctx.moveTo(sliceTrail[0].x, sliceTrail[0].y);
+        
+        for (let i = 1; i < sliceTrail.length; i++) {
+          ctx.lineTo(sliceTrail[i].x, sliceTrail[i].y);
+        }
+        
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+
+      // Fade trail
+      sliceTrail.forEach((t, i) => {
+        t.life--;
+        if (t.life <= 0) sliceTrail.splice(i, 1);
+      });
+    }
+
+    function updateFoods() {
+      foods.forEach((f, i) => {
+        f.x += f.speedX;
+        f.y += f.speedY;
+        f.speedY += f.gravity;
+        f.rotation += f.rotationSpeed;
+
+        // Remove if out of bounds
+        if (f.y > canvas.height + 100 || f.sliced) {
+          foods.splice(i, 1);
+        }
+      });
+    }
+
+    function checkSlice(x, y) {
+      let slicedThisFrame = false;
+      
+      foods.forEach((f, i) => {
+        if (f.sliced) return;
+        
+        const dx = f.x - x;
+        const dy = f.y - y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < f.size * 0.8) {
+          f.sliced = true;
+          slicedThisFrame = true;
+          
+          if (f.isHealthy) {
+            combo++;
+            const isCritical = combo >= 5;
+            const points = 10 + (combo * 5);
+            score += points;
+            protein += f.protein || 5;
+            maxCombo = Math.max(maxCombo, combo);
+            
+            // Update difficulty every 50 points
+            updateDifficulty();
+            
+            showCombo();
+            showPointsPopup(f.x, f.y, `+${points}`);
+            playSound("slice", isCritical);
+            pulseHUD("score");
+            pulseHUD("protein");
+            
+            createParticles(f.x, f.y, true, isCritical);
+          } else {
+            bombHits++;
+            updateLives();
+            resetCombo();
+            playSound("bomb");
+            pulseHUD("bombsHud");
+            
+            // Screen shake effect
+            canvas.style.transform = "translate(5px, 5px)";
+            setTimeout(() => {
+              canvas.style.transform = "translate(-5px, -5px)";
+              setTimeout(() => {
+                canvas.style.transform = "translate(0, 0)";
+              }, 50);
+            }, 50);
+            
+            createParticles(f.x, f.y, false);
+            
+            if (bombHits >= 3) endGame();
+          }
+          
+          updateHUD();
+        }
+      });
+    }
+
+    function showPointsPopup(x, y, text) {
+      const popup = document.createElement("div");
+      popup.className = "points-popup";
+      popup.textContent = text;
+      popup.style.left = x + "px";
+      popup.style.top = y + "px";
+      document.body.appendChild(popup);
+      
+      setTimeout(() => popup.remove(), 1000);
+    }
+
+    function showCombo() {
+      if (combo < 2) return;
+      
+      const comboEl = document.getElementById("combo");
+      comboEl.textContent = combo >= 5 ? `${combo}x FIRE! 🔥` : `${combo}x COMBO!`;
+      comboEl.classList.remove("show");
+      void comboEl.offsetWidth; // Force reflow
+      comboEl.classList.add("show");
+      
+      clearTimeout(comboTimer);
+      comboTimer = setTimeout(() => {
+        comboEl.classList.remove("show");
+        resetCombo();
+      }, 1800);
+    }
+
+    function resetCombo() {
+      combo = 0;
+      clearTimeout(comboTimer);
+    }
+
+    function updateDifficulty() {
+      const newLevel = Math.floor(score / 100) + 1; // Level up every 100 points
+      
+      if (newLevel > difficultyLevel) {
+        difficultyLevel = newLevel;
+        
+        // Increase spawn rate (faster spawning)
+        spawnRate = Math.max(400, 900 - (difficultyLevel * 80));
+        
+        // Increase junk food chance (more dangerous)
+        junkChance = Math.min(0.50, 0.30 + (difficultyLevel * 0.03));
+        
+        // Show difficulty increase notification
+        if (difficultyLevel > 1) {
+          const comboEl = document.getElementById("combo");
+          comboEl.textContent = `LEVEL ${difficultyLevel}! 💪`;
+          comboEl.classList.remove("show");
+          void comboEl.offsetWidth;
+          comboEl.classList.add("show");
+          
+          setTimeout(() => {
+            comboEl.classList.remove("show");
+          }, 1500);
+          
+          playSound("slice", true);
+        }
+      }
+    }
+
+    function pulseHUD(id) {
+      const el = document.getElementById(id);
+      el.classList.remove("pulse");
+      void el.offsetWidth;
+      el.classList.add("pulse");
+    }
+
+    function updateLives() {
+      const hearts = ["❤️", "❤️", "❤️"];
+      for (let i = 0; i < bombHits; i++) {
+        hearts[i] = "💔";
+      }
+      document.getElementById("lives").innerHTML = hearts.join("");
+    }
+
+    function updateHUD() {
+      document.getElementById("score").textContent = score;
+      document.getElementById("protein").textContent = protein + "g";
+    }
+
+    function playSound(type, critical = false) {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        if (type === "slice") {
+          oscillator.frequency.value = critical ? 1200 : 900;
+          gainNode.gain.setValueAtTime(critical ? 0.4 : 0.3, audioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        } else if (type === "bomb") {
+          oscillator.frequency.value = 80;
+          oscillator.type = "sawtooth";
+          gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        }
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.4);
+      } catch (e) {
+        // Silently fail if audio not available
+      }
+    }
+
+    let animationId;
+    function gameLoop(timestamp) {
+      if (!gameStarted || gameOver) return;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      drawSliceTrail();
+      drawParticles();
+      drawFoods();
+      updateFoods();
+
+      // Dynamic spawn rate based on difficulty
+      if (timestamp - lastSpawn > spawnRate) {
+        spawnFood();
+        // Sometimes spawn 2 at once at higher levels
+        if (difficultyLevel >= 3 && Math.random() < 0.3) {
+          setTimeout(() => spawnFood(), 100);
+        }
+        lastSpawn = timestamp;
+      }
+
+      animationId = requestAnimationFrame(gameLoop);
+    }
+
+    // Touch handling for mobile
+    let touchActive = false;
+    
+    canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      touchActive = true;
+      const touch = e.touches[0];
+      handleInput(touch.clientX, touch.clientY);
+    });
+
+    canvas.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      if (!touchActive) return;
+      const touch = e.touches[0];
+      handleInput(touch.clientX, touch.clientY);
+    });
+
+    canvas.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      touchActive = false;
+      sliceTrail = [];
+    });
+
+    // Mouse for desktop testing
+    let isMouseDown = false;
+    
+    canvas.addEventListener("mousedown", (e) => {
+      isMouseDown = true;
+      handleInput(e.clientX, e.clientY);
+    });
+    
+    canvas.addEventListener("mouseup", () => {
+      isMouseDown = false;
+      sliceTrail = [];
+    });
+    
+    canvas.addEventListener("mousemove", (e) => {
+      if (isMouseDown) handleInput(e.clientX, e.clientY);
+    });
+
+    function handleInput(x, y) {
+      if (!gameStarted || gameOver) return;
+      
+      sliceTrail.push({ x, y, life: 10 });
+      if (sliceTrail.length > 20) sliceTrail.shift();
+      
+      checkSlice(x, y);
+    }
+
+    function endGame() {
+      gameOver = true;
+      cancelAnimationFrame(animationId);
+      document.getElementById("finalScore").textContent = score;
+      document.getElementById("finalProtein").textContent = protein + "g";
+      document.getElementById("finalBombs").textContent = bombHits;
+      document.getElementById("maxCombo").textContent = maxCombo + "x";
+      document.getElementById("gameOver").style.display = "block";
+    }
+
+    function restartGame() {
+      foods = [];
+      particles = [];
+      sliceTrail = [];
+      score = 0;
+      protein = 0;
+      bombHits = 0;
+      combo = 0;
+      maxCombo = 0;
+      gameOver = false;
+      gameStarted = true;
+      lastSpawn = 0;
+      difficultyLevel = 1;
+      junkChance = 0.30;
+      spawnRate = 900;
+      
+      updateHUD();
+      updateLives();
+      document.getElementById("gameOver").style.display = "none";
+      document.getElementById("combo").classList.remove("show");
+      
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Prevent zoom on double tap
+    let lastTouchEnd = 0;
+    document.addEventListener("touchend", (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, false);
+  </script>
+</body>
+</html>

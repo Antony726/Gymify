@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Challenges</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: Poppins, sans-serif;
+      background: #0d1117;
+      color: #fff;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 15px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .challenge-card {
+      background: #161b22;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .challenge-card h3 {
+      color: #66fcf1;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+    .challenge-card p {
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      color: #ccc;
+    }
+    .progress-container {
+      background: #22272f;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      height: 12px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #10b981;
+      width: 0%;
+      transition: width 0.5s;
+    }
+    .participants {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+    .challenge-card button {
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .challenge-card button:disabled {
+      background: #444;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .achievement-popup {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: linear-gradient(135deg, #16a34a, #22c55e);
+      color: white;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-weight: 600;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      animation: fadeInOut 3s ease-in-out;
+      z-index: 9999;
+      display: none;
+    }
+    @keyframes fadeInOut {
+      0%, 100% { opacity: 0; transform: translateY(15px); }
+      10%, 90% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>🌐 Community Challenges</h2>
+      <p>Join daily tasks and log progress!</p>
+      <div id="xp-display">⭐ XP: 0</div>
+    </div>
+
+    <div id="challenge-list"></div>
+  </div>
+
+  <div class="achievement-popup" id="challenge-popup">
+    🎉 Progress Updated! XP Earned!
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const challengeListEl = document.getElementById("challenge-list");
+    const challengePopup = document.getElementById("challenge-popup");
+    const xpEl = document.getElementById("xp-display");
+
+    // Sample challenges with total goal
+    const communityChallenges = [
+      { id: "lift100kg", text: "Lift 100kg as a community in 6 days", goal: 100 },
+      { id: "run30km", text: "Run 30 km together in a week", goal: 30 },
+    ];
+
+    function renderChallenge(ch, userId) {
+      const challengeCard = document.createElement("div");
+      challengeCard.className = "challenge-card";
+
+      challengeCard.innerHTML = `
+        <h3>🏆 ${ch.text}</h3>
+        <div class="progress-container"><div class="progress-bar" id="progress-${ch.id}"></div></div>
+        <div class="participants" id="participants-${ch.id}"></div>
+        <input type="number" min="1" id="input-${ch.id}" placeholder="Enter your contribution" style="width:70%; padding:5px; margin-bottom:8px;">
+        <button id="btn-${ch.id}">Join / Log Progress</button>
+      `;
+
+      challengeListEl.appendChild(challengeCard);
+
+      const progressBar = challengeCard.querySelector(`#progress-${ch.id}`);
+      const participantsEl = challengeCard.querySelector(`#participants-${ch.id}`);
+      const inputEl = challengeCard.querySelector(`#input-${ch.id}`);
+      const btnEl = challengeCard.querySelector(`#btn-${ch.id}`);
+
+      const challengeRef = doc(db, "communityChallenges", ch.id);
+
+      // Real-time update
+      onSnapshot(challengeRef, snap => {
+        const data = snap.data();
+        if (data) {
+          const total = data.total || 0;
+          const percent = Math.min(100, Math.floor((total / ch.goal) * 100));
+          progressBar.style.width = percent + "%";
+          const users = data.users || [];
+          participantsEl.innerText = `Participants: ${users.join(", ") || "None"}`;
+        }
+      });
+
+      btnEl.addEventListener("click", async () => {
+        const val = parseInt(inputEl.value);
+        if (!val || val <= 0) return alert("Enter a valid number!");
+
+        const userName = auth.currentUser.displayName || "User";
+
+        await updateDoc(challengeRef, {
+          total: arrayUnion(val), // store contributions
+          users: arrayUnion(userName)
+        }).catch(async () => {
+          // if document doesn't exist, create it
+          await setDoc(challengeRef, { total: [val], users: [userName], createdAt: serverTimestamp() });
+        });
+
+        // Optionally increase XP
+        const statsRef = doc(db, "users", auth.currentUser.uid, "data", "stats");
+        const statsSnap = await getDoc(statsRef);
+        let xp = 0;
+        if (statsSnap.exists()) xp = statsSnap.data().xp || 0;
+        xp += val; // 1 contribution = 1 XP
+        await setDoc(statsRef, { ...statsSnap.data(), xp, updatedAt: serverTimestamp() });
+
+        xpEl.textContent = `⭐ XP: ${xp}`;
+
+        challengePopup.style.display = "block";
+        setTimeout(() => challengePopup.style.display = "none", 2000);
+        inputEl.value = "";
+      });
+    }
+
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      // Render all challenges
+      communityChallenges.forEach(ch => renderChallenge(ch, user.uid));
+    });
+  </script>
+</body>
+</html>

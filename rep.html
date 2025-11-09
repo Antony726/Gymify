@@ -109,23 +109,6 @@
       <button id="repairCurrentBtn">🔧 Repair My Profile Only</button>
     </div>
     
-    <div class="section">
-      <h3 style="color: #66fcf1;">Manual Repair (for specific user)</h3>
-      <input 
-        type="text" 
-        id="userIdInput" 
-        placeholder="Enter User ID (e.g., R8dN9VTSbJTZVwPgS47inwRAOgs1)"
-        style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #444; color: #fff; border-radius: 5px; margin-bottom: 10px; font-family: monospace;"
-      />
-      <input 
-        type="text" 
-        id="usernameInput" 
-        placeholder="Enter desired username (optional - will use User_xxx if empty)"
-        style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #444; color: #fff; border-radius: 5px; margin-bottom: 10px;"
-      />
-      <button id="manualRepairBtn">🔧 Repair This User</button>
-    </div>
-    
     <div class="log" id="log"></div>
   </div>
 
@@ -151,7 +134,6 @@
     const scanBtn = document.getElementById('scanBtn');
     const repairBtn = document.getElementById('repairBtn');
     const repairCurrentBtn = document.getElementById('repairCurrentBtn');
-    const manualRepairBtn = document.getElementById('manualRepairBtn');
     const scanResults = document.getElementById('scanResults');
     
     let usersWithIssues = [];
@@ -173,51 +155,27 @@
       usersWithIssues = [];
       
       try {
-        // Get all users from Firestore users collection
+        // Get all users from authentication (via users collection)
         const usersRef = collection(db, "users");
         const snapshot = await getDocs(usersRef);
         
-        log(`Found ${snapshot.size} users in Firestore`, 'info');
+        log(`Found ${snapshot.size} users in database`, 'info');
         
-        // Also check leaderboard for users not in users collection
-        const leaderboardRef = collection(db, "leaderboard");
-        const leaderboardSnap = await getDocs(leaderboardRef);
-        
-        log(`Found ${leaderboardSnap.size} entries in leaderboard`, 'info');
-        
-        // Combine all user IDs
-        const allUserIds = new Set();
-        snapshot.docs.forEach(doc => allUserIds.add(doc.id));
-        leaderboardSnap.docs.forEach(doc => allUserIds.add(doc.id));
-        
-        log(`Total unique users found: ${allUserIds.size}`, 'info');
-        
-        for (const userId of allUserIds) {
-          log(`\n--- Checking user: ${userId} ---`, 'info');
+        for (const userDoc of snapshot.docs) {
+          const userId = userDoc.id;
+          const userData = userDoc.data();
+          const email = userData.email || 'Unknown Email';
+          
+          log(`\n--- Checking user: ${userId} (${email}) ---`, 'info');
           
           const issues = [];
           let username = null;
-          let email = null;
           
           // Check parent document
-          const userRef = doc(db, "users", userId);
-          const userSnap = await getDoc(userRef);
-          
-          if (!userSnap.exists()) {
-            issues.push('Parent document missing');
-            log(`  ❌ Parent document does NOT exist`, 'error');
-            email = `user_${userId.substring(0, 8)}@unknown.com`;
+          if (!userData.displayName) {
+            issues.push('Missing displayName in parent doc');
           } else {
-            const userData = userSnap.data();
-            email = userData.email || 'Unknown Email';
-            
-            if (!userData.displayName) {
-              issues.push('Missing displayName in parent doc');
-              log(`  ⚠️ No displayName`, 'warning');
-            } else {
-              username = userData.displayName;
-              log(`  ✅ DisplayName: ${username}`, 'success');
-            }
+            username = userData.displayName;
           }
           
           // Check profile subcollection
@@ -235,17 +193,6 @@
             log(`  ✅ Profile OK (username: ${profileSnap.data().username})`, 'success');
           }
           
-          // Check stats
-          const statsRef = doc(db, "users", userId, "data", "stats");
-          const statsSnap = await getDoc(statsRef);
-          
-          if (!statsSnap.exists()) {
-            issues.push('Missing stats');
-            log(`  ❌ Stats missing`, 'error');
-          } else {
-            log(`  ✅ Stats OK`, 'success');
-          }
-          
           // Check leaderboard
           const leaderboardRef = doc(db, "leaderboard", userId);
           const leaderboardSnap = await getDoc(leaderboardRef);
@@ -257,16 +204,15 @@
             issues.push('In leaderboard but no username');
             log(`  ⚠️ In leaderboard but no username`, 'warning');
           } else {
-            username = username || leaderboardSnap.data().username;
             log(`  ✅ Leaderboard OK (username: ${leaderboardSnap.data().username})`, 'success');
           }
           
           if (issues.length > 0) {
             usersWithIssues.push({
               userId,
-              email: email || `user_${userId.substring(0, 8)}@unknown.com`,
-              username: username || `User_${userId.substring(0, 8)}`,
-              displayName: userSnap.exists() ? userSnap.data()?.displayName : null,
+              email,
+              username: username || email.split('@')[0],
+              displayName: userData.displayName,
               issues
             });
             log(`  ⚠️ Found ${issues.length} issue(s)`, 'warning');
@@ -286,8 +232,7 @@
             ${usersWithIssues.map(user => `
               <div class="user-card missing">
                 <strong>${user.email}</strong> (ID: ${user.userId.substring(0, 8)}...)<br>
-                <small>Issues: ${user.issues.join(', ')}</small><br>
-                <small style="color: #888;">Will use username: ${user.username}</small>
+                <small>Issues: ${user.issues.join(', ')}</small>
               </div>
             `).join('')}
           `;
@@ -304,74 +249,54 @@
     }
     
     async function repairUser(userId, email, username, displayName) {
-      log(`\n🔧 Repairing user: ${userId}`, 'info');
+      log(`\n🔧 Repairing user: ${email}`, 'info');
       
       try {
         // Determine best username to use
-        const finalUsername = username || displayName || `User_${userId.substring(0, 8)}`;
-        const finalEmail = email || `user_${userId.substring(0, 8)}@unknown.com`;
-        
+        const finalUsername = username || displayName || email.split('@')[0];
         log(`  Using username: ${finalUsername}`, 'info');
-        log(`  Using email: ${finalEmail}`, 'info');
         
-        // 1. Create/update parent document (force create even if missing)
+        // 1. Update parent document
         await setDoc(doc(db, "users", userId), {
           uid: userId,
-          email: finalEmail,
+          email: email,
           displayName: finalUsername,
-          createdAt: serverTimestamp(),
-          repairedAt: serverTimestamp()
+          createdAt: serverTimestamp()
         }, { merge: true });
-        log(`  ✅ Created/updated parent document`, 'success');
+        log(`  ✅ Updated parent document`, 'success');
         
         // 2. Create/update profile
         await setDoc(doc(db, "users", userId, "data", "profile"), {
           username: finalUsername,
-          email: finalEmail,
-          createdAt: serverTimestamp(),
-          repairedAt: serverTimestamp()
+          email: email,
+          createdAt: serverTimestamp()
         });
         log(`  ✅ Created/updated profile`, 'success');
         
         // 3. Check/create stats
         const statsRef = doc(db, "users", userId, "data", "stats");
         const statsSnap = await getDoc(statsRef);
-        
-        const statsData = statsSnap.exists() ? statsSnap.data() : {};
-        
-        await setDoc(statsRef, {
-          xp: statsData.xp || 0,
-          streak: statsData.streak || 0,
-          hearts: statsData.hearts || 4,
-          lastWorkoutDate: statsData.lastWorkoutDate || null,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-        log(`  ✅ Created/updated stats`, 'success');
-        
-        // 4. Check/create social
-        const socialRef = doc(db, "users", userId, "data", "social");
-        const socialSnap = await getDoc(socialRef);
-        
-        if (!socialSnap.exists()) {
-          await setDoc(socialRef, {
-            friends: [],
-            sentRequests: [],
-            receivedRequests: [],
+        if (!statsSnap.exists()) {
+          await setDoc(statsRef, {
+            xp: 0,
+            streak: 0,
+            hearts: 4,
+            lastWorkoutDate: null,
             updatedAt: serverTimestamp()
           });
-          log(`  ✅ Created social data`, 'success');
+          log(`  ✅ Created stats`, 'success');
         }
         
-        // 5. Update leaderboard
+        // 4. Update leaderboard
         await setDoc(doc(db, "leaderboard", userId), {
           username: finalUsername,
-          xp: statsData.xp || 0,
-          streak: statsData.streak || 0,
+          xp: statsSnap.exists() ? statsSnap.data().xp || 0 : 0,
+          streak: statsSnap.exists() ? statsSnap.data().streak || 0 : 0,
           updatedAt: serverTimestamp()
-        }, { merge: true });
+        });
         log(`  ✅ Updated leaderboard`, 'success');
         
-        log(`  🎉 Successfully repaired user ${userId}`, 'success');
+        log(`  🎉 Successfully repaired ${email}`, 'success');
         return true;
         
       } catch (err) {
@@ -427,44 +352,9 @@
       setTimeout(() => scanUsers(), 1000);
     }
     
-    async function manualRepair() {
-      const userId = document.getElementById('userIdInput').value.trim();
-      const username = document.getElementById('usernameInput').value.trim();
-      
-      if (!userId) {
-        log('❌ Please enter a User ID', 'error');
-        return;
-      }
-      
-      manualRepairBtn.disabled = true;
-      log(`\n🔧 Manual repair for user: ${userId}`, 'info');
-      
-      // Try to get existing email first
-      let email = null;
-      try {
-        const userRef = doc(db, "users", userId);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          email = userSnap.data().email;
-        }
-      } catch (err) {
-        log('⚠️ Could not fetch existing email, will use placeholder', 'warning');
-      }
-      
-      const finalUsername = username || `User_${userId.substring(0, 8)}`;
-      const finalEmail = email || `user_${userId.substring(0, 8)}@unknown.com`;
-      
-      await repairUser(userId, finalEmail, finalUsername, finalUsername);
-      
-      manualRepairBtn.disabled = false;
-      
-      log('\n✅ Manual repair complete. You can now refresh friends page.', 'success');
-    }
-    
     scanBtn.addEventListener('click', scanUsers);
     repairBtn.addEventListener('click', repairAllUsers);
     repairCurrentBtn.addEventListener('click', repairCurrentUser);
-    manualRepairBtn.addEventListener('click', manualRepair);
     
     onAuthStateChanged(auth, (user) => {
       if (user) {

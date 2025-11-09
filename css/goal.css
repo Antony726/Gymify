@@ -1,0 +1,92 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #0b0c10;
+  color: #c5c6c7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  background: #1f2833;
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+h2 {
+  color: #66fcf1;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  text-align: left;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+select, input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: none;
+  background: #0b0c10;
+  color: white;
+  font-size: 14px;
+}
+
+button {
+  background: #66fcf1;
+  color: #0b0c10;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-top: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  width: 100%;
+}
+
+button:hover {
+  background: #45a29e;
+}
+
+.chart-container {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  margin: 25px auto;
+}
+
+#goalLabel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #66fcf1;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+#progressText, #timerText {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.back-btn {
+  background: #45a29e;
+  margin-top: 25px;
+}

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎡 Wheel of Fate | Gymify</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: radial-gradient(circle at top, #0b0c10, #1f2833 70%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    h1 {
+      color: #66fcf1;
+      font-size: 2rem;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #45a29e;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 25px solid #ff4444;
+      z-index: 10;
+    }
+
+    canvas {
+      border-radius: 50%;
+      transition: transform 6s cubic-bezier(0.25, 1, 0.3, 1);
+    }
+
+    button {
+      margin-top: 40px;
+      background: #66fcf1;
+      color: #0b0c10;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 0 15px rgba(102, 252, 241, 0.3);
+    }
+
+    button:hover {
+      background: #45a29e;
+      transform: scale(1.05);
+    }
+
+    .result {
+      margin-top: 25px;
+      font-size: 1.4rem;
+      color: #66fcf1;
+      text-shadow: 0 0 10px #45a29e;
+      height: 30px;
+      text-align: center;
+    }
+
+    .confetti {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: fall 2.5s linear infinite;
+    }
+
+    @keyframes fall {
+      0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(100vh) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎡 Wheel of Fate</h1>
+  <div class="wheel-container">
+    <div class="pointer"></div>
+    <canvas id="wheelCanvas" width="320" height="320"></canvas>
+  </div>
+  <button id="spinBtn">🎯 Spin the Wheel</button>
+  <div class="result" id="result"></div>
+
+  <script>
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+    const result = document.getElementById("result");
+    const btn = document.getElementById("spinBtn");
+
+    const options = [
+      "😴 Nap Instead",
+      "🍕 Cheat Day",
+      "📱 Scroll Reels",
+      "🛋️ Netflix Time",
+      "🥤 One Soda",
+      "🚫 Skip Gym",
+      "🏋️ GO TO GYM!",
+    ];
+
+    const colors = [
+      "#1f2833",
+      "#45a29e",
+      "#66fcf1",
+      "#1f2833",
+      "#45a29e",
+      "#66fcf1",
+      "#ff4444",
+    ];
+
+    const size = options.length;
+    const arcSize = (2 * Math.PI) / size;
+
+    // 🎨 Draw wheel with text
+    function drawWheel() {
+      for (let i = 0; i < size; i++) {
+        const startAngle = i * arcSize;
+        ctx.beginPath();
+        ctx.fillStyle = colors[i];
+        ctx.moveTo(160, 160);
+        ctx.arc(160, 160, 160, startAngle, startAngle + arcSize);
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(160, 160);
+        ctx.rotate(startAngle + arcSize / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 15px Poppins";
+        ctx.fillText(options[i], 145, 5);
+        ctx.restore();
+      }
+    }
+
+    drawWheel();
+
+    let rotation = 0;
+
+    function spinWheel() {
+      result.textContent = "";
+      btn.disabled = true;
+
+      // 🎵 Spin sound
+      const spinSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+      spinSound.play();
+
+      const fullRotations = Math.floor(Math.random() * 2 + 4) * 360; // 4–6 spins
+      const randomOffset = Math.random() * 10 - 5; // small random offset
+      const gymIndex = options.indexOf("🏋️ GO TO GYM!");
+      const segmentAngle = 360 / size;
+
+      // FIX 🔧 — precise alignment for text orientation
+      const gymAngle = (segmentAngle * gymIndex) + segmentAngle / 2;
+
+      rotation += fullRotations + (360 - gymAngle) + randomOffset;
+
+      canvas.style.transition = "transform 6s cubic-bezier(0.25, 1, 0.3, 1)";
+      canvas.style.transform = `rotate(${rotation}deg)`;
+
+      setTimeout(() => {
+        result.innerHTML = "🏋️ Fate has spoken: <b>GO TO GYM!</b>";
+        btn.disabled = false;
+        dropConfetti();
+        new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
+      }, 6000);
+    }
+
+    function dropConfetti() {
+      for (let i = 0; i < 30; i++) {
+        const conf = document.createElement("div");
+        conf.classList.add("confetti");
+        conf.style.left = Math.random() * 100 + "vw";
+        conf.style.background = ["#66fcf1", "#45a29e", "#ff4444"][Math.floor(Math.random() * 3)];
+        conf.style.animationDuration = (Math.random() * 1.5 + 1.5) + "s";
+        document.body.appendChild(conf);
+        setTimeout(() => conf.remove(), 2500);
+      }
+    }
+
+    btn.addEventListener("click", spinWheel);
+  </script>
+</body>
+</html>

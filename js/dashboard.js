@@ -360,3 +360,14 @@ startTimerBtn.addEventListener("click", () => {
     }
   }, 1000);
 });
+const hamburgerBtn = document.getElementById("hamburger-btn");
+const hamburgerMenu = document.getElementById("hamburger-menu");
+const closeBtn = document.getElementById("close-btn");
+
+hamburgerBtn.addEventListener("click", () => {
+  hamburgerMenu.classList.add("show");
+});
+
+closeBtn.addEventListener("click", () => {
+  hamburgerMenu.classList.remove("show");
+});

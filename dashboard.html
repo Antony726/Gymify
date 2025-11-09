@@ -7,11 +7,33 @@
   <link rel="stylesheet" href="css/dashboard.css" />
 </head>
 <body>
+ <!-- Hamburger Button -->
+  <button id="hamburger-btn" class="hamburger-btn">☰ Menu</button>
+
+  <!-- Full-screen overlay menu -->
+  <div id="hamburger-menu" class="hamburger-menu">
+    <button class="close-btn" id="close-btn">✕ Close</button>
+    <div class="menu-buttons">
+      <button onclick="window.location.href='log.html'">📝 Log Workout</button>
+      <button onclick="window.location.href='history.html'">📜 View History</button>
+      <button onclick="window.location.href='weight_track.html'">🏋️ Progress Tracker</button>
+      <button onclick="window.location.href='progress.html'">📈 Tracker</button>
+      <button onclick="window.location.href='body-heatmap.html'">🧍 Heatmap</button>
+      <button onclick="window.location.href='achievements.html'">🏅 Achievements</button>
+      <button onclick="window.location.href='leaderboard.html'">🏆 Leaderboard</button>
+      <button onclick="window.location.href='goal.html'">🎯 Goal</button>
+      <button onclick="window.location.href='friends.html'">👥 Friends</button>
+      <button onclick="window.location.href='kbase.html'">🧠 Knowledge Base</button>
+      <button onclick="window.location.href='feedback.html'">✍️ Feedback</button>
+      <button id="logout-btn" class="logout-btn">🚪 Logout</button>
+    </div>
+  </div>
+
   <div class="container">
     <header class="header">
       <div class="header-top">
         <h2>Hi, <span id="username">User</span> 👋</h2>
-        <button id="logout-btn" class="logout-btn">🚪 Logout</button>
+        
       </div>
       <p id="xp-display">⭐ XP: 0</p>
       <div id="xp-bar-wrap"><div id="xp-bar"></div></div>
@@ -43,6 +65,7 @@
     <section class="next-workout">
       <h3>💡 Next Workout Recommendation</h3>
       <p id="next-workout">Loading next workout...</p>
+      <button onclick="window.location.href='log.html'">📝 Log Workout</button>
     </section>
     <!-- 💧 Water Reminder -->
     <!-- 💧 + ⏱️ Combined Section -->
@@ -54,11 +77,11 @@
       </div>
 
       <div class="card rest-card">
-        <h3>⏱️ Rest Timer</h3>
-        <input type="number" id="restInput" placeholder="Enter seconds" min="10" />
-        <button id="startTimer">Start</button>
-        <p id="timerDisplay"></p>
+        <h3>you skip gym but still want to feel productive 💀?</h3>
+        <button onclick="window.location.href='catch.html'">🎮 Game</button>
+        
       </div>
+      
     </section>
 
 
@@ -83,9 +106,14 @@
       <button onclick="window.location.href='body-heatmap.html'">🧍 Heatmap</button>
       <button onclick="window.location.href='achievements.html'">🏅 Achievements</button>
       <button onclick="window.location.href='leaderboard.html'">🏆 Leaderboard</button>
+      <button onclick="window.location.href='goal.html'">🎯 Goal</button>
       <button onclick="window.location.href='friends.html'">👥 Friends</button>
-      <button onclick="window.location.href='kbase.html'">✍️ Knowledge Base</button>
+      <button onclick="window.location.href='kbase.html'">🧠 Knowledge Base</button>
       <button onclick="window.location.href='feedback.html'">✍️ Feedback</button>
+      <button onclick="window.location.href='rand.html'"> Random</button>
+      <button onclick="window.location.href='excuse.html'"> Skip?</button>
+
+
     </nav>
 
 

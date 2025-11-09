@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎯 Goal Tracker | Gymify</title>
+  <link rel="stylesheet" href="css/goal.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>🎯 Goal Tracker</h2>
+    <p class="subtitle">Set your workout goals and track your progress visually 💪</p>
+
+    <!-- 🔹 Step 1: Select workout -->
+    <div class="goal-section">
+      <label for="workoutSelect">🏋️ Choose Workout</label>
+      <select id="workoutSelect">
+        <option value="">Loading your workouts...</option>
+      </select>
+
+      <label for="targetValue">🎯 Target Weight (kg)</label>
+      <input type="number" id="targetValue" placeholder="Enter your goal (e.g., 100)" />
+
+      <label for="goalDays">⏳ Days to Achieve</label>
+      <input type="number" id="goalDays" placeholder="e.g., 30" />
+
+      <button id="setGoal">🚀 Set Goal</button>
+    </div>
+
+    <!-- 🔹 Circular progress -->
+    <div class="chart-container">
+      <canvas id="goalChart" width="250" height="250"></canvas>
+      <p id="goalLabel">No Goal Set</p>
+    </div>
+
+    <!-- 🔹 Progress and countdown -->
+    <p id="progressText"></p>
+    <p id="timerText"></p>
+
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</button>
+  </div>
+
+  <script type="module" src="js/goal.js"></script>
+</body>
+</html>

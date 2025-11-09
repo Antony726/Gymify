@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firestore Diagnostic - Gymify</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: monospace;
+      background: #0d1117;
+      color: #fff;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #161b22;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    h2 {
+      color: #66fcf1;
+    }
+    .test {
+      background: #2a2a2a;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border-left: 4px solid #666;
+    }
+    .test.success {
+      border-left-color: #238636;
+    }
+    .test.error {
+      border-left-color: #da3633;
+    }
+    .test.warning {
+      border-left-color: #ff9800;
+    }
+    button {
+      background: #238636;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #2ea043;
+    }
+    pre {
+      background: #000;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔍 Firestore Diagnostic Tool</h2>
+    <p>This will test your Firestore setup and permissions</p>
+    
+    <button id="runTests">Run All Tests</button>
+    <button onclick="location.reload()">Clear Results</button>
+    
+    <div id="results"></div>
+    
+    <div style="margin-top: 30px; padding: 15px; background: #2a2a2a; border-radius: 8px;">
+      <h3 style="color: #66fcf1;">📋 Required Firestore Rules</h3>
+      <p>Your Firestore rules should look like this:</p>
+      <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow access to subcollections
+      match /data/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Allow access to friends subcollection
+      match /friends/{friendId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Allow everyone to read leaderboard
+    match /leaderboard/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Friend requests
+    match /friendRequests/{requestId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+  }
+}</pre>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc,
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    const resultsDiv = document.getElementById('results');
+    
+    function addResult(title, status, message, details = null) {
+      const div = document.createElement('div');
+      div.className = `test ${status}`;
+      
+      const statusEmoji = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️'
+      };
+      
+      div.innerHTML = `
+        <strong>${statusEmoji[status]} ${title}</strong>
+        <p>${message}</p>
+        ${details ? `<pre>${details}</pre>` : ''}
+      `;
+      
+      resultsDiv.appendChild(div);
+    }
+    
+    async function runTests(user) {
+      resultsDiv.innerHTML = '<h3>Running tests...</h3>';
+      
+      const testUserId = user.uid;
+      
+      // Test 1: Check if user is authenticated
+      addResult(
+        'Authentication',
+        'success',
+        `Logged in as: ${user.email}`
+      );
+      
+      // Test 2: Try to create parent document
+      try {
+        console.log('Test 2: Creating parent document...');
+        await setDoc(doc(db, "users", testUserId), {
+          uid: testUserId,
+          email: user.email,
+          testData: true,
+          createdAt: serverTimestamp()
+        });
+        
+        addResult(
+          'Parent Document Creation',
+          'success',
+          'Successfully created users/{uid} document'
+        );
+      } catch (err) {
+        addResult(
+          'Parent Document Creation',
+          'error',
+          'Failed to create parent document. Check Firestore rules!',
+          `Error: ${err.code}\n${err.message}`
+        );
+        return; // Stop if this fails
+      }
+      
+      // Test 3: Try to read parent document
+      try {
+        console.log('Test 3: Reading parent document...');
+        const docSnap = await getDoc(doc(db, "users", testUserId));
+        
+        if (docSnap.exists()) {
+          addResult(
+            'Parent Document Read',
+            'success',
+            'Successfully read users/{uid} document',
+            JSON.stringify(docSnap.data(), null, 2)
+          );
+        } else {
+          addResult(
+            'Parent Document Read',
+            'warning',
+            'Document does not exist'
+          );
+        }
+      } catch (err) {
+        addResult(
+          'Parent Document Read',
+          'error',
+          'Failed to read parent document',
+          `Error: ${err.code}\n${err.message}`
+        );
+      }
+      
+      // Test 4: Try to create profile subcollection
+      try {
+        console.log('Test 4: Creating profile subcollection...');
+        const profileRef = doc(db, "users", testUserId, "data", "profile");
+        await setDoc(profileRef, {
+          username: "TestUser",
+          email: user.email,
+          createdAt: serverTimestamp()
+        });
+        
+        addResult(
+          'Profile Subcollection Creation',
+          'success',
+          'Successfully created users/{uid}/data/profile'
+        );
+      } catch (err) {
+        addResult(
+          'Profile Subcollection Creation',
+          'error',
+          'Failed to create profile subcollection. This is your problem!',
+          `Error: ${err.code}\n${err.message}`
+        );
+      }
+      
+      // Test 5: Try to read profile subcollection
+      try {
+        console.log('Test 5: Reading profile subcollection...');
+        const profileRef = doc(db, "users", testUserId, "data", "profile");
+        const profileSnap = await getDoc(profileRef);
+        
+        if (profileSnap.exists()) {
+          addResult(
+            'Profile Subcollection Read',
+            'success',
+            'Successfully read users/{uid}/data/profile',
+            JSON.stringify(profileSnap.data(), null, 2)
+          );
+        } else {
+          addResult(
+            'Profile Subcollection Read',
+            'warning',
+            'Profile document does not exist'
+          );
+        }
+      } catch (err) {
+        addResult(
+          'Profile Subcollection Read',
+          'error',
+          'Failed to read profile subcollection',
+          `Error: ${err.code}\n${err.message}`
+        );
+      }
+      
+      // Test 6: Try to create leaderboard entry
+      try {
+        console.log('Test 6: Creating leaderboard entry...');
+        await setDoc(doc(db, "leaderboard", testUserId), {
+          username: "TestUser",
+          xp: 0,
+          streak: 0,
+          updatedAt: serverTimestamp()
+        });
+        
+        addResult(
+          'Leaderboard Write',
+          'success',
+          'Successfully created leaderboard entry'
+        );
+      } catch (err) {
+        addResult(
+          'Leaderboard Write',
+          'error',
+          'Failed to create leaderboard entry',
+          `Error: ${err.code}\n${err.message}`
+        );
+      }
+      
+      addResult(
+        'Tests Complete',
+        'success',
+        'All tests finished. Check results above.'
+      );
+    }
+    
+    document.getElementById('runTests').addEventListener('click', async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        addResult(
+          'Not Logged In',
+          'error',
+          'You must be logged in to run tests. Go to login.html first.'
+        );
+        return;
+      }
+      
+      runTests(user);
+    });
+    
+    // Check auth state on load
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        addResult(
+          'Ready',
+          'success',
+          `Logged in as ${user.email}. Click "Run All Tests" to start.`
+        );
+      } else {
+        addResult(
+          'Not Authenticated',
+          'warning',
+          'You need to login first. Go to login.html'
+        );
+      }
+    });
+  </script>
+</body>
+</html>

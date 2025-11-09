@@ -277,3 +277,51 @@ logForm.addEventListener("submit", async (e) => {
     statusDiv.style.color = "red";
   }
 });
+
+// Function to create a rest timer button for a set
+// ⏱️ Simple Rest Timer
+const restInput = document.getElementById("restInput");
+const startTimerBtn = document.getElementById("startTimer");
+const timerDisplay = document.getElementById("timerDisplay");
+let timerInterval = null;
+
+startTimerBtn.addEventListener("click", () => {
+  // Stop any existing timer
+  if (timerInterval) clearInterval(timerInterval);
+
+  let timeVal = parseInt(restInput.value);
+  if(timeVal <=5 ){
+    timeVal = timeVal*60;
+  }
+  if (isNaN(timeVal) || timeVal <= 0) {
+    alert("⏱️ Enter a valid time in seconds!");
+    return;
+  }
+
+  startTimerBtn.disabled = true;
+  timerDisplay.textContent = `Time Left: ${formatTime(timeVal)}`;
+
+  timerInterval = setInterval(() => {
+    timeVal--;
+    timerDisplay.textContent = `Time Left: ${formatTime(timeVal)}`;
+
+    if (timeVal <= 0) {
+      clearInterval(timerInterval);
+      timerDisplay.textContent = "🔥 Rest over!";
+      startTimerBtn.disabled = false;
+
+      // Sound alert
+      const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+      audio.play();
+
+      // Vibrate
+      if (navigator.vibrate) navigator.vibrate(500);
+    }
+  }, 1000);
+});
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
