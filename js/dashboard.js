@@ -338,28 +338,28 @@ const startTimerBtn = document.getElementById("startTimer");
 const timerDisplay = document.getElementById("timerDisplay");
 const restInput = document.getElementById("restInput");
 
-startTimerBtn.addEventListener("click", () => {
-  let timeLeft = parseInt(restInput.value);
+// startTimerBtn.addEventListener("click", () => {
+//   let timeLeft = parseInt(restInput.value);
 
-  if (isNaN(timeLeft) || timeLeft <= 0) {
-    alert("⏱️ Enter a valid rest time!");
-    return;
-  }
+//   if (isNaN(timeLeft) || timeLeft <= 0) {
+//     alert("⏱️ Enter a valid rest time!");
+//     return;
+//   }
 
-  timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+//   timerDisplay.textContent = `Time Left: ${timeLeft}s`;
 
-  const interval = setInterval(() => {
-    timeLeft--;
-    timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+//   const interval = setInterval(() => {
+//     timeLeft--;
+//     timerDisplay.textContent = `Time Left: ${timeLeft}s`;
 
-    if (timeLeft <= 0) {
-      clearInterval(interval);
-      timerDisplay.textContent = "🔥 Time's up! Get back to work!";
-      const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-      audio.play();
-    }
-  }, 1000);
-});
+//     if (timeLeft <= 0) {
+//       clearInterval(interval);
+//       timerDisplay.textContent = "🔥 Time's up! Get back to work!";
+//       const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+//       audio.play();
+//     }
+//   }, 1000);
+// });
 const hamburgerBtn = document.getElementById("hamburger-btn");
 const hamburgerMenu = document.getElementById("hamburger-menu");
 const closeBtn = document.getElementById("close-btn");
@@ -371,3 +371,4 @@ hamburgerBtn.addEventListener("click", () => {
 closeBtn.addEventListener("click", () => {
   hamburgerMenu.classList.remove("show");
 });
+
