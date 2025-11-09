@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏋️‍♂️ Exercise Knowledge Base | Gymify</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Poppins, sans-serif;
+    background: #0b0c10;
+    color: #c5c6c7;
+  }
+  .container {
+    max-width: 100%;
+    margin: auto;
+    padding: 15px;
+  }
+  h2 {
+    color: #66fcf1;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.8em;
+  }
+  input {
+    width: 70%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #1f2833;
+    color: #fff;
+    margin-bottom: 15px;
+    font-size: 14px;
+    outline: none;
+  }
+  input::placeholder {
+    color: #888;
+  }
+  .exercise-card {
+    background: #1f2833;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.3);
+  }
+  .exercise-card h3 {
+    color: #66fcf1;
+    margin-bottom: 6px;
+    font-size: 1.2em;
+  }
+  .exercise-card p {
+    margin: 4px 0;
+    font-size: 0.9em;
+  }
+  .exercise-card details summary {
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 6px;
+    font-size: 0.95em;
+  }
+  .exercise-card ol, .exercise-card ul {
+    margin: 6px 0 0 18px;
+    font-size: 0.85em;
+  }
+  .exercise-card img, .exercise-card video {
+    margin-top: 8px;
+    width: 100%;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>🏋️‍♂️ Exercise Knowledge Base</h2>
+  <input type="text" id="searchInput" placeholder="Search exercise...">
+  <div id="exerciseList"></div>
+</div>
+
+<script>
+// Hardcoded 12 exercises
+const exercises = [
+  {
+    name: "Incline Bench Press",
+    muscles: ["Chest", "Triceps", "Shoulders"],
+    equipment: "Incline Bench, Dumbbells",
+    steps: ["Set bench to 30–45° incline.", "Lie back with feet flat on floor.", "Hold dumbbells and press up.", "Lower slowly to chest level."],
+    tips: ["Keep elbows slightly bent at top.", "Do not arch lower back excessively."],
+    image: "inc.jpg",
+    video: ""
+  },
+  {
+    name: "Squats",
+    muscles: ["Quadriceps", "Glutes", "Hamstrings"],
+    equipment: "Barbell or Bodyweight",
+    steps: ["Stand with feet shoulder-width apart.", "Lower your body by bending knees and hips.", "Keep chest upright and back straight.", "Push through heels to return to standing."],
+    tips: ["Do not let knees collapse inward.", "Go as low as comfortable without pain."],
+    image: "sq.jpg",
+    video: ""
+  },
+  {
+    name: "Deadlift",
+    muscles: ["Back", "Glutes", "Hamstrings"],
+    equipment: "Barbell",
+    steps: ["Stand with feet hip-width apart, bar over mid-foot.", "Grip the bar shoulder-width, keep chest up.", "Lift the bar by extending hips and knees simultaneously.", "Lower bar under control to the floor."],
+    tips: ["Keep back straight throughout the lift.", "Engage core and lats to avoid injury."],
+    image: "dead.jpg",
+    video: ""
+  },
+  {
+    name: "Push-Ups",
+    muscles: ["Chest", "Triceps", "Shoulders"],
+    equipment: "Bodyweight",
+    steps: ["Place hands shoulder-width apart on the floor.", "Keep body straight from head to heels.", "Lower chest to floor.", "Push back up to starting position."],
+    tips: ["Avoid sagging hips.", "Keep elbows at ~45° to torso."],
+    image: "push.jpg",
+    video: ""
+  },
+  {
+    name: "Pull-Ups",
+    muscles: ["Back", "Biceps"],
+    equipment: "Pull-Up Bar",
+    steps: ["Grip bar slightly wider than shoulders.", "Hang fully extended.", "Pull chin above the bar.", "Lower under control."],
+    tips: ["Do not swing body.", "Engage back muscles, not just arms."],
+    image: "pullljpg.jpg",
+    video: ""
+  },
+  {
+    name: "Shoulder Press",
+    muscles: ["Shoulders", "Triceps"],
+    equipment: "Dumbbells or Barbell",
+    steps: ["Sit or stand with back straight.", "Hold dumbbells at shoulder height.", "Press up until arms fully extended.", "Lower slowly back down."],
+    tips: ["Do not arch back.", "Keep core tight."],
+    image: "sh.jpg",
+    video: ""
+  },
+  {
+    name: "Lunges",
+    muscles: ["Quadriceps", "Glutes", "Hamstrings"],
+    equipment: "Bodyweight or Dumbbells",
+    steps: ["Step forward with one leg.", "Lower body until both knees are ~90°.", "Push back to start position.", "Repeat on other leg."],
+    tips: ["Keep chest up.", "Do not let front knee go past toes."],
+    image: "",
+    video: ""
+  },
+  {
+    name: "Plank",
+    muscles: ["Core", "Back"],
+    equipment: "Bodyweight",
+    steps: ["Place forearms on floor, elbows under shoulders.", "Keep body straight from head to heels.", "Hold position for desired time."],
+    tips: ["Avoid sagging hips.", "Engage core fully."],
+    image: "",
+    video: ""
+  },
+  {
+    name: "Bicep Curls",
+    muscles: ["Biceps"],
+    equipment: "Dumbbells",
+    steps: ["Stand upright with dumbbells in hand.", "Curl weights to shoulders.", "Lower slowly back down."],
+    tips: ["Avoid swinging arms.", "Keep elbows close to torso."],
+    image: "",
+    video: ""
+  },
+  {
+    name: "Tricep Dips",
+    muscles: ["Triceps", "Chest"],
+    equipment: "Bench or Chair",
+    steps: ["Place hands on bench, legs extended.", "Lower body by bending elbows.", "Push back up."],
+    tips: ["Do not lock elbows.", "Keep shoulders down."],
+    image: "",
+    video: ""
+  },
+  {
+    name: "Leg Raises",
+    muscles: ["Lower Abs"],
+    equipment: "Bodyweight",
+    steps: ["Lie flat on back, legs straight.", "Lift legs to 90°.", "Lower slowly without touching floor."],
+    tips: ["Do not arch lower back.", "Engage core throughout."],
+    image: "",
+    video: ""
+  },
+  {
+    name: "Mountain Climbers",
+    muscles: ["Core", "Cardio"],
+    equipment: "Bodyweight",
+    steps: ["Start in push-up position.", "Bring knees alternately towards chest rapidly.", "Maintain plank form throughout."],
+    tips: ["Keep hips low.", "Move legs quickly but controlled."],
+    image: "",
+    video: ""
+  }
+];
+
+// DOM references
+const exerciseList = document.getElementById("exerciseList");
+const searchInput = document.getElementById("searchInput");
+
+// Function to render exercises
+function renderExercises(searchTerm = "") {
+  const filtered = exercises.filter(ex => 
+    ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (!filtered.length) {
+    exerciseList.innerHTML = "<p style='text-align:center;color:#888;'>No exercises found</p>";
+    return;
+  }
+
+  exerciseList.innerHTML = "";
+  filtered.forEach(ex => {
+    exerciseList.innerHTML += `
+      <div class="exercise-card">
+        <h3>${ex.name}</h3>
+        <p><strong>Muscles:</strong> ${ex.muscles.join(", ")}</p>
+        <p><strong>Equipment:</strong> ${ex.equipment}</p>
+        <details>
+          <summary>Instructions & Tips</summary>
+          <ol>${ex.steps.map(step => `<li>${step}</li>`).join("")}</ol>
+          <ul>${ex.tips.map(tip => `<li>${tip}</li>`).join("")}</ul>
+        </details>
+        ${ex.image ? `<img src="${ex.image}" alt="${ex.name}">` : ""}
+        ${ex.video ? `<video src="${ex.video}" controls></video>` : ""}
+      </div>
+    `;
+  });
+}
+
+// Initial render
+renderExercises();
+
+// Search functionality
+searchInput.addEventListener("input", (e) => {
+  renderExercises(e.target.value.trim());
+});
+</script>
+</body>
+</html>
