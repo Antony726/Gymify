@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏋️ Profile | Gymify</title>
+  <link rel="stylesheet" href="css/profile.css" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>💪 Your Gymify Profile</h2>
+
+    <!-- Avatar Selection -->
+    <div class="avatar-section">
+      <h3>🧑 Choose Your Avatar</h3>
+      <div id="avatarGrid" class="avatar-grid"></div>
+    </div>
+
+    <!-- Profile Form -->
+    <form id="profileForm">
+      <label>👤 Username</label>
+      <input type="text" id="username" placeholder="Your name" required />
+
+      <label>🏋️ Gym Name</label>
+      <select id="gymSelect">
+        <option value="">Select your gym...</option>
+      </select>
+      <button type="button" id="addGymBtn" class="secondary-btn">➕ Add New Gym</button>
+
+      <label>📍 Area</label>
+      <input type="text" id="gymArea" placeholder="Auto-filled or add manually" />
+
+      <label>🎂 Date of Birth</label>
+      <input type="date" id="dob" />
+
+      <label>🎧 Favorite Music</label>
+      <input type="text" id="favMusic" placeholder="Optional (e.g. Beast Mode - Anirudh)" />
+
+      <label>🎯 Fitness Goal</label>
+      <input type="text" id="fitnessGoal" placeholder="Optional (e.g. Bulking, Cutting)" />
+
+      <button type="submit" class="save-btn">💾 Save Profile</button>
+    </form>
+
+    <div id="birthdayMsg" class="birthday-msg"></div>
+
+    <div class="qr-section">
+      <h3>🎫 Your Gymify QR</h3>
+      <div id="qrcode"></div>
+    </div>
+
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">⬅ Back</button>
+  </div>
+
+  <!-- Add Gym Modal -->
+  <div id="addGymModal" class="modal">
+    <div class="modal-content">
+      <h3>➕ Add New Gym</h3>
+      <input type="text" id="newGymName" placeholder="Gym Name" />
+      <input type="text" id="newGymArea" placeholder="Gym Area" />
+      <button id="saveGymBtn">Save</button>
+      <button id="closeModal">Cancel</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/profile.js"></script>
+</body>
+</html>

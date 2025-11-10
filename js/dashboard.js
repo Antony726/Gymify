@@ -360,15 +360,27 @@ const restInput = document.getElementById("restInput");
 //     }
 //   }, 1000);
 // });
-const hamburgerBtn = document.getElementById("hamburger-btn");
-const hamburgerMenu = document.getElementById("hamburger-menu");
-const closeBtn = document.getElementById("close-btn");
+document.addEventListener("DOMContentLoaded", () => {
+  const hamburgerBtn = document.getElementById("hamburger-btn");
+  const hamburgerMenu = document.getElementById("hamburger-menu");
+  const closeBtn = document.getElementById("close-btn");
 
-hamburgerBtn.addEventListener("click", () => {
-  hamburgerMenu.classList.add("show");
+  if (!hamburgerBtn || !hamburgerMenu || !closeBtn) {
+    console.error("❌ Hamburger menu elements not found in DOM.");
+    return;
+  }
+
+  hamburgerBtn.addEventListener("click", () => {
+    hamburgerMenu.classList.add("show");
+    console.log("✅ Menu opened");
+  });
+
+  closeBtn.addEventListener("click", () => {
+    hamburgerMenu.classList.remove("show");
+    console.log("❌ Menu closed");
+  });
+
+  document.querySelectorAll(".menu-buttons button").forEach(btn => {
+    btn.addEventListener("click", () => hamburgerMenu.classList.remove("show"));
+  });
 });
-
-closeBtn.addEventListener("click", () => {
-  hamburgerMenu.classList.remove("show");
-});
-

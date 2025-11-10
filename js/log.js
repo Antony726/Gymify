@@ -15,6 +15,58 @@ const statusDiv = document.getElementById("status");
 const backBtn = document.getElementById("back-btn");
 const dateInput = document.getElementById("date");
 
+// ===============================
+// 💪 Dynamic Add/Remove Sets Logic
+// ===============================
+
+// Selectors
+const setsSection = document.querySelector(".sets-section");
+const addSetBtn = document.getElementById("add-set-btn");
+const removeSetBtn = document.getElementById("remove-set-btn");
+
+// Track current number of sets (starts at 3 because you already have 3)
+let setCount = 3;
+
+// ➕ Add new set
+addSetBtn.addEventListener("click", () => {
+  setCount++;
+  if (setCount > 10) {
+    alert("😅 Max 10 sets allowed!");
+    setCount = 10;
+    return;
+  }
+
+  const newSet = document.createElement("div");
+  newSet.classList.add("set-group");
+  newSet.innerHTML = `
+    <h4>Set ${setCount}</h4>
+    <div class="input-row">
+      <div class="input-group">
+        <label for="set${setCount}-reps">Reps</label>
+        <input type="number" id="set${setCount}-reps" min="0" placeholder="12" required />
+      </div>
+      <div class="input-group">
+        <label for="set${setCount}-weight">Weight (kg)</label>
+        <input type="number" id="set${setCount}-weight" min="0" step="0.5" placeholder="20.5" required />
+      </div>
+    </div>
+  `;
+
+  setsSection.appendChild(newSet);
+});
+
+// ➖ Remove last set
+removeSetBtn.addEventListener("click", () => {
+  if (setCount > 1) {
+    const lastSet = setsSection.querySelector(`.set-group:last-child`);
+    if (lastSet) lastSet.remove();
+    setCount--;
+  } else {
+    alert("You must have at least 1 set!");
+  }
+});
+
+
 // 🗓️ Auto-fill today's date
 const todayISO = new Date().toISOString().split("T")[0];
 dateInput.value = todayISO;
@@ -92,23 +144,37 @@ logForm.addEventListener("submit", async (e) => {
   const date = dateInput.value;
   const notes = document.getElementById("notes").value;
 
-  const sets = [
-    {
-      set: 1,
-      reps: parseInt(document.getElementById("set1-reps").value) || 0,
-      weight: parseFloat(document.getElementById("set1-weight").value) || 0,
-    },
-    {
-      set: 2,
-      reps: parseInt(document.getElementById("set2-reps").value) || 0,
-      weight: parseFloat(document.getElementById("set2-weight").value) || 0,
-    },
-    {
-      set: 3,
-      reps: parseInt(document.getElementById("set3-reps").value) || 0,
-      weight: parseFloat(document.getElementById("set3-weight").value) || 0,
-    },
-  ];
+  // const sets = [
+  //   {
+  //     set: 1,
+  //     reps: parseInt(document.getElementById("set1-reps").value) || 0,
+  //     weight: parseFloat(document.getElementById("set1-weight").value) || 0,
+  //   },
+  //   {
+  //     set: 2,
+  //     reps: parseInt(document.getElementById("set2-reps").value) || 0,
+  //     weight: parseFloat(document.getElementById("set2-weight").value) || 0,
+  //   },
+  //   {
+  //     set: 3,
+  //     reps: parseInt(document.getElementById("set3-reps").value) || 0,
+  //     weight: parseFloat(document.getElementById("set3-weight").value) || 0,
+  //   },
+  // ];
+  const sets = [];
+  for (let i = 1; i <= setCount; i++) {
+    const repsInput = document.getElementById(`set${i}-reps`);
+    const weightInput = document.getElementById(`set${i}-weight`);
+
+    if (repsInput && weightInput) {
+      sets.push({
+        set: i,
+        reps: parseInt(repsInput.value) || 0,
+        weight: parseFloat(weightInput.value) || 0
+      });
+    }
+  }
+
 
   try {
     // 💾 Add workout log
