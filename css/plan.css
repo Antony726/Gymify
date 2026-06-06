@@ -28,3 +28,7 @@
 .day-content {
   overflow: hidden;
 }
+
+.day-content .custom-dropdown {
+  margin: 0;
+}

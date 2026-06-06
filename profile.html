@@ -235,20 +235,22 @@
     }
     .dropdown-list {
       position: absolute;
-      top: calc(100% - 10px);
+      top: calc(100% + 6px);
       left: 0;
       right: 0;
-      background: rgba(13, 21, 37, 0.97);
+      background: rgba(13, 21, 37, 0.98);
       border: 1px solid rgba(6, 182, 212, 0.2);
-      border-radius: 14px;
-      max-height: 200px;
+      border-radius: 12px;
+      max-height: 220px;
+      overflow-x: hidden;
       overflow-y: auto;
       z-index: 500;
       display: none;
       backdrop-filter: blur(15px);
       -webkit-backdrop-filter: blur(15px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      padding: 6px;
+      padding: 4px;
+      margin: 0;
     }
     .dropdown-list.open {
       display: block;
@@ -259,12 +261,14 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .dropdown-item {
-      padding: 10px 14px;
+      padding: 10px 12px;
       font-size: 13px;
       color: var(--text-secondary);
       cursor: pointer;
-      border-radius: 10px;
+      border-radius: 8px;
       transition: all 0.15s ease;
+      margin: 0;
+      line-height: 1.35;
     }
     .dropdown-item:hover {
       background: rgba(6, 182, 212, 0.08);
@@ -465,7 +469,7 @@
           <button type="button" id="addGymBtn" class="btn btn-secondary" style="padding: 12px; margin-top: 8px; min-width: 44px; height: 44px;">➕</button>
         </div>
         <!-- Hidden select for form value -->
-        <select id="gymSelect" style="display: none;">
+        <select id="gymSelect" style="display: none;" data-skip-custom-dropdown>
           <option value="">Select your gym...</option>
         </select>
 
@@ -491,7 +495,7 @@
     <!-- QR Section -->
     <div class="profile-section qr-section">
       <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px;">🎫 Your Gymify QR</div>
-      <p style="font-size: 11px; color: var(--text-secondary); text-align: center; margin-bottom: 5px;">Share this QR with gym bros!</p>
+      <p style="font-size: 11px; color: var(--text-secondary); text-align: center; margin-bottom: 5px;">Friends scan this QR to add you instantly!</p>
       <div id="qrcode"></div>
     </div>
 

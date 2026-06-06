@@ -51,6 +51,10 @@
   </div>
 
   <script type="module" src="js/navigation.js"></script>
+  <script type="module">
+    import { enhanceAllSelects } from "./js/custom-dropdown.js";
+    enhanceAllSelects();
+  </script>
   <script>
     // ✅ Initialize EmailJS with hidden config
     document.addEventListener("DOMContentLoaded", function() {

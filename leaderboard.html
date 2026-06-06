@@ -50,13 +50,10 @@
       height: 50px;
       border-radius: 50%;
       margin: 0 auto 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      font-weight: 800;
+      object-fit: cover;
       background: var(--bg-primary);
       border: 2px solid var(--border-color);
+      display: block;
     }
     .place-1 {
       transform: translateY(-12px);
@@ -66,11 +63,9 @@
     }
     .place-1 .podium-avatar {
       border-color: #fbbf24;
-      background: #fbbf24;
-      color: #000;
       width: 62px;
       height: 62px;
-      font-size: 24px;
+      box-shadow: 0 0 16px rgba(251, 191, 36, 0.35);
     }
     .place-2 {
       background: rgba(226, 232, 240, 0.05);
@@ -78,8 +73,6 @@
     }
     .place-2 .podium-avatar {
       border-color: #cbd5e1;
-      background: #cbd5e1;
-      color: #000;
     }
     .place-3 {
       background: rgba(249, 115, 22, 0.05);
@@ -87,8 +80,6 @@
     }
     .place-3 .podium-avatar {
       border-color: #f97316;
-      background: #f97316;
-      color: #000;
     }
     .podium-name {
       font-size: 13px;
@@ -130,16 +121,21 @@
       min-width: 30px;
     }
     .rank-avatar {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
+      object-fit: cover;
       background: rgba(255, 255, 255, 0.06);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: #fff;
-      border: 1px solid var(--border-color);
+      border: 2px solid rgba(6, 182, 212, 0.2);
+      flex-shrink: 0;
+    }
+    .rank-gym {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 1px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .rank-info {
       flex: 1;
@@ -220,31 +216,74 @@
     let currentUser = null;
     let currentTab = 'global';
 
-    async function updateLeaderboardEntry(userId) {
+    async function getProfileForUser(userId) {
+      const fallback = {
+        username: "Anonymous",
+        avatar: "assets/avatars/avatar1.jpg",
+        gymName: "",
+        gymArea: "",
+        fitnessGoal: "Stay Fit",
+        xp: 0,
+        streak: 0
+      };
       try {
         const profileRef = doc(db, "users", userId, "data", "profile");
         const profileSnap = await getDoc(profileRef);
         const statsRef = doc(db, "users", userId, "data", "stats");
         const statsSnap = await getDoc(statsRef);
-        
+
+        if (statsSnap.exists()) {
+          fallback.xp = statsSnap.data().xp || 0;
+          fallback.streak = statsSnap.data().streak || 0;
+        }
+        if (profileSnap.exists()) {
+          const p = profileSnap.data();
+          return {
+            username: p.username || fallback.username,
+            avatar: p.avatar ? `assets/avatars/${p.avatar}` : fallback.avatar,
+            gymName: p.gymName || "",
+            gymArea: p.gymArea || "",
+            fitnessGoal: p.fitnessGoal || "Stay Fit",
+            xp: fallback.xp,
+            streak: fallback.streak
+          };
+        }
+      } catch (e) {}
+      return fallback;
+    }
+
+    async function updateLeaderboardEntry(userId) {
+      try {
+        const statsRef = doc(db, "users", userId, "data", "stats");
+        const statsSnap = await getDoc(statsRef);
         if (!statsSnap.exists()) return;
-        
-        const username = profileSnap.exists() 
-          ? profileSnap.data().username 
-          : auth.currentUser?.displayName || auth.currentUser?.email || "Anonymous";
-        
-        const xp = statsSnap.data().xp || 0;
-        const streak = statsSnap.data().streak || 0;
-        
+
+        const profile = await getProfileForUser(userId);
         await setDoc(doc(db, "leaderboard", userId), {
-          username,
-          xp,
-          streak,
+          username: profile.username,
+          xp: profile.xp,
+          streak: profile.streak,
           updatedAt: new Date().toISOString()
         });
       } catch (err) {
         console.error("Error updating leaderboard:", err);
       }
+    }
+
+    async function enrichUsersWithProfiles(users) {
+      return Promise.all(users.map(async (user) => {
+        const profile = await getProfileForUser(user.id);
+        return {
+          ...user,
+          username: profile.username || user.username,
+          avatar: profile.avatar,
+          gymName: profile.gymName,
+          gymArea: profile.gymArea,
+          fitnessGoal: profile.fitnessGoal,
+          xp: user.xp ?? profile.xp,
+          streak: user.streak ?? profile.streak
+        };
+      }));
     }
 
     async function loadGlobalLeaderboard() {
@@ -284,7 +323,8 @@
         }
 
         users.sort((a, b) => b.xp - a.xp);
-        renderLeaderboard(users);
+        const enriched = await enrichUsersWithProfiles(users);
+        renderLeaderboard(enriched);
       } catch (err) {
         console.error(err);
         leaderboardDiv.innerHTML = '<div class="loading" style="color:var(--color-danger);">Failed to load global leaderboard</div>';
@@ -313,34 +353,26 @@
         const users = [];
         for (const friendDoc of snapshot.docs) {
           const friendId = friendDoc.data().friendId;
-          const profileRef = doc(db, "users", friendId, "data", "profile");
-          const profileSnap = await getDoc(profileRef);
-          const statsRef = doc(db, "users", friendId, "data", "stats");
-          const statsSnap = await getDoc(statsRef);
-
+          const profile = await getProfileForUser(friendId);
           users.push({
             id: friendId,
-            username: profileSnap.exists() ? profileSnap.data().username : "Unknown",
-            xp: statsSnap.exists() ? statsSnap.data().xp || 0 : 0,
-            streak: statsSnap.exists() ? statsSnap.data().streak || 0 : 0
+            username: profile.username,
+            xp: profile.xp,
+            streak: profile.streak
           });
         }
 
-        // Add current user
-        const myStatsRef = doc(db, "users", currentUser.uid, "data", "stats");
-        const myStatsSnap = await getDoc(myStatsRef);
-        const myProfileRef = doc(db, "users", currentUser.uid, "data", "profile");
-        const myProfileSnap = await getDoc(myProfileRef);
-
+        const myProfile = await getProfileForUser(currentUser.uid);
         users.push({
           id: currentUser.uid,
-          username: myProfileSnap.exists() ? myProfileSnap.data().username : "You",
-          xp: myStatsSnap.exists() ? myStatsSnap.data().xp || 0 : 0,
-          streak: myStatsSnap.exists() ? myStatsSnap.data().streak || 0 : 0
+          username: myProfile.username || "You",
+          xp: myProfile.xp,
+          streak: myProfile.streak
         });
 
         users.sort((a, b) => b.xp - a.xp);
-        renderLeaderboard(users);
+        const enriched = await enrichUsersWithProfiles(users);
+        renderLeaderboard(enriched);
       } catch (err) {
         console.error(err);
         leaderboardDiv.innerHTML = '<div class="loading" style="color:var(--color-danger);">Failed to load friends leaderboard</div>';
@@ -368,15 +400,19 @@
       const listHTML = users.slice(startFrom).map((user, i) => {
         const rank = startFrom + i + 1;
         const isCurrentUser = user.id === currentUser.uid;
+        const gymLine = user.gymName
+          ? `${user.gymName}${user.gymArea ? ` · ${user.gymArea}` : ""}`
+          : "";
         return `
           <div class="rank-card ${isCurrentUser ? 'current-user' : ''}">
             <div class="rank-number">#${rank}</div>
-            <div class="rank-avatar">${user.username.charAt(0).toUpperCase()}</div>
+            <img src="${user.avatar || 'assets/avatars/avatar1.jpg'}" alt="" class="rank-avatar">
             <div class="rank-info">
               <div class="rank-name">
                 ${user.username}
                 ${isCurrentUser ? '<span class="you-badge">YOU</span>' : ''}
               </div>
+              ${gymLine ? `<div class="rank-gym">${gymLine}</div>` : ""}
               <div class="rank-stats">⭐ ${user.xp} XP • 🔥 ${user.streak} streak</div>
             </div>
           </div>
@@ -391,25 +427,26 @@
     }
 
     function renderPodium(first, second, third) {
+      const avatar = (user) => user.avatar || "assets/avatars/avatar1.jpg";
       document.getElementById('place1').innerHTML = `
         <div class="podium-rank">👑</div>
-        <div class="podium-avatar">${first.username.charAt(0).toUpperCase()}</div>
+        <img src="${avatar(first)}" alt="" class="podium-avatar">
         <div class="podium-name">${first.username}${first.id === currentUser.uid ? ' (You)' : ''}</div>
-        <div class="podium-stats">⭐ ${first.xp} XP</div>
+        <div class="podium-stats">⭐ ${first.xp} XP • 🔥 ${first.streak}d</div>
       `;
 
       document.getElementById('place2').innerHTML = `
         <div class="podium-rank">🥈</div>
-        <div class="podium-avatar">${second.username.charAt(0).toUpperCase()}</div>
+        <img src="${avatar(second)}" alt="" class="podium-avatar">
         <div class="podium-name">${second.username}${second.id === currentUser.uid ? ' (You)' : ''}</div>
-        <div class="podium-stats">⭐ ${second.xp} XP</div>
+        <div class="podium-stats">⭐ ${second.xp} XP • 🔥 ${second.streak}d</div>
       `;
 
       document.getElementById('place3').innerHTML = `
         <div class="podium-rank">🥉</div>
-        <div class="podium-avatar">${third.username.charAt(0).toUpperCase()}</div>
+        <img src="${avatar(third)}" alt="" class="podium-avatar">
         <div class="podium-name">${third.username}${third.id === currentUser.uid ? ' (You)' : ''}</div>
-        <div class="podium-stats">⭐ ${third.xp} XP</div>
+        <div class="podium-stats">⭐ ${third.xp} XP • 🔥 ${third.streak}d</div>
       `;
     }
 

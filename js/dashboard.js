@@ -17,6 +17,16 @@ import {
   limit,
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
+import { processDailyStreakCheck, toLocalDateStr } from "./streak-utils.js";
+import { buildWeeklyRecap, downloadWeeklyRecapPDF } from "./weekly-recap.js";
+import { refreshBuddyChallengeProgress } from "./buddy-challenges.js";
+import { injectFeatureSpotlight } from "./feature-spotlight.js";
+
+let latestRecap = null;
+
+document.getElementById("download-recap-btn")?.addEventListener("click", () => {
+  if (latestRecap) downloadWeeklyRecapPDF(latestRecap);
+});
 
 // 🔥 Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -111,7 +121,7 @@ async function loadNextWorkout(user) {
     const logsRef = collection(db, "users", user.uid, "logs");
     const q = query(logsRef, orderBy("timestamp", "desc"), limit(50));
     const snapshot = await getDocs(q);
-    const todayDate = new Date().toISOString().split("T")[0];
+    const todayDate = toLocalDateStr();
 
     const todayLogs = snapshot.docs
       .map(d => d.data())
@@ -338,6 +348,8 @@ onAuthStateChanged(auth, async (user) => {
     user.displayName ||
     user.email.split("@")[0];
 
+  injectFeatureSpotlight("dashboard-spotlight", { title: "✨ Quick access" });
+
   setLoadProgress(55, "Fetching training statistics...");
 
   // Stats + XP + Hearts + Streak
@@ -347,16 +359,64 @@ onAuthStateChanged(auth, async (user) => {
     let xp = 0, streak = 0, hearts = 4, lastLogDate = "";
 
     if (!statsSnap.exists()) {
-      await setDoc(statsRef, { xp, streak, hearts, lastLogDate: "", updatedAt: serverTimestamp() });
+      await setDoc(statsRef, {
+        xp,
+        streak,
+        hearts,
+        lastLogDate: "",
+        streakCheckDate: "",
+        updatedAt: serverTimestamp(),
+      });
     } else {
       const data = statsSnap.data();
       xp = data.xp || 0;
       streak = data.streak || 0;
       hearts = data.hearts !== undefined ? data.hearts : 4;
       lastLogDate = data.lastLogDate || "";
+
+      const planRef = doc(db, "users", user.uid, "data", "plan");
+      const planSnap = await getDoc(planRef);
+      const plan = planSnap.exists() ? planSnap.data() : {};
+
+      const dailyCheck = await processDailyStreakCheck({
+        db,
+        userId: user.uid,
+        stats: data,
+        plan,
+      });
+
+      if (dailyCheck.changed) {
+        xp = dailyCheck.stats.xp;
+        streak = dailyCheck.stats.streak;
+        hearts = dailyCheck.stats.hearts;
+        await setDoc(statsRef, {
+          ...dailyCheck.stats,
+          updatedAt: serverTimestamp(),
+        });
+
+        if (dailyCheck.resetXP) {
+          window.showToast?.("💀 All hearts lost! XP reset. 4 hearts given.", "error");
+        } else if (dailyCheck.lostHeart) {
+          const count = dailyCheck.missedDays.length;
+          window.showToast?.(
+            `💔 Missed ${count} workout day${count === 1 ? "" : "s"}! Lost ${count} heart(s) (${hearts} left).`,
+            "warning"
+          );
+        }
+
+        try {
+          const lbRef = doc(db, "leaderboard", user.uid);
+          const username =
+            (profileSnap.exists() && profileSnap.data().username) ||
+            user.displayName ||
+            user.email.split("@")[0];
+          await setDoc(lbRef, { username, xp, streak, updatedAt: new Date().toISOString() });
+        } catch (lbErr) {
+          console.warn("Could not sync leaderboard after streak check:", lbErr);
+        }
+      }
     }
 
-    // Display stats
     xpEl.textContent = `⭐ XP: ${xp}`;
     streakEl.textContent = `${streak} days`;
     updateHeartsDisplay(hearts);
@@ -366,6 +426,20 @@ onAuthStateChanged(auth, async (user) => {
 
     const xpBar = document.getElementById("xp-bar");
     if (xpBar) xpBar.style.width = `${getLevelProgress(xp)}%`;
+
+    try { await refreshBuddyChallengeProgress(db, user.uid); } catch (e) {}
+
+    const recapSection = document.getElementById("weekly-recap-section");
+    if (recapSection) {
+      latestRecap = await buildWeeklyRecap(db, user.uid);
+      recapSection.style.display = "block";
+      document.getElementById("recap-period").textContent = `${latestRecap.start} → ${latestRecap.end}`;
+      document.getElementById("recap-stats").innerHTML = `
+        <div>🏋️ <b>${latestRecap.workoutsLogged}</b> workouts · <b>${latestRecap.activeDays}</b> active days</div>
+        <div>⭐ <b>+${latestRecap.weekXP}</b> XP this week · Total <b>${latestRecap.totalXP}</b></div>
+        <div>🔥 Streak: <b>${latestRecap.streak}</b> days</div>
+        <div>💪 Most trained: <b>${latestRecap.topMuscle}</b></div>`;
+    }
   } catch (e) {
     console.error("⚠️ Error loading stats:", e);
   }

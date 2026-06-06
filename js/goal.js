@@ -7,6 +7,7 @@ import {
   collection,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { initCustomDropdown, refreshCustomDropdown } from "./custom-dropdown.js";
 
 let chart;
 let user = null;
@@ -97,6 +98,8 @@ async function loadWorkoutOptions(user) {
     opt.value = "";
     opt.textContent = "⚠️ No workout plan found";
     workoutSelect.appendChild(opt);
+    if (!workoutSelect._customDropdownApi) initCustomDropdown(workoutSelect);
+    else refreshCustomDropdown(workoutSelect);
     return;
   }
 
@@ -127,6 +130,8 @@ async function loadWorkoutOptions(user) {
     opt.value = "";
     opt.textContent = "No workouts found in plan.";
     workoutSelect.appendChild(opt);
+    if (!workoutSelect._customDropdownApi) initCustomDropdown(workoutSelect);
+    else refreshCustomDropdown(workoutSelect);
     return;
   }
 
@@ -136,6 +141,9 @@ async function loadWorkoutOptions(user) {
     opt.textContent = w.display;
     workoutSelect.appendChild(opt);
   });
+
+  if (!workoutSelect._customDropdownApi) initCustomDropdown(workoutSelect);
+  else refreshCustomDropdown(workoutSelect);
 }
 
 

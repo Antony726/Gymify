@@ -1,0 +1,207 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ======================================
+    // USERS COLLECTION
+    // ======================================
+    match /users/{uid} {
+      allow read, list: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+
+      match /{subCollection}/{docId} {
+        allow read, list: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      match /{subCollection}/{docId}/{nestedCollection}/{nestedDoc} {
+        allow read, list: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      match /{a}/{b}/{c}/{d}/{e}/{f} {
+        allow read, list: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // Friends: any authenticated user can write (needed when accepting requests)
+      match /friends/{friendId} {
+        allow read, list: if request.auth != null;
+        allow write: if request.auth != null;
+      }
+    }
+
+    // ======================================
+    // LEADERBOARD COLLECTION
+    // ======================================
+    match /leaderboard/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ======================================
+    // FRIEND REQUESTS COLLECTION
+    // ======================================
+    match /friendRequests/{requestId} {
+      allow read, list: if request.auth != null;
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null &&
+        (resource.data.from == request.auth.uid ||
+         resource.data.to == request.auth.uid);
+      allow update: if request.auth != null &&
+        resource.data.to == request.auth.uid;
+    }
+
+    // ======================================
+    // EXERCISES COLLECTION
+    // ======================================
+    match /exercises/{exerciseId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == "ADMIN_UID";
+    }
+
+    // ======================================
+    // GYMS COLLECTION
+    // ======================================
+    match /gyms/{gymId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+
+    // ======================================
+    // CHATS COLLECTION
+    // ======================================
+    match /chats/{chatId} {
+      function getUserIds() {
+        return chatId.split('_');
+      }
+
+      function isParticipant() {
+        let userIds = getUserIds();
+        return request.auth.uid == userIds[0] || request.auth.uid == userIds[1];
+      }
+
+      allow read, write: if request.auth != null && isParticipant();
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null && isParticipant();
+        allow create: if request.auth != null && isParticipant() &&
+                         request.resource.data.senderId == request.auth.uid;
+        allow update, delete: if request.auth != null &&
+                                  resource.data.senderId == request.auth.uid;
+      }
+    }
+
+    // ======================================
+    // STORIES COLLECTION (24HR AUTO-DELETE)
+    // ======================================
+    match /stories/{storyId} {
+      allow read, list: if request.auth != null;
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['userId', 'timestamp']) &&
+                       request.resource.data.imageUrl is string;
+      allow delete: if request.auth != null &&
+                       (resource.data.userId == request.auth.uid ||
+                        request.auth != null);
+      allow update: if false;
+    }
+
+    // ======================================
+    // POSTS COLLECTION (image posts)
+    // ======================================
+    match /posts/{postId} {
+      allow read, list: if request.auth != null;
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['userId', 'timestamp']) &&
+                       request.resource.data.imageUrl is string;
+      allow update: if request.auth != null &&
+                       resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null &&
+                       resource.data.userId == request.auth.uid;
+
+      match /likes/{likeId} {
+        allow read, list: if request.auth != null;
+        allow create: if request.auth != null &&
+                         request.resource.data.userId == request.auth.uid &&
+                         likeId == request.auth.uid;
+        allow delete: if request.auth != null &&
+                         likeId == request.auth.uid;
+        allow update: if false;
+      }
+
+      match /comments/{commentId} {
+        allow read, list: if request.auth != null;
+        allow create: if request.auth != null &&
+                         request.resource.data.userId == request.auth.uid &&
+                         request.resource.data.keys().hasAll(['userId', 'text', 'timestamp']) &&
+                         request.resource.data.text is string &&
+                         request.resource.data.text.size() > 0 &&
+                         request.resource.data.text.size() <= 500;
+        allow update: if request.auth != null &&
+                         resource.data.userId == request.auth.uid;
+        allow delete: if request.auth != null &&
+                         resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // ======================================
+    // COMMUNITY FEED (PRs, plans, text posts)
+    // ======================================
+    match /communityFeed/{feedId} {
+      allow read, list: if request.auth != null;
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['userId', 'type', 'message', 'timestamp']);
+      allow update, delete: if request.auth != null &&
+                               resource.data.userId == request.auth.uid;
+
+      match /cheers/{userId} {
+        allow read, list: if request.auth != null;
+        allow create: if request.auth != null && userId == request.auth.uid;
+        allow delete: if request.auth != null && userId == request.auth.uid;
+        allow update: if false;
+      }
+
+      match /comments/{commentId} {
+        allow read, list: if request.auth != null;
+        allow create: if request.auth != null &&
+                         request.resource.data.userId == request.auth.uid &&
+                         request.resource.data.keys().hasAll(['userId', 'text', 'timestamp']) &&
+                         request.resource.data.text is string &&
+                         request.resource.data.text.size() > 0 &&
+                         request.resource.data.text.size() <= 200;
+        allow update, delete: if request.auth != null &&
+                                 resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // ======================================
+    // COMMUNITY CHALLENGES (joinable group goals)
+    // ======================================
+    match /communityChallenges/{challengeId} {
+      allow read, list: if request.auth != null;
+      allow create, update: if request.auth != null;
+      allow delete: if false;
+    }
+
+    // ======================================
+    // BUDDY CHALLENGES (1v1 friend challenges)
+    // ======================================
+    match /buddyChallenges/{challengeId} {
+      function isParticipant() {
+        return request.auth.uid == resource.data.from ||
+               request.auth.uid == resource.data.to;
+      }
+
+      allow read, list: if request.auth != null &&
+        (resource == null || isParticipant());
+      allow create: if request.auth != null &&
+                       request.resource.data.from == request.auth.uid;
+      allow update: if request.auth != null && isParticipant();
+      allow delete: if request.auth != null && isParticipant();
+    }
+  }
+}

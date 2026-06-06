@@ -309,7 +309,11 @@ document.addEventListener("DOMContentLoaded", () => {
         </a>
         <a href="community.html" class="sheet-item">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-          <span>Challenges</span>
+          <span>Community</span>
+        </a>
+        <a href="scan.html" class="sheet-item">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><rect x="7" y="7" width="10" height="10" rx="1"></rect></svg>
+          <span>Scan QR</span>
         </a>
         <a href="catch.html" class="sheet-item">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"></path></svg>
@@ -352,7 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("nav-log")?.classList.add("active");
   } else if (currentPath.includes("progress.html") || currentPath.includes("weight.html") || currentPath.includes("body-heatmap.html") || currentPath.includes("weight_track.html") || currentPath.includes("history.html")) {
     document.getElementById("nav-stats")?.classList.add("active");
-  } else if (currentPath.includes("friends.html") || currentPath.includes("leaderboard.html") || currentPath.includes("mygym.html") || currentPath.includes("community.html") || currentPath.includes("friend-profile.html")) {
+  } else if (currentPath.includes("friends.html") || currentPath.includes("leaderboard.html") || currentPath.includes("mygym.html") || currentPath.includes("community.html") || currentPath.includes("friend-profile.html") || currentPath.includes("scan.html")) {
     document.getElementById("nav-social")?.classList.add("active");
   }
 

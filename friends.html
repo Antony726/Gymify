@@ -19,9 +19,9 @@
     .social-tab {
       flex: 1;
       text-align: center;
-      padding: 10px 8px;
+      padding: 10px 4px;
       border-radius: 12px;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       cursor: pointer;
       color: var(--text-secondary);
@@ -274,18 +274,199 @@
       font-size: 14px;
       color: var(--text-secondary);
       font-weight: 600;
+      margin-bottom: 16px;
+      text-align: center;
+      max-width: 260px;
     }
+    .loader-progress-track {
+      width: min(280px, 80vw);
+      height: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      margin-bottom: 8px;
+    }
+    .loader-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--color-accent), var(--color-success));
+      border-radius: 10px;
+      transition: width 0.35s ease;
+    }
+    .loader-progress-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+
+    /* Profile Preview Card (matches profile creation live-preview) */
+    .profile-preview-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(9, 13, 22, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 14px 16px;
+      border-radius: 16px;
+      margin-bottom: 10px;
+      transition: all 0.2s ease;
+    }
+    .profile-preview-card.clickable {
+      cursor: pointer;
+    }
+    .profile-preview-card.clickable:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(6, 182, 212, 0.15);
+      transform: translateY(-1px);
+    }
+    .profile-preview-card.pending {
+      border-color: rgba(245, 158, 11, 0.2);
+      background: rgba(245, 158, 11, 0.03);
+    }
+    .preview-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(6, 182, 212, 0.2);
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.03);
+    }
+    .preview-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .preview-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .preview-detail {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .preview-badges {
+      display: flex;
+      gap: 6px;
+      margin-top: 5px;
+      flex-wrap: wrap;
+    }
+    .preview-badge {
+      font-size: 8px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .preview-badge.cyan {
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--color-accent);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+    .preview-badge.green {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--color-success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .preview-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    /* Community tab (embedded feed) */
+    .community-quick-post {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .community-quick-post textarea {
+      width: 100%;
+      min-height: 56px;
+      margin-bottom: 6px;
+      resize: vertical;
+    }
+    .community-quick-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .feed-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .feed-filter-btn {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .feed-filter-btn.active {
+      background: rgba(6,182,212,0.12);
+      color: var(--color-accent);
+      border-color: rgba(6,182,212,0.3);
+    }
+    .feed-card {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .feed-card-clickable { cursor: pointer; }
+    .feed-card-clickable:hover { border-color: rgba(6,182,212,0.25); }
+    .feed-card.pr-card { border-left: 3px solid #fbbf24; }
+    .feed-card.plan-card { border-left: 3px solid var(--color-accent); }
+    .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .feed-avatar {
+      width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+      border: 2px solid rgba(6,182,212,0.2);
+    }
+    .feed-name { font-weight: 700; font-size: 13px; color: #fff; }
+    .feed-time { font-size: 10px; color: var(--text-secondary); }
+    .feed-message { font-size: 12px; line-height: 1.45; color: var(--text-primary); }
+    .feed-badge {
+      display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 7px;
+      border-radius: 8px; margin-bottom: 5px; text-transform: uppercase;
+    }
+    .feed-badge.pr { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .feed-badge.plan { background: rgba(6,182,212,0.12); color: var(--color-accent); }
+    .feed-badge.update { background: rgba(16,185,129,0.12); color: var(--color-success); }
+    .community-feed-status { color: var(--text-secondary); padding: 16px; text-align: center; font-size: 12px; }
   </style>
 </head>
 <body>
   <!-- Full Page Loader -->
   <div class="page-loader" id="pageLoader">
     <div class="loader-icon">👥</div>
-    <div class="loader-text">Loading your squad...</div>
+    <div class="loader-text" id="loaderStatus">Loading your squad...</div>
+    <div class="loader-progress-track">
+      <div class="loader-progress-fill" id="loaderProgressFill"></div>
+    </div>
+    <div class="loader-progress-label" id="loaderProgressLabel">0%</div>
   </div>
 
   <div class="container" style="margin-top: 15px;">
-    <h2 class="text-center glow-text" style="margin-bottom: 15px; font-size: 22px;">👥 Social Hub</h2>
+    <h2 class="text-center glow-text" style="margin-bottom: 10px; font-size: 22px;">👥 Social Hub</h2>
+    <div id="social-spotlight"></div>
 
     <!-- Tabs -->
     <div class="social-tabs">
@@ -298,6 +479,12 @@
       </button>
       <button class="social-tab" onclick="switchTab('chat', this)" id="tab-chat">
         💬 Chat
+      </button>
+      <button class="social-tab" onclick="switchTab('challenges', this)" id="tab-challenges">
+        ⚔️ Challenges
+      </button>
+      <button class="social-tab" onclick="switchTab('community', this)" id="tab-community">
+        🌐 Community
       </button>
     </div>
 
@@ -338,6 +525,62 @@
       </div>
       <div id="chatList"></div>
     </div>
+
+    <!-- Tab 4: Buddy Challenges -->
+    <div class="tab-pane" id="pane-challenges">
+      <div class="section-head">
+        <h3>⚔️ Buddy Challenges</h3>
+        <button class="btn btn-sm btn-add" onclick="window.location.href='scan.html'" style="font-size:11px;">📷 Scan QR</button>
+      </div>
+      <div class="glass-card" style="padding:14px;margin-bottom:14px;">
+        <label style="font-size:11px;margin-bottom:4px;">Challenge a friend</label>
+        <select id="challengeFriend" style="margin:0 0 10px 0;">
+          <option value="">Select friend...</option>
+        </select>
+        <select id="challengeType" style="margin:0 0 10px 0;">
+          <option value="workouts">Most workout days (7 days)</option>
+          <option value="xp">Most XP gained (7 days)</option>
+        </select>
+        <input type="number" id="challengeGoal" placeholder="Goal (e.g. 5 workouts or 500 XP)" min="1" style="margin:0 0 10px 0;" />
+        <button id="createChallengeBtn" class="btn" style="width:100%;font-size:13px;">🚀 Send Challenge</button>
+      </div>
+      <div id="buddyChallengesList"></div>
+    </div>
+
+    <!-- Tab 5: Community -->
+    <div class="tab-pane" id="pane-community">
+      <div class="section-head">
+        <h3>🌐 Community Feed</h3>
+        <a href="community.html" class="btn btn-sm btn-secondary" style="font-size:11px;text-decoration:none;">Open Full →</a>
+      </div>
+
+      <div class="community-quick-post">
+        <textarea id="social-quick-post" maxlength="280" placeholder="Quick post — share a win or tip..."></textarea>
+        <div class="community-quick-actions">
+          <span style="font-size:10px;color:var(--text-secondary);"><span id="social-quick-char">0</span>/280</span>
+          <div style="display:flex;gap:6px;">
+            <button id="social-refresh-feed-btn" class="btn btn-sm btn-secondary" style="font-size:11px;">↻</button>
+            <button id="social-quick-post-btn" class="btn btn-sm" style="font-size:11px;">Post</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="feed-filters" id="social-feed-filters">
+        <button class="feed-filter-btn active" data-feed-filter="all">All</button>
+        <button class="feed-filter-btn" data-feed-filter="pr">🏆 PRs</button>
+        <button class="feed-filter-btn" data-feed-filter="plan">📋 Plans</button>
+        <button class="feed-filter-btn" data-feed-filter="post">💬 Updates</button>
+        <span class="live-feed-indicator" id="social-live-indicator" style="margin-left:auto;">Live</span>
+      </div>
+
+      <div id="social-community-feed">
+        <p class="community-feed-status">Open this tab to load the feed...</p>
+      </div>
+
+      <div style="text-align:center;margin-top:12px;">
+        <a href="community.html?tab=challenges" style="font-size:12px;color:var(--color-accent);">View community challenges →</a>
+      </div>
+    </div>
   </div>
 
   <script type="module">
@@ -355,6 +598,9 @@
       deleteDoc
     } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
     import { firebaseConfig } from "./js/firebase-config.js";
+    import { createBuddyChallenge, getActiveChallenges, refreshBuddyChallengeProgress } from "./js/buddy-challenges.js";
+    import { initSocialCommunityTab } from "./js/community-social.js";
+    import { injectFeatureSpotlight } from "./js/feature-spotlight.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -368,6 +614,34 @@
         pageLoader.classList.add("hidden");
         setTimeout(() => { pageLoader.style.display = "none"; }, 300);
       }
+    }
+
+    function setLoaderProgress(pct, label) {
+      const fill = document.getElementById("loaderProgressFill");
+      const pctEl = document.getElementById("loaderProgressLabel");
+      const status = document.getElementById("loaderStatus");
+      if (fill) fill.style.width = `${pct}%`;
+      if (pctEl) pctEl.textContent = `${pct}%`;
+      if (label && status) status.textContent = label;
+    }
+
+    async function runSocialLoadTasks(tasks) {
+      let completed = 0;
+      const total = tasks.length;
+      setLoaderProgress(0, "Starting up...");
+      await Promise.all(tasks.map(async (task) => {
+        try {
+          await task.fn();
+        } catch (err) {
+          console.error(`Social load failed: ${task.label}`, err);
+        } finally {
+          completed += 1;
+          const pct = Math.round((completed / total) * 100);
+          setLoaderProgress(pct, task.label);
+        }
+      }));
+      setLoaderProgress(100, "Ready!");
+      await new Promise((r) => setTimeout(r, 250));
     }
 
     function showStatus(message, type) {
@@ -384,44 +658,94 @@
       document.querySelectorAll('.social-tab').forEach(t => t.classList.remove('active'));
       document.getElementById(`pane-${tabName}`).classList.add('active');
       tabEl.classList.add('active');
+      if (tabName === 'community') initSocialCommunityTab();
     };
 
-    // Helper: get username
-    async function getUsername(userId) {
+    // Helper: get full profile from users/{id}/data/profile (source of truth)
+    async function getUserProfile(userId) {
+      const fallback = {
+        username: `User-${userId.substring(0, 6)}`,
+        avatar: "assets/avatars/avatar1.jpg",
+        gymName: "",
+        gymArea: "",
+        fitnessGoal: "Stay Fit",
+        xp: 0,
+        streak: 0
+      };
       try {
-        try {
-          const lbRef = doc(db, "leaderboard", userId);
-          const lbSnap = await getDoc(lbRef);
-          if (lbSnap.exists() && lbSnap.data()?.username) return lbSnap.data().username;
-        } catch (e) {}
-        try {
-          const profileRef = doc(db, "users", userId, "data", "profile");
-          const profileSnap = await getDoc(profileRef);
-          if (profileSnap.exists() && profileSnap.data()?.username) return profileSnap.data().username;
-        } catch (e) {}
+        const profileRef = doc(db, "users", userId, "data", "profile");
+        const profileSnap = await getDoc(profileRef);
+        const statsRef = doc(db, "users", userId, "data", "stats");
+        const statsSnap = await getDoc(statsRef);
+
+        if (statsSnap.exists()) {
+          fallback.xp = statsSnap.data().xp || 0;
+          fallback.streak = statsSnap.data().streak || 0;
+        }
+
+        if (profileSnap.exists()) {
+          const p = profileSnap.data();
+          return {
+            username: p.username || fallback.username,
+            avatar: p.avatar ? `assets/avatars/${p.avatar}` : fallback.avatar,
+            gymName: p.gymName || "",
+            gymArea: p.gymArea || "",
+            fitnessGoal: p.fitnessGoal || "Stay Fit",
+            xp: fallback.xp,
+            streak: fallback.streak
+          };
+        }
+
         const userRef = doc(db, "users", userId);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
           const d = userSnap.data();
-          if (d.displayName) return d.displayName;
-          if (d.email) return d.email.split("@")[0];
-        }
-        return `User-${userId.substring(0, 6)}`;
-      } catch (err) {
-        return `User-${userId.substring(0, 6)}`;
-      }
-    }
-
-    // Helper: get avatar
-    async function getAvatar(userId) {
-      try {
-        const profileRef = doc(db, "users", userId, "data", "profile");
-        const snap = await getDoc(profileRef);
-        if (snap.exists() && snap.data()?.avatar) {
-          return `assets/avatars/${snap.data().avatar}`;
+          if (d.displayName) fallback.username = d.displayName;
+          else if (d.email) fallback.username = d.email.split("@")[0];
         }
       } catch (e) {}
-      return "assets/avatars/avatar1.jpg";
+      return fallback;
+    }
+
+    async function getUsername(userId) {
+      const profile = await getUserProfile(userId);
+      return profile.username;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function escapeJs(str) {
+      return String(str).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    }
+
+    function renderProfilePreviewCard(user, { actionsHtml = "", clickable = false, pending = false, onClick = "" } = {}) {
+      const gymLine = user.gymName
+        ? `${user.gymName}${user.gymArea ? ` · ${user.gymArea}` : ""}`
+        : "No gym selected";
+      const safeName = escapeHtml(user.username);
+      const safeGoal = escapeHtml(user.fitnessGoal || "Stay Fit");
+      return `
+        <div class="profile-preview-card${clickable ? " clickable" : ""}${pending ? " pending" : ""}"
+             ${onClick ? `onclick="${onClick}"` : ""}>
+          <img src="${user.avatar}" alt="" class="preview-avatar">
+          <div class="preview-info">
+            <div class="preview-name">${safeName}</div>
+            <div class="preview-detail">${escapeHtml(gymLine)}</div>
+            <div class="preview-badges">
+              <span class="preview-badge cyan">⭐ ${user.xp} XP</span>
+              <span class="preview-badge green">🔥 ${user.streak}d</span>
+              <span class="preview-badge green">${safeGoal}</span>
+            </div>
+          </div>
+          ${actionsHtml ? `<div class="preview-actions">${actionsHtml}</div>` : ""}
+        </div>`;
     }
 
     // ===== Friends List =====
@@ -447,41 +771,25 @@
         for (const friendDoc of snapshot.docs) {
           const fd = friendDoc.data();
           const friendId = fd.friendId;
-          let username = fd.username || "Unknown";
-          if (username === "Unknown") {
-            username = await getUsername(friendId);
+          const profile = await getUserProfile(friendId);
+          if (fd.username !== profile.username) {
             try {
-              await setDoc(doc(db, "users", currentUser.uid, "friends", friendId), { ...fd, username }, { merge: true });
+              await setDoc(doc(db, "users", currentUser.uid, "friends", friendId), {
+                ...fd,
+                username: profile.username,
+                xp: profile.xp,
+                streak: profile.streak
+              }, { merge: true });
             } catch (e) {}
           }
-          const statsRef = doc(db, "users", friendId, "data", "stats");
-          const statsSnap = await getDoc(statsRef);
-          const avatar = await getAvatar(friendId);
-
-          friendsData.push({
-            friendId,
-            username,
-            avatar,
-            xp: statsSnap.exists() ? statsSnap.data().xp || 0 : 0,
-            streak: statsSnap.exists() ? statsSnap.data().streak || 0 : 0
-          });
+          friendsData.push({ friendId, ...profile });
         }
 
-        friendsDiv.innerHTML = friendsData.map(f => `
-          <div class="friend-card" onclick="viewFriend('${f.friendId}')">
-            <img src="${f.avatar}" alt="" class="friend-avatar">
-            <div class="friend-info">
-              <div class="friend-name">${f.username}</div>
-              <div class="friend-stats">
-                <span>⭐ ${f.xp} XP</span>
-                <span>🔥 ${f.streak} day streak</span>
-              </div>
-            </div>
-            <div class="friend-actions">
-              <button class="btn btn-sm btn-remove" onclick="event.stopPropagation(); removeFriend('${f.friendId}', '${f.username}')">✕</button>
-            </div>
-          </div>
-        `).join('');
+        friendsDiv.innerHTML = friendsData.map(f => renderProfilePreviewCard(f, {
+          clickable: true,
+          onClick: `viewFriend('${f.friendId}')`,
+          actionsHtml: `<button class="btn btn-sm btn-remove" onclick="event.stopPropagation(); removeFriend('${f.friendId}', '${escapeJs(f.username)}')">✕</button>`
+        })).join('');
       } catch (err) {
         console.error("Error loading friends:", err);
       }
@@ -507,21 +815,15 @@
         for (const friendDoc of snapshot.docs) {
           const fd = friendDoc.data();
           const friendId = fd.friendId;
-          let username = fd.username || await getUsername(friendId);
-          const avatar = await getAvatar(friendId);
-          items.push({ friendId, username, avatar });
+          const profile = await getUserProfile(friendId);
+          items.push({ friendId, ...profile });
         }
 
-        chatListDiv.innerHTML = items.map(f => `
-          <div class="chat-list-item" onclick="viewFriend('${f.friendId}')">
-            <img src="${f.avatar}" alt="" class="chat-avatar">
-            <div class="chat-info">
-              <div class="chat-name">${f.username}</div>
-              <div class="chat-preview">Tap to open chat →</div>
-            </div>
-            <span class="chat-arrow">›</span>
-          </div>
-        `).join('');
+        chatListDiv.innerHTML = items.map(f => renderProfilePreviewCard(f, {
+          clickable: true,
+          onClick: `viewFriend('${f.friendId}')`,
+          actionsHtml: `<span class="chat-arrow">›</span>`
+        })).join('');
       } catch (err) {
         console.error("Error loading chat list:", err);
         chatListDiv.innerHTML = `<div class="empty-state"><p>Failed to load chats.</p></div>`;
@@ -548,36 +850,26 @@
         const sentSnap = await getDocs(sentQ);
         const sentIds = new Set(sentSnap.docs.map(d => d.data().to));
 
-        const leaderboardRef = collection(db, "leaderboard");
-        const snapshot = await getDocs(leaderboardRef);
+        const usersRef = collection(db, "users");
+        const usersSnapshot = await getDocs(usersRef);
         const results = [];
 
-        snapshot.forEach(docSnap => {
-          const userId = docSnap.id;
-          const username = docSnap.data().username || "";
-          const xp = docSnap.data().xp || 0;
-          if (userId === currentUser.uid) return;
-          if (username.toLowerCase().includes(searchTerm)) {
-            results.push({ userId, username, xp, isFriend: friendIds.has(userId), isPending: sentIds.has(userId) });
-          }
-        });
-
-        // Fallback to users collection
-        if (results.length === 0) {
-          const usersRef = collection(db, "users");
-          const usersSnapshot = await getDocs(usersRef);
-          for (const userDoc of usersSnapshot.docs) {
-            const userId = userDoc.id;
-            if (userId === currentUser.uid) continue;
-            const username = await getUsername(userId);
-            const statsRef = doc(db, "users", userId, "data", "stats");
-            const statsSnap = await getDoc(statsRef);
-            const xp = statsSnap.exists() ? statsSnap.data().xp || 0 : 0;
-            if (username.toLowerCase().includes(searchTerm)) {
-              results.push({ userId, username, xp, isFriend: friendIds.has(userId), isPending: sentIds.has(userId) });
-            }
+        for (const userDoc of usersSnapshot.docs) {
+          const userId = userDoc.id;
+          if (userId === currentUser.uid) continue;
+          const profile = await getUserProfile(userId);
+          if (!profile.username || profile.username.startsWith("User-")) continue;
+          if (profile.username.toLowerCase().includes(searchTerm)) {
+            results.push({
+              userId,
+              ...profile,
+              isFriend: friendIds.has(userId),
+              isPending: sentIds.has(userId)
+            });
           }
         }
+
+        results.sort((a, b) => b.xp - a.xp);
 
         if (results.length === 0) {
           resultsDiv.innerHTML = '<div class="empty-state"><p>No users found matching that name.</p></div>';
@@ -591,16 +883,9 @@
           } else if (user.isPending) {
             actionBtn = `<span style="font-size:11px; color:var(--color-warning); font-weight:700;">⏳ Sent</span>`;
           } else {
-            actionBtn = `<button class="btn btn-sm btn-add" onclick="event.stopPropagation(); sendFriendRequest('${user.userId}', '${user.username}')">+ Add</button>`;
+            actionBtn = `<button class="btn btn-sm btn-add" onclick="event.stopPropagation(); sendFriendRequest('${user.userId}', '${escapeJs(user.username)}')">+ Add</button>`;
           }
-          return `
-            <div class="friend-card" style="cursor:default;">
-              <div class="friend-info">
-                <div class="friend-name">${user.username}</div>
-                <div class="friend-stats"><span>⭐ ${user.xp} XP</span></div>
-              </div>
-              <div class="friend-actions">${actionBtn}</div>
-            </div>`;
+          return renderProfilePreviewCard(user, { actionsHtml: actionBtn });
         }).join('');
       } catch (err) {
         console.error(err);
@@ -667,20 +952,21 @@
         reqCount.textContent = snapshot.size;
         reqCount.style.display = 'inline-block';
 
-        requestsDiv.innerHTML = snapshot.docs.map(docSnap => {
+        const requestCards = [];
+        for (const docSnap of snapshot.docs) {
           const data = docSnap.data();
-          return `
-            <div class="friend-card pending">
-              <div class="friend-info">
-                <div class="friend-name">${data.fromName}</div>
-                <div class="friend-stats"><span>Wants to be your gym buddy</span></div>
-              </div>
-              <div class="friend-actions">
+          const profile = await getUserProfile(data.from);
+          requestCards.push(renderProfilePreviewCard(
+            { ...profile, username: profile.username || data.fromName },
+            {
+              pending: true,
+              actionsHtml: `
                 <button class="btn btn-sm btn-accept" onclick="acceptRequest('${docSnap.id}', '${data.from}')">✓</button>
-                <button class="btn btn-sm btn-reject" onclick="rejectRequest('${docSnap.id}')">✕</button>
-              </div>
-            </div>`;
-        }).join('');
+                <button class="btn btn-sm btn-reject" onclick="rejectRequest('${docSnap.id}')">✕</button>`
+            }
+          ));
+        }
+        requestsDiv.innerHTML = requestCards.join('');
       } catch (err) {
         console.error(err);
       }
@@ -763,20 +1049,22 @@
         const friendsSnap = await getDocs(friendsRef);
         const friendIds = new Set(friendsSnap.docs.map(d => d.data().friendId));
 
-        const leaderboardRef = collection(db, "leaderboard");
-        const snapshot = await getDocs(leaderboardRef);
+        const sentReqRef = collection(db, "friendRequests");
+        const sentQ = query(sentReqRef, where("from", "==", currentUser.uid), where("status", "==", "pending"));
+        const sentSnap = await getDocs(sentQ);
+        const sentIds = new Set(sentSnap.docs.map(d => d.data().to));
 
+        const usersRef = collection(db, "users");
+        const usersSnapshot = await getDocs(usersRef);
         const suggestions = [];
-        snapshot.forEach(docSnap => {
-          const userId = docSnap.id;
-          if (userId === currentUser.uid || friendIds.has(userId)) return;
-          suggestions.push({
-            userId,
-            username: docSnap.data().username || "User",
-            xp: docSnap.data().xp || 0,
-            streak: docSnap.data().streak || 0
-          });
-        });
+
+        for (const userDoc of usersSnapshot.docs) {
+          const userId = userDoc.id;
+          if (userId === currentUser.uid || friendIds.has(userId) || sentIds.has(userId)) continue;
+          const profile = await getUserProfile(userId);
+          if (!profile.username || profile.username.startsWith("User-")) continue;
+          suggestions.push({ userId, ...profile });
+        }
 
         suggestions.sort((a, b) => b.xp - a.xp);
         const top = suggestions.slice(0, 5);
@@ -786,25 +1074,89 @@
           return;
         }
 
-        suggestedDiv.innerHTML = top.map(user => `
-          <div class="friend-card" style="cursor:default;">
-            <div class="friend-info">
-              <div class="friend-name">${user.username}</div>
-              <div class="friend-stats">
-                <span>⭐ ${user.xp} XP</span>
-                <span>🔥 ${user.streak} streak</span>
-              </div>
-            </div>
-            <div class="friend-actions">
-              <button class="btn btn-sm btn-add" onclick="sendFriendRequest('${user.userId}', '${user.username}')">+ Add</button>
-            </div>
-          </div>
-        `).join('');
+        suggestedDiv.innerHTML = top.map(user => {
+          return renderProfilePreviewCard(user, {
+            actionsHtml: `<button class="btn btn-sm btn-add" onclick="sendFriendRequest('${user.userId}', '${escapeJs(user.username)}')">+ Add</button>`
+          });
+        }).join('');
       } catch (err) {
         console.error(err);
         suggestedDiv.innerHTML = '<div class="empty-state"><p>Failed to load suggestions</p></div>';
       }
     }
+
+    // ===== Buddy Challenges =====
+    async function loadBuddyChallenges() {
+      const listDiv = document.getElementById("buddyChallengesList");
+      const friendSelect = document.getElementById("challengeFriend");
+      try {
+        await refreshBuddyChallengeProgress(db, currentUser.uid);
+        const friendsRef = collection(db, "users", currentUser.uid, "friends");
+        const friendsSnap = await getDocs(friendsRef);
+        friendSelect.innerHTML = '<option value="">Select friend...</option>';
+        for (const fd of friendsSnap.docs) {
+          const f = fd.data();
+          friendSelect.innerHTML += `<option value="${f.friendId}">${f.username || "Friend"}</option>`;
+        }
+
+        const challenges = await getActiveChallenges(db, currentUser.uid);
+        if (challenges.length === 0) {
+          listDiv.innerHTML = '<div class="empty-state"><p>No active challenges. Challenge a friend above!</p></div>';
+          return;
+        }
+
+        listDiv.innerHTML = challenges.map((ch) => {
+          const isFrom = ch.from === currentUser.uid;
+          const myProg = isFrom ? ch.fromProgress : ch.toProgress;
+          const theirProg = isFrom ? ch.toProgress : ch.fromProgress;
+          const opponent = isFrom ? ch.toName : ch.fromName;
+          const unit = ch.type === "workouts" ? "days" : "XP";
+          const myPct = Math.min(100, Math.round((myProg / ch.goal) * 100));
+          const theirPct = Math.min(100, Math.round((theirProg / ch.goal) * 100));
+          return `
+            <div class="profile-preview-card" style="flex-direction:column;align-items:stretch;">
+              <div style="font-weight:700;color:#fff;font-size:14px;margin-bottom:8px;">
+                ⚔️ vs ${escapeHtml(opponent)}
+              </div>
+              <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;">
+                ${ch.type === "workouts" ? "Most workout days" : "Most XP"} · Goal: ${ch.goal} · Ends ${ch.endDate}
+              </div>
+              <div style="font-size:12px;margin-bottom:4px;">You: ${myProg} ${unit}</div>
+              <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:6px;margin-bottom:8px;">
+                <div style="height:100%;width:${myPct}%;background:var(--color-accent);border-radius:6px;"></div>
+              </div>
+              <div style="font-size:12px;margin-bottom:4px;">${escapeHtml(opponent)}: ${theirProg} ${unit}</div>
+              <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:6px;">
+                <div style="height:100%;width:${theirPct}%;background:var(--color-success);border-radius:6px;"></div>
+              </div>
+            </div>`;
+        }).join("");
+      } catch (err) {
+        console.error(err);
+        listDiv.innerHTML = '<div class="empty-state"><p>Failed to load challenges</p></div>';
+      }
+    }
+
+    document.getElementById("createChallengeBtn").addEventListener("click", async () => {
+      const toId = document.getElementById("challengeFriend").value;
+      const type = document.getElementById("challengeType").value;
+      const goal = parseInt(document.getElementById("challengeGoal").value, 10);
+      if (!toId) return showStatus("Select a friend first", "warning");
+      if (!goal || goal < 1) return showStatus("Enter a valid goal", "warning");
+
+      const myName = await getUsername(currentUser.uid);
+      const toName = await getUsername(toId);
+      await createBuddyChallenge(db, {
+        fromId: currentUser.uid,
+        fromName: myName,
+        toId,
+        toName,
+        type,
+        goal,
+      });
+      showStatus(`Challenge sent to ${toName}!`, "success");
+      loadBuddyChallenges();
+    });
 
     // ===== Init =====
     onAuthStateChanged(auth, async (user) => {
@@ -814,15 +1166,23 @@
       }
       currentUser = user;
 
-      // Load all data in parallel
-      await Promise.all([
-        loadFriends(),
-        loadPendingRequests(),
-        loadSuggestedUsers(),
-        loadChatList()
+      injectFeatureSpotlight("social-spotlight");
+
+      await runSocialLoadTasks([
+        { label: "Loading friends...", fn: loadFriends },
+        { label: "Checking requests...", fn: loadPendingRequests },
+        { label: "Finding suggestions...", fn: loadSuggestedUsers },
+        { label: "Loading chats...", fn: loadChatList },
+        { label: "Loading challenges...", fn: loadBuddyChallenges },
       ]);
 
       hideLoader();
+
+      const urlTab = new URLSearchParams(window.location.search).get('tab');
+      if (urlTab) {
+        const tabEl = document.getElementById(`tab-${urlTab}`);
+        if (tabEl) switchTab(urlTab, tabEl);
+      }
     });
   </script>
   <script type="module" src="js/navigation.js"></script>

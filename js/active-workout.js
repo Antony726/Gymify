@@ -4,6 +4,9 @@ import {
   getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
+import { processWorkoutLogStats, toLocalDateStr } from "./streak-utils.js";
+import { announcePRs, showPRCelebration } from "./pr-utils.js";
+import { refreshBuddyChallengeProgress } from "./buddy-challenges.js";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -75,7 +78,7 @@ function parseExercise(exStr) {
 // === 🔑 2. Auth State Listener & Autosave Resume ===
 function saveSessionProgress() {
   if (!userUID || exercisesList.length === 0) return;
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = toLocalDateStr();
   const progressState = {
     date: todayStr,
     currentExIndex,
@@ -83,6 +86,42 @@ function saveSessionProgress() {
     loggedWorkoutLogs
   };
   localStorage.setItem(`activeWorkoutState_${userUID}`, JSON.stringify(progressState));
+}
+
+async function applyActiveWorkoutStats({ logDate, gainedXP, isExitSave = false }) {
+  const statsRef = doc(db, "users", userUID, "data", "stats");
+  const statsSnap = await getDoc(statsRef);
+  const planRef = doc(db, "users", userUID, "data", "plan");
+  const planSnap = await getDoc(planRef);
+  const plan = planSnap.exists() ? planSnap.data() : {};
+
+  const existingStats = statsSnap.exists() ? statsSnap.data() : {};
+  const result = await processWorkoutLogStats({
+    db,
+    userId: userUID,
+    stats: existingStats,
+    plan,
+    logDate,
+    gainedXP,
+  });
+
+  await setDoc(statsRef, {
+    xp: result.xp,
+    streak: result.streak,
+    hearts: result.hearts,
+    lastLogDate: result.lastLogDate,
+    streakCheckDate: result.streakCheckDate,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+
+  const lbRef = doc(db, "leaderboard", userUID);
+  await setDoc(lbRef, {
+    xp: result.xp,
+    streak: result.streak,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+
+  return result;
 }
 
 function showWorkoutCompleteScreen() {
@@ -110,7 +149,7 @@ onAuthStateChanged(auth, async (user) => {
   userUID = user.uid;
   
   // Check for saved session from today
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = toLocalDateStr();
   const savedState = localStorage.getItem(`activeWorkoutState_${userUID}`);
   if (savedState) {
     try {
@@ -167,7 +206,7 @@ onAuthStateChanged(auth, async (user) => {
                       window.GymifyLoader.show("Saving completed sets from previous session...");
                     }
                     const batch = writeBatch(db);
-                    const todayStr = new Date().toISOString().split("T")[0];
+                    const todayStr = toLocalDateStr();
                     for (const log of savedLogs) {
                       const logDocRef = doc(collection(db, "users", userUID, "logs"));
                       batch.set(logDocRef, {
@@ -179,45 +218,10 @@ onAuthStateChanged(auth, async (user) => {
                       });
                     }
 
-                    const statsRef = doc(db, "users", userUID, "data", "stats");
-                    const statsSnap = await getDoc(statsRef);
-                    let xp = 0, streak = 0, hearts = 4, lastLogDate = "";
-                    if (statsSnap.exists()) {
-                      const data = statsSnap.data();
-                      xp = data.xp || 0;
-                      streak = data.streak || 0;
-                      hearts = data.hearts !== undefined ? data.hearts : 4;
-                      lastLogDate = data.lastLogDate || "";
-                    }
-                    const xpGain = (savedLogs.length * 10);
-                    xp += xpGain;
-
-                    const today = new Date();
-                    const yesterday = new Date();
-                    yesterday.setDate(today.getDate() - 1);
-                    const yesterdayStr = yesterday.toISOString().split("T")[0];
-                    if (lastLogDate === yesterdayStr) {
-                      streak += 1;
-                    } else if (lastLogDate !== todayStr) {
-                      streak = 1;
-                    }
-
-                    batch.set(statsRef, {
-                      xp,
-                      streak,
-                      hearts,
-                      lastLogDate: todayStr,
-                      updatedAt: serverTimestamp()
-                    }, { merge: true });
-
-                    const lbRef = doc(db, "leaderboard", userUID);
-                    batch.set(lbRef, {
-                      xp,
-                      streak,
-                      updatedAt: serverTimestamp()
-                    }, { merge: true });
-
                     await batch.commit();
+
+                    const xpGain = savedLogs.length * 10;
+                    await applyActiveWorkoutStats({ logDate: todayStr, gainedXP: xpGain, isExitSave: true });
                     if (window.GymifyLoader) window.GymifyLoader.hide();
                     alert(`🎉 Discarded session progress, but saved ${savedLogs.length} completed exercise(s)!\n⭐ Gained +${xpGain} XP!`);
                   }
@@ -561,13 +565,19 @@ async function saveWorkoutSession(isExitSave = false) {
   finishWorkoutBtn.disabled = true;
   finishWorkoutBtn.textContent = "💾 Saving Workout...";
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = toLocalDateStr();
 
   try {
+    const allPRs = [];
+    for (const log of loggedWorkoutLogs) {
+      const prs = await announcePRs(db, userUID, log.workout, log.sets);
+      allPRs.push(...prs);
+    }
+    if (allPRs.length > 0) showPRCelebration(allPRs);
+
     if (window.GymifyLoader) window.GymifyLoader.setProgress(25, "Creating batch logs...");
     const batch = writeBatch(db);
 
-    // A. Batch write workout logs
     for (const log of loggedWorkoutLogs) {
       const logDocRef = doc(collection(db, "users", userUID, "logs"));
       batch.set(logDocRef, {
@@ -579,67 +589,36 @@ async function saveWorkoutSession(isExitSave = false) {
       });
     }
 
-    // B. Calculate XP and streak updates
-    const statsRef = doc(db, "users", userUID, "data", "stats");
-    const statsSnap = await getDoc(statsRef);
-    let xp = 0, streak = 0, hearts = 4, lastLogDate = "";
-
-    if (statsSnap.exists()) {
-      const data = statsSnap.data();
-      xp = data.xp || 0;
-      streak = data.streak || 0;
-      hearts = data.hearts !== undefined ? data.hearts : 4;
-      lastLogDate = data.lastLogDate || "";
-    }
-
-    // Calculate XP updates: +10 XP per exercise, +10 XP for active mode completion
-    const xpGain = (loggedWorkoutLogs.length * 10) + (isExitSave ? 0 : 10);
-    xp += xpGain;
-
     if (window.GymifyLoader) window.GymifyLoader.setProgress(50, "Calculating streak & XP...");
-    // Calculate Streak updates
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-    if (lastLogDate === yesterdayStr) {
-      streak += 1;
-    } else if (lastLogDate !== todayStr) {
-      streak = 1; // start new streak
-    }
-
-    batch.set(statsRef, {
-      xp,
-      streak,
-      hearts,
-      lastLogDate: todayStr,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-
-    // Update Leaderboard
-    const lbRef = doc(db, "leaderboard", userUID);
-    batch.set(lbRef, {
-      xp,
-      streak,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    const xpGain = (loggedWorkoutLogs.length * 10) + (isExitSave ? 0 : 10);
 
     if (window.GymifyLoader) window.GymifyLoader.setProgress(80, "Syncing to leaderboard...");
-    // Commit all changes in one single batch!
     await batch.commit();
 
+    const streakResult = await applyActiveWorkoutStats({
+      logDate: todayStr,
+      gainedXP: xpGain,
+      isExitSave,
+    });
+    try { await refreshBuddyChallengeProgress(db, userUID); } catch (e) {}
+    const { streak, resetXP, lostHeart, missedDays, isSameDay } = streakResult;
+
     localStorage.setItem("refreshDashboardWorkout", "true");
-    
-    // Clear active session autosave state on successful finish
     localStorage.removeItem(`activeWorkoutState_${userUID}`);
 
-    // Hide dynamic loader
     if (window.GymifyLoader) {
       window.GymifyLoader.hide();
     }
 
-    alert(`🎉 Workout Saved!\n⭐ Gained +${xpGain} XP!\n🔥 Current Streak: ${streak} days!`);
+    if (resetXP) {
+      alert("💀 All hearts lost! XP reset. 4 hearts given. Fresh start!");
+    } else if (lostHeart && missedDays.length > 0) {
+      alert(`💔 Missed ${missedDays.length} workout day(s)! Lost ${missedDays.length} heart(s).\n⭐ Gained +${xpGain} XP\n🔥 Streak: ${streak} days`);
+    } else if (isSameDay) {
+      alert(`🎉 Workout Saved!\n⭐ Gained +${xpGain} XP!\n🔥 Streak unchanged: ${streak} days`);
+    } else {
+      alert(`🎉 Workout Saved!\n⭐ Gained +${xpGain} XP!\n🔥 Current Streak: ${streak} days!`);
+    }
     window.location.href = "dashboard.html";
 
   } catch (err) {

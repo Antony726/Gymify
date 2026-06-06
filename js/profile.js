@@ -6,6 +6,7 @@ import {
   getAuth, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { firebaseConfig } from "./firebase-config.js";
+import { buildProfileQRData, renderQRCode } from "./qr-utils.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -399,6 +400,17 @@ profileForm.addEventListener("submit", async (e) => {
 
     if (window.GymifyLoader) window.GymifyLoader.setProgress(80, "Syncing leaderboard...");
 
+    const statsRef = doc(db, "users", userUID, "data", "stats");
+    const statsSnap = await getDoc(statsRef);
+    const xp = statsSnap.exists() ? statsSnap.data().xp || 0 : 0;
+    const streak = statsSnap.exists() ? statsSnap.data().streak || 0 : 0;
+    await setDoc(doc(db, "leaderboard", userUID), {
+      username: profile.username,
+      xp,
+      streak,
+      updatedAt: new Date().toISOString()
+    });
+
     generateQR(profile);
 
     // Mark step 4 as done
@@ -424,22 +436,27 @@ profileForm.addEventListener("submit", async (e) => {
 
 // === 🎫 QR Code ===
 function generateQR(profile) {
-  qrcodeContainer.innerHTML = "";
-  let funText = `${profile.username || "GymBro"} | ${profile.gymName || "No Gym"} (${profile.gymArea || "No Area"}) | Goal: ${profile.fitnessGoal || "Stay Fit"} | Music: ${profile.favMusic || "Focus Mode"}`;
-  if (funText.length > 120) funText = funText.substring(0, 120) + "...";
+  if (!userUID) return;
+  const qrData = buildProfileQRData(userUID, profile.username);
+  const ok = renderQRCode(qrcodeContainer, qrData);
+  if (!ok) {
+    qrcodeContainer.innerHTML = `<p style="color:var(--color-danger);font-size:12px;">⚠️ Could not generate QR</p>`;
+    return;
+  }
+  const hint = document.createElement("p");
+  hint.style.cssText = "font-size:10px;color:var(--text-secondary);margin-top:8px;";
+  hint.textContent = "Friends scan this to add you instantly";
+  qrcodeContainer.appendChild(hint);
 
-  try {
-    new QRCode(qrcodeContainer, {
-      text: funText,
-      width: 180,
-      height: 180,
-      colorDark: "#66fcf1",
-      colorLight: "#0b0c10",
-      correctLevel: QRCode.CorrectLevel.L,
-    });
-  } catch (err) {
-    console.error("⚠️ QR generation error:", err);
-    qrcodeContainer.innerHTML = `<p style="color:var(--color-danger);">⚠️ QR too large. Try shorter text.</p>`;
+  if (!document.getElementById("scanQrBtn")) {
+    const scanBtn = document.createElement("button");
+    scanBtn.id = "scanQrBtn";
+    scanBtn.type = "button";
+    scanBtn.className = "btn btn-secondary";
+    scanBtn.style.cssText = "width:100%;margin-top:10px;font-size:12px;";
+    scanBtn.textContent = "📷 Scan Someone's QR";
+    scanBtn.onclick = () => { window.location.href = "scan.html"; };
+    qrcodeContainer.parentElement.appendChild(scanBtn);
   }
 }
 

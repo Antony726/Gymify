@@ -1,6 +1,7 @@
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { initCustomDropdown, refreshCustomDropdown } from "./custom-dropdown.js";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const container = document.getElementById("days-container");
@@ -49,6 +50,7 @@ days.forEach(day => {
   const arrow = div.querySelector(".accordion-arrow");
   const typeSelect = div.querySelector(`[name="${day}-type"]`);
   const badge = div.querySelector(".day-badge");
+  initCustomDropdown(typeSelect);
 
   // Accordion toggle
   header.addEventListener("click", () => {
@@ -89,6 +91,7 @@ onAuthStateChanged(auth, async (user) => {
         
         if (typeSelect && plan[day]?.type) {
           typeSelect.value = plan[day].type;
+          refreshCustomDropdown(typeSelect);
           typeSelect.dispatchEvent(new Event("change"));
         }
         if (exercisesTextarea && plan[day]?.exercises) {
@@ -195,6 +198,7 @@ importBtn.addEventListener("click", async () => {
 
       if (decodedPlan[day]) {
         typeSelect.value = decodedPlan[day].type || "Rest";
+        refreshCustomDropdown(typeSelect);
         typeSelect.dispatchEvent(new Event("change"));
         exercisesTextarea.value = decodedPlan[day].exercises || "";
       }
@@ -269,6 +273,7 @@ if (aiWizardBtn && aiModal) {
       if (generated[day]) {
         if (typeSelect) {
           typeSelect.value = generated[day].type;
+          refreshCustomDropdown(typeSelect);
           typeSelect.dispatchEvent(new Event("change"));
         }
         if (exercisesTextarea) {

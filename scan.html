@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan QR | Gymify</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    .scan-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    #qr-reader { width: 100%; max-width: 320px; margin: 0 auto; border-radius: 12px; overflow: hidden; }
+    .result-card {
+      display: none;
+      background: rgba(16,185,129,0.06);
+      border: 1px solid rgba(16,185,129,0.3);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" style="margin-top: 20px; padding-bottom: 90px;">
+    <h2 class="text-center glow-text" style="margin-bottom: 16px;">📷 Scan Gymify QR</h2>
+
+    <div class="scan-card">
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+        Scan a friend's Gymify QR from their profile to send a friend request instantly.
+      </p>
+      <div id="qr-reader"></div>
+      <p style="font-size: 11px; color: var(--text-secondary); margin-top: 12px;">Camera permission required</p>
+    </div>
+
+    <div class="glass-card" style="padding: 16px;">
+      <label style="font-size: 12px;">Or paste QR / user code manually</label>
+      <textarea id="manualCode" placeholder='Paste QR data or user ID...' style="height: 70px; margin: 8px 0;"></textarea>
+      <button id="manualScanBtn" class="btn" style="width: 100%;">Add Friend from Code</button>
+    </div>
+
+    <div class="result-card" id="resultCard">
+      <div id="resultText" style="font-size: 14px; color: #fff;"></div>
+      <button id="viewProfileBtn" class="btn btn-secondary" style="width: 100%; margin-top: 12px; display: none;">View Profile</button>
+    </div>
+
+    <button class="btn btn-secondary" onclick="window.location.href='friends.html'" style="width: 100%; margin-top: 12px;">⬅ Back to Social</button>
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script type="module" src="js/scan.js"></script>
+  <script type="module" src="js/navigation.js"></script>
+</body>
+</html>

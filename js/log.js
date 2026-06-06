@@ -7,6 +7,9 @@ import {
   setDoc,
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { processWorkoutLogStats, toLocalDateStr } from "./streak-utils.js";
+import { announcePRs, showPRCelebration } from "./pr-utils.js";
+import { refreshBuddyChallengeProgress } from "./buddy-challenges.js";
 
 const workoutInput = document.getElementById("workout-input");
 const workoutDatalist = document.getElementById("workout-list");
@@ -68,7 +71,7 @@ removeSetBtn.addEventListener("click", () => {
 
 
 // 🗓️ Auto-fill today's date
-const todayISO = new Date().toISOString().split("T")[0];
+const todayISO = toLocalDateStr();
 dateInput.value = todayISO;
 
 // 🔙 Back to Dashboard
@@ -181,8 +184,11 @@ logForm.addEventListener("submit", async (e) => {
 
 
   try {
+    if (window.GymifyLoader) window.GymifyLoader.setProgress(15, "Checking for PRs...");
+    const prs = await announcePRs(db, user.uid, selectedWorkout, sets);
+    if (prs.length > 0) showPRCelebration(prs);
+
     if (window.GymifyLoader) window.GymifyLoader.setProgress(20, "Writing log to Firestore...");
-    // 💾 Add workout log
     await addDoc(collection(db, "users", user.uid, "logs"), {
       workout: selectedWorkout,
       date,
@@ -192,116 +198,70 @@ logForm.addEventListener("submit", async (e) => {
     });
 
     if (window.GymifyLoader) window.GymifyLoader.setProgress(50, "Updating stats & XP...");
-    // ⭐ XP + 🔥 Streak + ❤️ Heart update
     const statsRef = doc(db, "users", user.uid, "data", "stats");
     const statsSnap = await getDoc(statsRef);
+    const planRef = doc(db, "users", user.uid, "data", "plan");
+    const planSnap = await getDoc(planRef);
+    const plan = planSnap.exists() ? planSnap.data() : {};
 
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
-    let xp = 0;
-    let streak = 0;
-    let hearts = 4;
-    let lostHeart = false;
-    let resetXP = false;
-
-    // 🧮 XP calculation: base + per weight
+    const logDate = date.split("T")[0];
     let gainedXP = 0;
     sets.forEach((s) => {
       gainedXP += 5 + Math.floor(s.weight / 5);
     });
 
-    if (statsSnap.exists()) {
-      const data = statsSnap.data();
-      xp = data.xp || 0;
-      hearts = data.hearts !== undefined ? data.hearts : 4;
-      
-      const lastLogDate = data.lastLogDate || "";
-      
-      if (lastLogDate) {
-        const lastDate = new Date(lastLogDate + "T00:00:00"); // Force midnight time
-        const todayDate = new Date(todayStr + "T00:00:00"); // Force midnight time
-        const diffDays = Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+    const existingStats = statsSnap.exists() ? statsSnap.data() : {};
+    const streakResult = await processWorkoutLogStats({
+      db,
+      userId: user.uid,
+      stats: existingStats,
+      plan,
+      logDate,
+      gainedXP,
+    });
 
-        console.log(`📅 Last log: ${lastLogDate}, Today: ${todayStr}, Days difference: ${diffDays}`);
+    const { xp, streak, hearts, lastLogDate, streakCheckDate, isSameDay, missedDays, lostHeart, resetXP } = streakResult;
 
-        if (diffDays === 0) {
-          // ✅ Logged again same day — no streak change, just add XP
-          streak = data.streak || 0;
-          xp += gainedXP;
-          console.log("✅ Same day log - no streak change");
-        } else if (diffDays === 1) {
-          // ✅ Logged next day — increment streak by 1
-          const currentStreak = data.streak || 0;
-          // If streak was 0 (broken), start fresh at 1
-          // If streak was already going, increment it
-          streak = currentStreak === 0 ? 1 : currentStreak + 1;
-          xp += gainedXP;
-          console.log(`✅ Next day log - streak: ${currentStreak} → ${streak}`);
-        } else if (diffDays > 1) {
-          // ❌ Missed days — RESET STREAK TO 0 & LOSE HEART
-          console.log(`⚠️ Streak broken! Missed ${diffDays} days.`);
-          
-          // First set streak to 0 and lose heart
-          streak = 0;
-          hearts = Math.max(0, hearts - 1);
-          lostHeart = true;
+    if (resetXP) {
+      await setDoc(statsRef, {
+        xp,
+        streak,
+        hearts,
+        lastLogDate,
+        streakCheckDate,
+        lastWorkoutWasRest: selectedWorkout.toLowerCase().includes("rest"),
+      });
+      window.showToast("💀 All hearts lost! XP reset. 4 hearts given.", "error");
+      statusDiv.textContent = "💀 All hearts lost! XP and streak reset. Fresh start!";
+      statusDiv.style.color = "red";
+      logForm.reset();
+      dateInput.value = todayISO;
+      localStorage.setItem("refreshDashboardWorkout", "true");
+      setTimeout(() => { window.location.href = "dashboard.html"; }, 2500);
+      return;
+    }
 
-          // 💀 If all hearts lost — RESET XP TO 0
-          if (hearts === 0) {
-            console.log("💀 All hearts lost! Resetting XP to 0.");
-            xp = 0;
-            hearts = 4;
-            resetXP = true;
-            
-            // Save the broken state first (streak = 0, hearts reset)
-            await setDoc(statsRef, {
-              xp: 0,
-              streak: 0,
-              hearts: 4,
-              lastLogDate: todayStr,
-              lastWorkoutWasRest: selectedWorkout.toLowerCase().includes("rest"),
-            });
-            
-            window.showToast("💀 All hearts lost! XP reset. 4 hearts given.", "error");
-            
-            statusDiv.textContent = "💀 All hearts lost! XP and streak reset. Fresh start!";
-            statusDiv.style.color = "red";
-            logForm.reset();
-            dateInput.value = todayISO;
-            localStorage.setItem("refreshDashboardWorkout", "true");
-            
-            setTimeout(() => {
-              window.location.href = "dashboard.html";
-            }, 2500);
-            return; // Exit early
-          } else {
-            xp += gainedXP;
-            window.showToast(`💔 You missed ${diffDays} days! Lost 1 heart (${hearts} left).`, "warning");
-          }
-        }
-      } else {
-        // First workout ever
-        streak = 1;
-        xp += gainedXP;
-        console.log("🎉 First workout ever! Starting streak at 1");
-      }
+    if (lostHeart && missedDays.length > 0) {
+      const dayLabel = missedDays.length === 1 ? "a workout day" : `${missedDays.length} workout days`;
+      window.showToast(`💔 Missed ${dayLabel}! Lost ${missedDays.length} heart(s) (${hearts} left).`, "warning");
+    } else if (isSameDay) {
+      console.log("✅ Same day log - no streak change");
     } else {
-      // Brand new user
-      streak = 1;
-      xp = gainedXP;
-      console.log("🎉 Brand new user! Starting streak at 1");
+      console.log(`✅ Workout logged - streak now ${streak}`);
     }
 
     console.log(`📊 Final values - XP: ${xp}, Streak: ${streak}, Hearts: ${hearts}`);
 
-    // 💾 Save updated stats
     await setDoc(statsRef, {
       xp,
       streak,
       hearts,
-      lastLogDate: todayStr,
+      lastLogDate,
+      streakCheckDate,
       lastWorkoutWasRest: selectedWorkout.toLowerCase().includes("rest"),
     });
+
+    try { await refreshBuddyChallengeProgress(db, user.uid); } catch (e) {}
 
     if (window.GymifyLoader) window.GymifyLoader.setProgress(80, "Syncing to leaderboard...");
     // 🏆 Update leaderboard entry
@@ -327,7 +287,7 @@ logForm.addEventListener("submit", async (e) => {
     if (resetXP) {
       statusDiv.textContent = "💀 Workout logged! XP was reset to 0 due to losing all hearts. Fresh start!";
     } else if (lostHeart) {
-      statusDiv.textContent = `💔 Workout logged! You lost 1 heart (${hearts} remaining). XP gained: +${gainedXP}`;
+      statusDiv.textContent = `💔 Workout logged! You lost ${missedDays.length} heart(s) (${hearts} remaining). XP gained: +${gainedXP}`;
     } else {
       statusDiv.textContent = `✅ Workout logged! XP gained: +${gainedXP}. Streak: ${streak} days!`;
     }
