@@ -4,131 +4,174 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gymify Dashboard</title>
-  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    /* Custom spacing and overrides for dashboard */
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+    #xp-bar-wrap {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      height: 12px;
+      margin: 12px 0;
+      border: 1px solid var(--border-color);
+    }
+    #xp-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #f59e0b, #eab308);
+      border-radius: 10px;
+      transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .stats-row .card {
+      margin: 0;
+      padding: 15px 10px;
+      text-align: center;
+    }
+    .stats-row .card h3 {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .stats-row .card p {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .today-workout select, .today-workout textarea {
+      margin-bottom: 0;
+    }
+    .hydration-rest {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    @media (max-width: 450px) {
+      .hydration-rest {
+        grid-template-columns: 1fr;
+      }
+    }
+    .hydration-rest .card {
+      margin: 0;
+    }
+    .daily-quest {
+      border-left: 4px solid var(--color-accent);
+    }
+    .daily-quest h5 {
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin-top: 2px;
+    }
+  </style>
 </head>
 <body>
- <!-- Hamburger Button -->
-  <button id="hamburger-btn" class="hamburger-btn">☰ Menu</button>
-
-  <!-- Full-screen overlay menu -->
-  <div id="hamburger-menu" class="hamburger-menu">
-    <button class="close-btn" id="close-btn">✕ Close</button>
-    <div class="menu-buttons">
-      <button onclick="window.location.href='log.html'">📝 Log Workout</button>
-      <button onclick="window.location.href='history.html'">📜 View History</button>
-      <button onclick="window.location.href='weight_track.html'">🏋️ Progress Tracker</button>
-      <button onclick="window.location.href='progress.html'">📈 Tracker</button>
-      <button onclick="window.location.href='body-heatmap.html'">🧍 Heatmap</button>
-      <button onclick="window.location.href='achievements.html'">🏅 Achievements</button>
-      <button onclick="window.location.href='leaderboard.html'">🏆 Leaderboard</button>
-      <button onclick="window.location.href='goal.html'">🎯 Goal</button>
-      <button onclick="window.location.href='friends.html'">👥 Friends</button>
-      <button onclick="window.location.href='kbase.html'">🧠 Knowledge Base</button>
-      <button onclick="window.location.href='feedback.html'">✍️ Feedback</button>
-      <button id="logout-btn" class="logout-btn">🚪 Logout</button>
+  <!-- Dashboard Page Loader -->
+  <div id="dashboardLoader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 13, 22, 0.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s ease, background 0.4s ease, backdrop-filter 0.4s ease;">
+    <div style="text-align: center; padding: 20px;">
+      <!-- Pulsing Gym Icon -->
+      <div class="loader-gym-icon">🏋️‍♂️</div>
+      
+      <!-- Elegant Spinner Ring -->
+      <div class="loader-ring-container">
+        <svg width="40" height="40" viewBox="0 0 50 50" style="animation: spin 1.2s linear infinite;">
+          <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="4"></circle>
+          <circle cx="25" cy="25" r="20" fill="none" stroke="var(--color-accent)" stroke-width="4" stroke-dasharray="125" stroke-dashoffset="40" stroke-linecap="round"></circle>
+        </svg>
+      </div>
+      
+      <!-- Details block (shown ONLY for long durations > 800ms) -->
+      <div id="loader-details-block" class="loader-details" style="display: none; opacity: 0;">
+        <!-- Progress bar container -->
+        <div style="width: 220px; height: 6px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; margin: 25px auto 15px auto; border: 1px solid var(--border-color);">
+          <div id="loader-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--color-accent), var(--color-success)); border-radius: 10px; transition: width 0.2s ease;"></div>
+        </div>
+        <!-- Status message -->
+        <p id="loader-text" style="color: var(--text-secondary); font-size: 13px; font-weight: 500; letter-spacing: 0.02em; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Connecting to Gymify...</p>
+      </div>
     </div>
   </div>
 
   <div class="container">
-    <header class="header">
+    <header class="glass-card">
       <div class="header-top">
-        <h2>Hi, <span id="username">User</span> 👋</h2>
-        
+        <h2>Hi, <span id="username" class="glow-text">User</span> 👋</h2>
+        <span id="gymify-level" style="font-size: 18px; font-weight: 800; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(251,191,36,0.2);">Bronze I</span>
       </div>
-      <p id="xp-display">⭐ XP: 0</p>
+      <p id="xp-display" style="margin-top: 10px; font-weight: 600; color: var(--text-secondary);">⭐ XP: 0</p>
       <div id="xp-bar-wrap"><div id="xp-bar"></div></div>
-      
     </header>
 
-    <section class="stats">
+    <section class="stats-row">
       <div class="card">
         <h3>🔥 Streak</h3>
-        <p id="streak-display">🔥 Streak: 0 days</p>
+        <p id="streak-display">0 days</p>
       </div>
       <div class="card">
-        <h3>❤️ Life</h3>
-        <p id="energy">❤️❤️❤️❤️</p>
+        <h3>❤️ Energy</h3>
+        <p id="energy" style="letter-spacing: 1px;">❤️❤️❤️❤️</p>
       </div>
       <div class="card">
-        <h3>🏆 Level</h3>
-        <p id="gymify-level">Bronze I</p>
+        <h3>🏆 Rank</h3>
+        <p style="color: var(--color-accent);">Warrior</p>
       </div>
     </section>
 
     <section class="today-workout">
-      <h3>Today's Workout</h3>
-      <div id="workout-split">Loading...</div>
-      <!-- <div id="next-workout"></div> -->
+      <h3 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">🗓️ Today's Workout</h3>
+      <div id="workout-split" style="font-size: 15px; line-height: 1.6; color: var(--text-primary); margin-bottom: 15px;">Loading...</div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button id="start-active-btn" class="btn" style="width: 100%; display: none;">⚡ Start Active Logger</button>
+        <button onclick="window.location.href='plan.html'" class="btn-secondary" style="width: 100%;">🗓️ Edit Workout Plan</button>
+      </div>
+    </section>
 
-      <button onclick="window.location.href='plan.html'" class="plan-btn">🗓️ Edit Workout Plan</button>
+    <section class="next-workout glass-card">
+      <h3 style="margin-bottom: 12px;">💡 Recommendation</h3>
+      <p id="next-workout" style="font-size: 15px; margin-bottom: 15px; font-weight: 500;">Loading next workout...</p>
+      <button onclick="window.location.href='log.html'" style="width: 100%;">📝 Log Workout Now</button>
     </section>
-    <section class="next-workout">
-      <h3>💡 Next Workout Recommendation</h3>
-      <p id="next-workout">Loading next workout...</p>
-      <button onclick="window.location.href='log.html'">📝 Log Workout</button>
-    </section>
-    <!-- 💧 Water Reminder -->
-    <!-- 💧 + ⏱️ Combined Section -->
-    <section class="next-workouts">
-      <h3>🧍Workout Analysis</h3>
-     
-      <button onclick="window.location.href='body-heatmap.html'">Stats</button>
-    </section>
- 
+
     <section class="hydration-rest">
       <div class="card water-card">
-        <h3>💧 Water Tracker</h3>
-        <p>You've had <span id="waterCount">0</span>/10 glasses today</p>
-        <button id="addWater">+ Add Glass</button>
+        <h3 style="font-size: 15px; margin-bottom: 8px;">💧 Water Tracker</h3>
+        <p style="font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">Drank <span id="waterCount" style="color: #fff; font-weight: 700;">0</span>/10 glasses</p>
+        <button id="addWater" style="width: 100%; font-size: 12px; padding: 8px;">+ Add Glass</button>
       </div>
 
       <div class="card rest-card">
-        <h3>you skip gym but still want to feel productive 💀?</h3>
-        <button onclick="window.location.href='catch.html'">🎮 Game</button>
-        
+        <h3 style="font-size: 15px; margin-bottom: 8px;">🎮 Skip Gym Today?</h3>
+        <p style="font-size: 13px; margin-bottom: 12px; color: var(--text-secondary);">Play a quick mini-game!</p>
+        <button onclick="window.location.href='catch.html'" class="btn-secondary" style="width: 100%; font-size: 12px; padding: 8px;">Play Game</button>
       </div>
-      
     </section>
 
-
-
     <section class="daily-quest">
-      <h3>🎯 Daily Quest <h5><i>(U can gain life by completing quest)</i></h5></h3>
-      <p id="daily-quest">Loading quest...</p>
-      <button id="complete-quest" class="btn">✅ Complete Quest</button>
-
+      <h3 style="margin-bottom: 5px;">🎯 Daily Quest</h3>
+      <h5 style="margin-bottom: 12px;">Complete to gain life (❤️)</h5>
+      <p id="daily-quest" style="font-size: 15px; font-weight: 500; margin-bottom: 15px; color: var(--color-warning);">Loading quest...</p>
+      <button id="complete-quest" class="btn" style="width: 100%;">✅ Complete Quest</button>
     </section>
 
     <section class="coach-tip">
-      <h3>🧠 Daily Quotes</h3>
-      <p id="coach-quote">"Progress comes to those who show up daily."</p>
+      <h3 style="margin-bottom: 8px;">🧠 Daily Quote</h3>
+      <p id="coach-quote" style="font-style: italic; color: var(--text-secondary); line-height: 1.5;">"Progress comes to those who show up daily."</p>
     </section>
-
-    <nav class="nav">
-      <button onclick="window.location.href='log.html'">📝 Log Workout</button>
-      <button onclick="window.location.href='history.html'">📜 View History</button>
-      <button onclick="window.location.href='weight_track.html'">🏋️ Progress Tracker</button>
-      <button onclick="window.location.href='progress.html'">📈 Tracker</button>
-      <button onclick="window.location.href='mygym.html'">🧍 GYM</button>
-      <button onclick="window.location.href='achievements.html'">🏅 Achievements</button>
-      <button onclick="window.location.href='leaderboard.html'">🏆 Leaderboard</button>
-      <button onclick="window.location.href='goal.html'">🎯 Goal</button>
-      <button onclick="window.location.href='friends.html'">👥 Friends</button>
-      <button onclick="window.location.href='kbase.html'">🧠 Knowledge Base</button>
-      <button onclick="window.location.href='feedback.html'">✍️ Feedback</button>
-      <button onclick="window.location.href='rand.html'"> Random</button>
-      <button onclick="window.location.href='excuse.html'"> Skip?</button>
-      <button onclick="window.location.href='profile.html'"> Profile</button>
-
-
-    </nav>
-
-
-    <footer>
-      <canvas id="consistency-chart"></canvas>
-    </footer>
   </div>
 
   <script type="module" src="js/dashboard.js"></script>
+  <script type="module" src="js/navigation.js"></script>
 </body>
 </html>

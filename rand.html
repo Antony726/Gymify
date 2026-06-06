@@ -4,80 +4,41 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🎥 Random Gym Video | Gymify</title>
-  <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(135deg, #0b0c10, #1f2833);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-      margin: 0;
-    }
-    h1 {
-      color: #66fcf1;
-      font-size: 2rem;
-      margin-bottom: 20px;
-    }
-    select, button {
-      background: #1f2833;
-      color: #fff;
-      border: 2px solid #45a29e;
-      border-radius: 10px;
-      padding: 10px 15px;
-      margin: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #45a29e;
-      color: #0b0c10;
-      transform: scale(1.05);
-    }
-    a {
-      color: #66fcf1;
-      font-size: 1.2rem;
-      text-decoration: none;
-      font-weight: bold;
-      background: rgba(102, 252, 241, 0.1);
-      padding: 12px 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(102, 252, 241, 0.2);
-      transition: 0.3s;
-    }
-    a:hover {
-      background: #45a29e;
-      color: #0b0c10;
-      box-shadow: 0 0 20px rgba(102, 252, 241, 0.5);
-    }
-  </style>
+  <link rel="stylesheet" href="css/global.css" />
 </head>
 <body>
-  <h1>🎬 Random Gym Video Generator</h1>
-  <div>
-    <label for="category">Pick a Vibe:</label>
-    <select id="category">
-      <option value="motivation">💥 Motivation</option>
-      <option value="fails">🤣 Gym Fails</option>
-      <option value="tips">🧠 Tips & Tutorials</option>
-      <option value="music">🎧 Workout Music</option>
-    </select>
+  <div class="container" style="margin-top: 20px;">
+    <h2 class="text-center glow-text" style="margin-bottom: 25px;">🎬 Gym Videos Picker</h2>
+
+    <div class="glass-card text-center">
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">Get a random piece of gym motivation, tips, or fails directly inside Gymify!</p>
+      
+      <div style="text-align: left; margin-bottom: 20px;">
+        <label for="category">Pick your vibe</label>
+        <select id="category" style="margin-top: 8px;">
+          <option value="motivation">💥 Pure Motivation</option>
+          <option value="fails">🤣 Hilarious Fails</option>
+          <option value="tips">🧠 Form & Training Tips</option>
+          <option value="music">🎧 Workout Tracks</option>
+        </select>
+      </div>
+
+      <button onclick="loadRandomVideo()" class="btn" style="width: 100%;">🎥 Generate Video</button>
+
+      <div id="video-container" style="margin-top: 20px;"></div>
+    </div>
+
+    <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'" style="width: 100%; margin-top: 10px; margin-bottom: 20px;">⬅ Back to Dashboard</button>
   </div>
-  <button onclick="loadRandomVideo()">🎥 Show Me Something Random</button>
 
-  <div id="video-container" style="margin-top: 25px;"></div>
-
+  <script type="module" src="js/navigation.js"></script>
   <script>
     const videos = {
       motivation: [
         "https://www.youtube.com/watch?v=Fp5A8CXyS_E",
         "https://www.youtube.com/watch?v=wnHW6o8WMas",
         "https://www.youtube.com/watch?v=WE50ZSVQeDs",
-        "https://www.youtube.com/watch?v=dbjbnrNNM64&t=10s",
+        "https://www.youtube.com/watch?v=dbjbnrNNM64",
       ],
       fails: [
         "https://www.youtube.com/watch?v=YaSDCVK74gk",
@@ -87,7 +48,7 @@
       ],
       tips: [
         "https://www.youtube.com/watch?v=qpRGnTTcLpo",
-        "https://www.youtube.com/watch?v=vD-dEl7R2Bg&t=495s",
+        "https://www.youtube.com/watch?v=vD-dEl7R2Bg",
         "https://www.youtube.com/watch?v=mtX-B5gbgmM",
         "https://www.youtube.com/watch?v=9551ymfFXdA",
       ],
@@ -97,14 +58,35 @@
       ]
     };
 
+    function getYouTubeId(url) {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+    }
+
     function loadRandomVideo() {
       const category = document.getElementById("category").value;
       const selectedList = videos[category];
       const randomURL = selectedList[Math.floor(Math.random() * selectedList.length)];
+      const videoId = getYouTubeId(randomURL);
 
-      document.getElementById("video-container").innerHTML = `
-        <a href="${randomURL}" target="_blank">▶️ Click here to watch your random ${category} video</a>
-      `;
+      const container = document.getElementById("video-container");
+      container.innerHTML = "";
+
+      if (videoId) {
+        container.innerHTML = `
+          <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 14px; border: 1px solid var(--border-color); box-shadow: var(--shadow-premium);">
+            <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <a href="${randomURL}" target="_blank" class="btn btn-secondary" style="width: 100%; margin-top: 15px; font-size: 13px; gap: 6px;">
+            <span>🌐 Open in YouTube</span>
+          </a>
+        `;
+      } else {
+        container.innerHTML = `
+          <a href="${randomURL}" target="_blank" class="btn" style="width: 100%; margin-top: 15px;">▶️ Watch Video</a>
+        `;
+      }
     }
   </script>
 </body>

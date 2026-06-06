@@ -5,15 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Progress | Gymify</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 250px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h2>🏋️ Lifted Weight Progress</h2>
-    <canvas id="progressChart" width="400" height="200"></canvas>
-    <button onclick="window.location.href='dashboard.html'">⬅️ Back</button>
+    <h2 class="text-center glow-text" style="margin-top: 15px; margin-bottom: 15px;">📊 Lifted Weight Progress</h2>
+
+    <div class="card">
+      <div class="chart-container">
+        <canvas id="progressChart"></canvas>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="js/weight.js"></script>
+  <script type="module" src="js/navigation.js"></script>
 </body>
 </html>

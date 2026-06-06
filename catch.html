@@ -262,7 +262,10 @@
         <p>🍕 <strong>AVOID</strong> junk food!</p>
         <p>⚡ <strong>COMBO</strong> for mega points!</p>
       </div>
-      <button onclick="startGame()">🎮 START</button>
+      <div style="display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%;">
+        <button onclick="startGame()" style="width: 100%; margin: 0;">🎮 START</button>
+        <button onclick="window.location.href='dashboard.html'" style="width: 100%; margin: 0; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #fff; font-size: 1.1rem; font-weight: 600; padding: 14px; box-shadow: none;">⬅ Back to Dashboard</button>
+      </div>
     </div>
 
     <div class="hud">
@@ -271,6 +274,7 @@
         <div id="lives">❤️❤️❤️</div>
       </div>
       <div class="hud-item" id="protein">0g</div>
+      <div class="hud-item" onclick="confirmExit()" style="background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.4); color: #f43f5e; box-shadow: 0 0 15px rgba(244, 63, 94, 0.3); min-width: 45px; width: 45px; padding: 12px 0; border-radius: 50%; cursor: pointer;">✕</div>
     </div>
 
     <div id="combo"></div>
@@ -285,7 +289,10 @@
         <p>Junk Hit: <span class="stat-bad" id="finalBombs">0</span></p>
         <p>Max Combo: <span class="stat-good" id="maxCombo">0x</span></p>
       </div>
-      <button onclick="restartGame()">🔄 RETRY</button>
+      <div style="display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%;">
+        <button onclick="restartGame()" style="width: 100%; margin: 0;">🔄 RETRY</button>
+        <button onclick="window.location.href='dashboard.html'" style="width: 100%; margin: 0; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #fff; font-size: 1.1rem; font-weight: 600; padding: 14px; box-shadow: none;">⬅ Dashboard</button>
+      </div>
     </div>
   </div>
 
@@ -793,6 +800,12 @@
       }
       lastTouchEnd = now;
     }, false);
+
+    function confirmExit() {
+      if (confirm("🚪 Do you want to quit the game? Your current score will be lost.")) {
+        window.location.href = "dashboard.html";
+      }
+    }
   </script>
 </body>
 </html>

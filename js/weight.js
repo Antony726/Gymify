@@ -65,10 +65,19 @@ onAuthStateChanged(auth, async (user) => {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
+        legend: {
+          labels: {
+            color: '#94a3b8',
+            font: { family: 'Poppins' }
+          }
+        },
         title: {
           display: true,
-          text: "Daily Total Weight Lifted (kg)"
+          text: "Daily Total Weight Lifted (kg)",
+          color: '#f1f5f9',
+          font: { family: 'Outfit', size: 15, weight: 'bold' }
         },
         tooltip: {
           callbacks: {
@@ -79,15 +88,31 @@ onAuthStateChanged(auth, async (user) => {
       scales: {
         y: {
           beginAtZero: true,
+          grid: {
+            color: 'rgba(255, 255, 255, 0.05)'
+          },
+          ticks: {
+            color: '#94a3b8',
+            font: { family: 'Poppins' }
+          },
           title: {
             display: true,
-            text: "Total Weight (kg)"
+            text: "Total Weight (kg)",
+            color: '#94a3b8'
           }
         },
         x: {
+          grid: {
+            color: 'rgba(255, 255, 255, 0.05)'
+          },
+          ticks: {
+            color: '#94a3b8',
+            font: { family: 'Poppins' }
+          },
           title: {
             display: true,
-            text: "Workout Date"
+            text: "Workout Date",
+            color: '#94a3b8'
           }
         }
       }

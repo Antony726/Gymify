@@ -4,19 +4,168 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login | Gymify</title>
-  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    body {
+      padding-bottom: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: var(--bg-primary);
+      background-image: 
+        radial-gradient(at 5% 5%, rgba(6, 182, 212, 0.15) 0px, transparent 40%),
+        radial-gradient(at 95% 95%, rgba(16, 185, 129, 0.12) 0px, transparent 40%);
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 35px;
+      margin: 20px;
+      background: rgba(17, 25, 40, 0.45);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      box-shadow: var(--shadow-premium);
+      backdrop-filter: blur(var(--blur-amount));
+      -webkit-backdrop-filter: blur(var(--blur-amount));
+      position: relative;
+    }
+    
+    .auth-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--color-success), var(--color-accent));
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+    }
+
+    .auth-container h2 {
+      font-size: 26px;
+      margin-bottom: 5px;
+      text-align: center;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    
+    .auth-container p.subtitle {
+      color: var(--text-secondary);
+      font-size: 13px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Integrated motivational quote */
+    .quote-box {
+      border-left: 2px solid var(--color-accent);
+      padding: 10px 14px;
+      background: rgba(9, 13, 22, 0.45);
+      border-radius: 12px;
+      margin-bottom: 22px;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-color: var(--color-accent);
+      transition: opacity 0.3s ease;
+    }
+    
+    .quote-text {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--text-primary);
+      line-height: 1.55;
+      transition: opacity 0.3s ease;
+    }
+    
+    .quote-author {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      transition: opacity 0.3s ease;
+    }
+
+    .auth-container button {
+      width: 100%;
+      margin-top: 10px;
+      font-size: 15px;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--color-accent) 0%, #0891b2 100%);
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+      font-weight: 700;
+    }
+    .auth-container button:hover {
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+    }
+    #message {
+      margin-top: 15px;
+      font-size: 14px;
+      text-align: center;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
   <div class="auth-container">
     <h2>Welcome Back 🏋️</h2>
+    <p class="subtitle">Sign in to continue your fitness game</p>
+
+    <!-- Motivational Quote Rotator Box -->
+    <div class="quote-box">
+      <div class="quote-text" id="motivation-quote">"The iron never lies to you. 200 pounds is always 200 pounds."</div>
+      <div class="quote-author" id="motivation-author">- Henry Rollins</div>
+    </div>
+
+    <!-- Login Form -->
     <form id="login-form">
-      <input type="email" id="login-email" placeholder="Email" required />
-      <input type="password" id="login-password" placeholder="Password" required />
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" placeholder="name@example.com" autocomplete="email" required />
+      
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required />
+      
       <button type="submit">Login</button>
     </form>
-    <p>Don’t have an account? <a href="signup.html">Sign up here</a></p>
+    <p style="margin-top: 20px; margin-bottom: 0; text-align: center; font-size: 13px; color: var(--text-secondary);">
+      Don’t have an account? <a href="signup.html">Sign up here</a>
+    </p>
     <div id="message"></div>
   </div>
+
+  <!-- Quotes Rotator Script -->
+  <script>
+    const quotes = [
+      { text: '"The iron never lies to you. 200 pounds is always 200 pounds."', author: 'Henry Rollins' },
+      { text: '"No pain, no gain. Level up your character and physical vessel today."', author: 'Guild Proverb' },
+      { text: '"We are what we repeatedly do. Excellence, then, is not an act, but a habit."', author: 'Aristotle' },
+      { text: '"The only bad workout is the one that didn\'t happen."', author: 'Coach Bruno' },
+      { text: '"Today is another opportunity to secure your daily XP and grow stronger."', author: 'Gymify AI' }
+    ];
+
+    const quoteTextEl = document.getElementById('motivation-quote');
+    const quoteAuthorEl = document.getElementById('motivation-author');
+    
+    // Rotate quote every 6 seconds
+    let curIdx = 0;
+    setInterval(() => {
+      curIdx = (curIdx + 1) % quotes.length;
+      quoteTextEl.style.opacity = '0';
+      quoteAuthorEl.style.opacity = '0';
+      
+      setTimeout(() => {
+        quoteTextEl.textContent = quotes[curIdx].text;
+        quoteAuthorEl.textContent = `- ${quotes[curIdx].author}`;
+        quoteTextEl.style.opacity = '1';
+        quoteAuthorEl.style.opacity = '1';
+      }, 300);
+    }, 6000);
+  </script>
 
   <!-- Firebase SDKs -->
   <script type="module">
@@ -32,19 +181,27 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("login-email").value;
+      const email = document.getElementById("login-email").value.trim();
       const password = document.getElementById("login-password").value;
+
+      msg.textContent = "⏳ Logging in...";
+      msg.style.color = "var(--color-warning)";
 
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        msg.textContent = "Login successful! Redirecting...";
-        setTimeout(() => (window.location.href = "dashboard.html"), 1500);
+        msg.textContent = "✅ Login successful! Redirecting...";
+        msg.style.color = "var(--color-success)";
+        setTimeout(() => (window.location.href = "dashboard.html"), 1000);
       } catch (error) {
-        msg.textContent = error.message;
+        msg.style.color = "var(--color-danger)";
+        if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password" || error.code === "auth/user-not-found") {
+          msg.textContent = "❌ Invalid email or password.";
+        } else {
+          msg.textContent = "❌ " + error.message;
+        }
       }
     });
   </script>
   <script type="module" src="js/redirectIfLoggedIn.js" defer></script>
-
 </body>
 </html>

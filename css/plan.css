@@ -1,52 +1,30 @@
-body {
-  margin: 0;
-  font-family: Poppins, sans-serif;
-  background: #0d1117;
-  color: white;
-}
-
-.container {
-  max-width: 400px;
-  margin: auto;
-  padding: 20px;
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 15px;
-}
+/* Workout Plan Accordion Styles */
 
 .day {
-  background: #161b22;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 10px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 
-.day h3 {
-  margin-top: 0;
+.day-header {
+  padding: 4px 0;
 }
 
-input, select, textarea {
-  width: 100%;
-  margin: 5px 0;
-  padding: 8px;
-  border-radius: 8px;
-  border: none;
+.day-header h3 {
+  font-family: 'Outfit', sans-serif;
+  color: #fff;
 }
 
-button {
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  margin-top: 10px;
-  background: #238636;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
+.day-badge {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
 }
 
-#status {
-  text-align: center;
-  margin-top: 10px;
+.accordion-arrow {
+  font-family: monospace;
+}
+
+.day-content {
+  overflow: hidden;
 }

@@ -3,34 +3,897 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gymify - Gamify Your Fitness</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Gymify - Gamify Your Fitness Journey</title>
+    <link rel="stylesheet" href="css/global.css">
+    <style>
+        body {
+            padding-bottom: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(at 5% 5%, rgba(6, 182, 212, 0.1) 0px, transparent 40%),
+                radial-gradient(at 95% 95%, rgba(16, 185, 129, 0.1) 0px, transparent 40%),
+                radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.05) 0px, transparent 50%);
+        }
+
+        /* Header / Navbar */
+        .landing-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 5%;
+            background: rgba(9, 13, 22, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .landing-logo {
+            font-size: 26px;
+            font-weight: 900;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Outfit', sans-serif;
+            text-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+            letter-spacing: -0.03em;
+        }
+        .landing-nav {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+        .landing-nav a {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.25s ease;
+        }
+        .landing-nav a:hover {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        .landing-nav .btn-primary {
+            background: linear-gradient(135deg, var(--color-accent) 0%, #0891b2 100%);
+            padding: 10px 22px;
+            border-radius: 12px;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+            font-weight: 700;
+        }
+        .landing-nav .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.45);
+            transform: translateY(-1px);
+        }
+
+        /* Hero Wrapper */
+        .hero-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 140px 5% 60px 5%;
+            text-align: center;
+            position: relative;
+        }
+        .hero-card {
+            max-width: 800px;
+            background: rgba(17, 25, 40, 0.45);
+            border-radius: 28px;
+            padding: 50px 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: var(--shadow-premium);
+            margin-bottom: 50px;
+        }
+        .hero-card h1 {
+            font-size: 54px;
+            line-height: 1.15;
+            margin-bottom: 22px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 50%, #22d3ee 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        .hero-card p {
+            color: var(--text-secondary);
+            font-size: 18px;
+            line-height: 1.7;
+            margin-bottom: 35px;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-card button {
+            font-size: 17px;
+            padding: 16px 36px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--color-accent) 0%, #6366f1 100%);
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.35);
+            font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .hero-card button:hover {
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.55);
+            transform: translateY(-2px);
+        }
+
+        /* Live User Ticker */
+        .live-ticker {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-success);
+            margin-bottom: 25px;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--color-success);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 10px var(--color-success);
+            animation: pulseLive 1.5s infinite alternate;
+        }
+        @keyframes pulseLive {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 1; }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: rgba(22, 30, 49, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 20px 15px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.05);
+        }
+        .stat-number {
+            font-size: 28px;
+            font-weight: 800;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--color-accent) 0%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* Unique Features Section */
+        .section-container {
+            padding: 80px 5%;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .section-badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.12);
+            color: #818cf8;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            margin-bottom: 15px;
+        }
+        .section-header h2 {
+            font-size: 38px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 15px;
+            letter-spacing: -0.02em;
+        }
+        .section-header p {
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+        .feature-card {
+            position: relative;
+            background: rgba(17, 25, 40, 0.45);
+            border: 1px solid var(--border-color);
+            border-radius: 22px;
+            padding: 30px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            display: flex;
+            gap: 20px;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(6, 182, 212, 0.25);
+            box-shadow: 0 15px 35px rgba(6, 182, 212, 0.08);
+        }
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+        .feature-icon-wrapper {
+            width: 54px;
+            height: 54px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover .feature-icon-wrapper {
+            background: rgba(6, 182, 212, 0.1);
+            border-color: rgba(6, 182, 212, 0.3);
+            color: #fff;
+            transform: scale(1.05);
+        }
+        .feature-info {
+            position: relative;
+            z-index: 2;
+        }
+        .feature-number-badge {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            font-size: 14px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.05);
+            font-family: monospace;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover .feature-number-badge {
+            color: rgba(6, 182, 212, 0.2);
+            transform: scale(1.1);
+        }
+        .feature-info h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .feature-info p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* Highlighted Badges inside cards */
+        .feature-tag {
+            font-size: 10px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--color-success);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .feature-tag.indigo {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+        }
+
+        /* Interactive Showcase Grid */
+        .showcase-widget {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            background: rgba(17, 25, 40, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: var(--shadow-premium);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+        }
+        .showcase-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .showcase-tab {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 16px 20px;
+            border-radius: 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--text-secondary);
+        }
+        .showcase-tab:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+        .showcase-tab.active {
+            background: rgba(6, 182, 212, 0.08);
+            border-color: rgba(6, 182, 212, 0.3);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.05);
+        }
+        .showcase-tab-icon {
+            font-size: 20px;
+        }
+        .showcase-tab-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .showcase-tab-title {
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .showcase-tab-desc {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+        .showcase-display {
+            background: rgba(9, 13, 22, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Simulated Previews */
+        .preview-pane {
+            display: none;
+            width: 100%;
+            height: 100%;
+            animation: fadeIn 0.35s ease;
+        }
+        .preview-pane.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 1. Chat Mockup */
+        .sim-chat {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 420px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .sim-chat-bubble {
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 12px;
+            line-height: 1.5;
+            max-width: 85%;
+        }
+        .sim-chat-bubble.coach {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .sim-chat-bubble.user {
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .sim-chat-avatar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--color-success);
+            font-weight: 700;
+            margin-bottom: -6px;
+            margin-left: 2px;
+        }
+
+        /* 2. Heatmap Mockup */
+        .sim-heatmap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .sim-heatmap svg {
+            width: 110px;
+            height: 150px;
+            filter: drop-shadow(0 0 10px rgba(6,182,212,0.15));
+        }
+        .sim-heatmap-stats {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 15px;
+            min-width: 180px;
+        }
+        .sim-stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            padding-bottom: 5px;
+        }
+        .sim-stat-row:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .sim-stat-row span {
+            color: var(--text-secondary);
+        }
+        .sim-stat-row strong {
+            color: #fff;
+        }
+
+        /* 3. Logger Mockup */
+        .sim-logger {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+        }
+        .sim-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding-bottom: 8px;
+        }
+        .sim-log-row {
+            display: grid;
+            grid-template-columns: 50px 1fr 1fr 50px;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .sim-log-row.done {
+            background: rgba(16, 185, 129, 0.05);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: var(--color-success);
+        }
+        .sim-log-row input {
+            margin: 0;
+            padding: 4px;
+            font-size: 11px;
+            text-align: center;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.04);
+            color: #fff;
+            border: 1px solid var(--border-color);
+        }
+        .sim-log-row.done input {
+            border-color: transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+        .sim-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--color-success);
+            margin: 0 auto;
+        }
+
+        footer {
+            padding: 30px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 13px;
+            border-top: 1px solid var(--border-color);
+            background: rgba(9, 13, 22, 0.85);
+            margin-top: 40px;
+        }
+
+        @media (max-width: 850px) {
+            .showcase-widget {
+                grid-template-columns: 1fr;
+            }
+            .showcase-tabs {
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 5px;
+            }
+            .showcase-tab {
+                flex-shrink: 0;
+                padding: 10px 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-card h1 {
+                font-size: 38px;
+            }
+            .hero-card p {
+                font-size: 15px;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            .section-header h2 {
+                font-size: 28px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <div class="logo">🏋️‍♂️ Gymify</div>
-        <nav>
-            <a href="#">Home</a>
-            <a href="#">Leaderboard</a>
-            <a href="#">Login</a>
-            <a href="#">Signup</a>
+    <header class="landing-header">
+        <div class="landing-logo">🏋️‍♂️ Gymify</div>
+        <nav class="landing-nav">
+            <a href="login.html">Login</a>
+            <a href="signup.html" class="btn-primary">Sign Up</a>
         </nav>
     </header>
 
-    <section class="hero">
-        <div class="hero-text">
+    <div class="hero-container">
+        <!-- Live Active Counter Ticker -->
+        <div class="live-ticker">
+            <span class="live-dot"></span>
+            <span>LIVE: <span id="live-user-count">14,812</span> lifters training right now</span>
+        </div>
+
+        <div class="hero-card">
             <h1>Turn Your Gym Journey Into a Game 🎮</h1>
-            <p>Compete with friends, earn XP, track streaks, and stay motivated every day.</p>
+            <p>Compete with friends, earn XP, track streaks, and level up your fitness avatar every single day. Make training an RPG quest.</p>
             <button id="get-started">Get Started</button>
         </div>
-    </section>
+
+        <!-- Mini Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">15,248+</div>
+                <div class="stat-label">Active Heroes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Unique Features</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">4.8M+</div>
+                <div class="stat-label">XP Gained</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">243K+</div>
+                <div class="stat-label">Workouts Logged</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="section-container" style="border-top: 1px solid var(--border-color);">
+        <div class="section-header">
+            <span class="section-badge">Unique Arsenal</span>
+            <h2>⚔️ 8 Unique Gamified Features</h2>
+            <p>Gymify fuses professional training utilities with MMORPG progression systems to keep you motivated and structured.</p>
+        </div>
+
+        <div class="features-grid">
+            <!-- 1. RPG Progression -->
+            <div class="feature-card">
+                <div class="feature-number-badge">01</div>
+                <div class="feature-icon-wrapper">🎮</div>
+                <div class="feature-info">
+                    <h3>RPG Level Ups <span class="feature-tag">RPG</span></h3>
+                    <p>Earn XP for every rep, set, and exercise logged. Complete daily quests, build workout splits, level up your fitness rank, and safeguard your life hearts.</p>
+                </div>
+            </div>
+
+            <!-- 2. Active Logger with Auto-Recovery -->
+            <div class="feature-card">
+                <div class="feature-number-badge">02</div>
+                <div class="feature-icon-wrapper">⚡</div>
+                <div class="feature-info">
+                    <h3>Active Logger & Recovery <span class="feature-tag">PROTECTED</span></h3>
+                    <p>Track sets with responsive checkmarks, default rest timers, and +/-10s adjustments. Session state is auto-saved, and clicking Exit/Cancel saves your progress safely.</p>
+                </div>
+            </div>
+
+            <!-- 3. Muscle Heatmap Modals -->
+            <div class="feature-card">
+                <div class="feature-number-badge">03</div>
+                <div class="feature-icon-wrapper">🗺️</div>
+                <div class="feature-info">
+                    <h3>Muscle Heatmap Modals</h3>
+                    <p>View recovery levels on a visual interactive human wireframe silhouette. Click any muscle zone to open centered frosted-glass detail popups showing stats.</p>
+                </div>
+            </div>
+
+            <!-- 4. Coach Bruno AI Chatbot -->
+            <div class="feature-card">
+                <div class="feature-number-badge">04</div>
+                <div class="feature-icon-wrapper">🤖</div>
+                <div class="feature-info">
+                    <h3>Coach Bruno AI Chatbot <span class="feature-tag indigo">AI COACH</span></h3>
+                    <p>Chat with an offline gym coach that understands cable setups, proper elbow angles, and squats. Auto-syncs with your weekly planned exercises tray.</p>
+                </div>
+            </div>
+
+            <!-- 5. Friends & Social Profiles -->
+            <div class="feature-card">
+                <div class="feature-number-badge">05</div>
+                <div class="feature-icon-wrapper">👥</div>
+                <div class="feature-info">
+                    <h3>Social Feeds & Friends</h3>
+                    <p>Search and add other lifters to your crew. View their real-time workout counts, streak days, current level milestones, and recently unlocked achievements.</p>
+                </div>
+            </div>
+
+            <!-- 6. Weekly Schedule Planner -->
+            <div class="feature-card">
+                <div class="feature-number-badge">06</div>
+                <div class="feature-icon-wrapper">📅</div>
+                <div class="feature-info">
+                    <h3>Weekly Split Planner</h3>
+                    <p>Map out your training days (Push, Pull, Legs, Arms) or Rest days. Custom planned exercises automatically sync with the main library with special planned badges.</p>
+                </div>
+            </div>
+
+            <!-- 7. Interactive XP Leaderboards -->
+            <div class="feature-card">
+                <div class="feature-number-badge">07</div>
+                <div class="feature-icon-wrapper">🏆</div>
+                <div class="feature-info">
+                    <h3>Competitions & Leaderboards</h3>
+                    <p>Climb global ranks alongside your squad. Build daily streaks to earn score bonuses and secure the ultimate rank on the Weekly Gymify Hall of Fame.</p>
+                </div>
+            </div>
+
+            <!-- 8. Performance Analytics -->
+            <div class="feature-card">
+                <div class="feature-number-badge">08</div>
+                <div class="feature-icon-wrapper">📊</div>
+                <div class="feature-info">
+                    <h3>Detailed Logs & Analytics</h3>
+                    <p>Browse through your complete historical logs index. Access detailed sets metadata, notes, exact calendar timestamps, and profile progression stats.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Showcase Section -->
+    <div class="section-container" style="border-top: 1px solid var(--border-color); padding-bottom: 100px;">
+        <div class="section-header">
+            <span class="section-badge">Live Simulation</span>
+            <h2>📱 Experience the Gamified Engine</h2>
+            <p>Click the features below to preview how our core interactive modules work directly inside the mobile dashboard app.</p>
+        </div>
+
+        <div class="showcase-widget">
+            <div class="showcase-tabs">
+                <div class="showcase-tab active" onclick="switchPreview('chat-prev', this)">
+                    <span class="showcase-tab-icon">🤖</span>
+                    <div class="showcase-tab-info">
+                        <span class="showcase-tab-title">Coach Bruno Chatbot</span>
+                        <span class="showcase-tab-desc">Ask setups & elbow angles</span>
+                    </div>
+                </div>
+                <div class="showcase-tab" onclick="switchPreview('heat-prev', this)">
+                    <span class="showcase-tab-icon">🗺️</span>
+                    <div class="showcase-tab-info">
+                        <span class="showcase-tab-title">Interactive Heatmap</span>
+                        <span class="showcase-tab-desc">Muscle recovery outline popups</span>
+                    </div>
+                </div>
+                <div class="showcase-tab" onclick="switchPreview('log-prev', this)">
+                    <span class="showcase-tab-icon">⚡</span>
+                    <div class="showcase-tab-info">
+                        <span class="showcase-tab-title">Active Logger Timer</span>
+                        <span class="showcase-tab-desc">Auto-save & rest controls</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="showcase-display">
+                <!-- Preview 1: Chatbot -->
+                <div id="chat-prev" class="preview-pane active">
+                    <div class="sim-chat">
+                        <div class="sim-chat-bubble user">
+                            What elbow angle should I use on Bench Press?
+                        </div>
+                        <div class="sim-chat-avatar">
+                            <span>🟢</span> Coach Bruno AI
+                        </div>
+                        <div class="sim-chat-bubble coach">
+                            🏋️‍♂️ Tuck your elbows at a <strong>45-60 degree angle</strong> relative to your torso! This protects your shoulders from excessive rotation and keeps maximum tension loaded on your pectoral muscles.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview 2: Heatmap -->
+                <div id="heat-prev" class="preview-pane">
+                    <div class="sim-heatmap">
+                        <!-- Human silhouette wireframe Chest target SVG -->
+                        <svg viewBox="0 0 100 150">
+                            <!-- Background body outline -->
+                            <path d="M 50,15 C 47,15 45,18 45,22 C 45,26 48,29 50,29 C 52,29 55,26 55,22 C 55,18 53,15 50,15 Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"></path>
+                            <path d="M 45,29 L 55,29 L 58,45 L 53,75 L 47,75 L 42,45 Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"></path>
+                            <!-- Arms -->
+                            <path d="M 42,32 L 35,50 L 30,70" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"></path>
+                            <path d="M 58,32 L 65,50 L 70,70" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"></path>
+                            <!-- Legs -->
+                            <path d="M 47,75 L 44,110 L 40,140" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"></path>
+                            <path d="M 53,75 L 56,110 L 60,140" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"></path>
+                            
+                            <!-- Highlighted Chest Area (Cyan) -->
+                            <path d="M 46,35 C 46,32 54,32 54,35 C 54,42 46,42 46,35 Z" fill="rgba(6, 182, 212, 0.4)" stroke="var(--color-accent)" stroke-width="2"></path>
+                        </svg>
+                        
+                        <div class="sim-heatmap-stats">
+                            <div style="font-weight:700; font-size:12px; color:var(--color-accent); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                                🎯 Pectorals (Chest)
+                            </div>
+                            <div class="sim-stat-row">
+                                <span>Status:</span>
+                                <strong style="color:var(--color-warning);">Fatigued (40%)</strong>
+                            </div>
+                            <div class="sim-stat-row">
+                                <span>Last Trained:</span>
+                                <strong>Yesterday</strong>
+                            </div>
+                            <div class="sim-stat-row">
+                                <span>Total Sets:</span>
+                                <strong>18 Sets Completed</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview 3: Logger -->
+                <div id="log-prev" class="preview-pane">
+                    <div class="sim-logger">
+                        <div class="sim-log-header">
+                            <span>Barbell Squats</span>
+                            <span style="font-size:11px; color:var(--color-success); font-weight:700;">⏱️ Rest Timer: 48s</span>
+                        </div>
+                        <div class="sim-log-row done">
+                            <label>S1</label>
+                            <div><input type="number" value="80" disabled> kg</div>
+                            <div><input type="number" value="10" disabled> reps</div>
+                            <div style="display:flex;"><input type="checkbox" class="sim-checkbox" checked disabled></div>
+                        </div>
+                        <div class="sim-log-row">
+                            <label>S2</label>
+                            <div><input type="number" value="80"> kg</div>
+                            <div><input type="number" value="10"> reps</div>
+                            <div style="display:flex;"><input type="checkbox" class="sim-checkbox"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
-        <p>© 2025 Gymify. Level Up Your Fitness!</p>
+        <p>© 2026 Gymify. Level Up Your Fitness Journey!</p>
     </footer>
 
     <script src="js/script.js"></script>
     <script type="module" src="js/redirectIfLoggedIn.js" defer></script>
+    <script>
+        // Interactive tabs switcher
+        function switchPreview(paneId, tabEl) {
+            // Remove active classes
+            document.querySelectorAll('.preview-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.showcase-tab').forEach(t => t.classList.remove('active'));
+            
+            // Add active classes
+            document.getElementById(paneId).classList.add('active');
+            tabEl.classList.add('active');
+        }
 
+        // Live User Count Simulation Ticker
+        const countEl = document.getElementById('live-user-count');
+        if (countEl) {
+            let baseCount = 14812;
+            setInterval(() => {
+                // Random change between -2 and +4
+                const change = Math.floor(Math.random() * 7) - 2;
+                baseCount += change;
+                countEl.textContent = baseCount.toLocaleString();
+            }, 3000);
+        }
+    </script>
 </body>
 </html>

@@ -3,106 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🔥 Gym Excuse Eliminator</title>
+  <title>🔥 Gym Excuse Eliminator | Gymify</title>
+  <link rel="stylesheet" href="css/global.css" />
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #0b0c10, #1f2833);
-      color: #fff;
+    .response-box {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--color-warning);
+      min-height: 80px;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
       text-align: center;
-      overflow: hidden;
-    }
-
-    h1 {
-      color: #66fcf1;
-      margin-bottom: 15px;
-    }
-
-    p {
-      color: #c5c6c7;
-    }
-
-    input {
-      width: 80%;
-      max-width: 400px;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      margin-top: 15px;
-      font-size: 1rem;
-      background: #1f2833;
-      color: #fff;
-      border: 2px solid #45a29e;
-    }
-
-    button {
-      margin-top: 20px;
-      background: #66fcf1;
-      color: #0b0c10;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 20px;
-      font-weight: bold;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background: #45a29e;
-      transform: scale(1.05);
-    }
-
-    .response {
-      margin-top: 30px;
-      font-size: 1.3rem;
-      color: #66fcf1;
-      max-width: 500px;
-      min-height: 60px;
       white-space: pre-wrap;
-      animation: fadeIn 0.6s ease;
+      border: 1px dashed rgba(245, 158, 11, 0.2);
+      background: rgba(245, 158, 11, 0.03);
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 20px;
+      transition: all 0.3s ease;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
     .reaction {
       position: absolute;
-      font-size: 1.8rem;
+      font-size: 2rem;
       animation: floatUp 1.5s ease-out forwards;
       pointer-events: none;
+      z-index: 10000;
     }
-
     @keyframes floatUp {
-      from { opacity: 1; transform: translateY(0); }
-      to { opacity: 0; transform: translateY(-80px); }
-    }
-
-    .back-btn {
-      margin-top: 30px;
-      color: #45a29e;
-      cursor: pointer;
-      text-decoration: underline;
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(-100px) scale(1.4); }
     }
   </style>
 </head>
 <body>
-  <h1>💬 Gym Excuse Eliminator</h1>
-  <p>Type your excuse... if you dare 😈</p>
-  <input type="text" id="excuseInput" placeholder="I don’t feel like going today because..." />
-  <button id="submitExcuse">Roast Me 🔥</button>
+  <div class="container" style="margin-top: 20px;">
+    <h2 class="text-center glow-text" style="margin-bottom: 25px;">💬 Excuse Eliminator</h2>
 
-  <div class="response" id="response"></div>
-  <div class="back-btn" onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</div>
+    <div class="glass-card text-center">
+      <p style="color: var(--text-secondary); margin-bottom: 15px;">Type your excuse below... if you dare 😈</p>
+      
+      <textarea id="excuseInput" placeholder="I don’t feel like going today because..." style="height: 100px; resize: none; margin-bottom: 15px;"></textarea>
+      
+      <button id="submitExcuse" class="btn" style="width: 100%; background: linear-gradient(135deg, var(--color-danger) 0%, #be123c 100%); box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2);">Roast Me 🔥</button>
+      
+      <div class="response-box" id="response">Your roast will appear here. No excuses!</div>
+    </div>
 
+    <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'" style="width: 100%; margin-top: 10px;">⬅ Back to Dashboard</button>
+  </div>
+
+  <script type="module" src="js/navigation.js"></script>
   <script>
     const responses = [
       "You don’t feel like it? Neither did The Rock, and now look at him.",
@@ -117,31 +68,31 @@
       "Every rep you skip, a gym bro loses his pump. Think about that.",
       "Your pre-workout cried itself to sleep waiting for you ☕️",
       "The treadmill just rolled its eyes when it heard your excuse.",
-    "You’re one excuse away from becoming a potato 🥔",
-    "Even your playlist is disappointed you didn’t show up 🎧",
-    "If laziness was a sport, you’d have a gold medal by now 🥇",
-    "Your gains filed a missing persons report 📉",
-    "That protein shake in the fridge isn’t for decoration, bro.",
-    "You can’t flex excuses, only muscles 💪",
-    "Skipping one day is how legends become myths 👻",
-    "You said you’ll start tomorrow… again. How many tomorrows you got left?",
-    "Your mirror unfollowed you for inactivity.",
-    "Every skipped workout adds one extra burpee to your next session 😈",
-    "That soreness? It’s your muscles begging you to keep going.",
-    "Your gym shoes are developing abandonment issues 👟",
-    "You’ve got more excuses than sets completed.",
-    "Somewhere out there, someone just out-benched you while you scroll reels 📱",
-    "If ‘rest day’ had a face, it would look confused right now 😵‍💫",
-    "You’re not tired — your motivation just fell asleep.",
-    "Even ChatGPT can’t make gains for you. Go lift.",
-    "Remember: Sweat dries. Regret doesn’t.",
-    "You skipped gym so hard, your dumbbells applied for unemployment 🏋️‍♂️",
-    "Your biceps called. They said they’re shrinking in fear.",
-    "If you’re not lifting, your brain’s just lifting excuses.",
-    "Skipping leg day is one thing. Skipping EVERY day? That’s talent 😭",
-    "You’re turning ‘gym rat’ into ‘gym ghost’ 👻",
-    "You’ll feel more pain from guilt than from squats.",
-    "Even Siri said, ‘Go to gym, lazy human.’"
+      "You’re one excuse away from becoming a potato 🥔",
+      "Even your playlist is disappointed you didn’t show up 🎧",
+      "If laziness was a sport, you’d have a gold medal by now 🥇",
+      "Your gains filed a missing persons report 📉",
+      "That protein shake in the fridge isn’t for decoration, bro.",
+      "You can’t flex excuses, only muscles 💪",
+      "Skipping one day is how legends become myths 👻",
+      "You said you’ll start tomorrow… again. How many tomorrows you got left?",
+      "Your mirror unfollowed you for inactivity.",
+      "Every skipped workout adds one extra burpee to your next session 😈",
+      "That soreness? It’s your muscles begging you to keep going.",
+      "Your gym shoes are developing abandonment issues 👟",
+      "You’ve got more excuses than sets completed.",
+      "Somewhere out there, someone just out-benched you while you scroll reels 📱",
+      "If ‘rest day’ had a face, it would look confused right now 😵‍💫",
+      "You’re not tired — your motivation just fell asleep.",
+      "Even ChatGPT can’t make gains for you. Go lift.",
+      "Remember: Sweat dries. Regret doesn’t.",
+      "You skipped gym so hard, your dumbbells applied for unemployment 🏋️‍♂️",
+      "Your biceps called. They said they’re shrinking in fear.",
+      "If you’re not lifting, your brain’s just lifting excuses.",
+      "Skipping leg day is one thing. Skipping EVERY day? That’s talent 😭",
+      "You’re turning ‘gym rat’ into ‘gym ghost’ 👻",
+      "You’ll feel more pain from guilt than from squats.",
+      "Even Siri said, ‘Go to gym, lazy human.’"
     ];
 
     const typingSound = new Audio("https://actions.google.com/sounds/v1/office/typewriter.ogg");
@@ -152,7 +103,14 @@
 
     button.addEventListener("click", () => {
       const excuse = document.getElementById("excuseInput").value.trim();
-      if (!excuse) return alert("C'mon, at least give me an excuse to roast!");
+      if (!excuse) {
+        if (window.showToast) {
+          window.showToast("⚠️ C'mon, at least give me an excuse to roast!", "warning");
+        } else {
+          alert("C'mon, at least give me an excuse to roast!");
+        }
+        return;
+      }
 
       responseDiv.textContent = "Thinking...";
       button.disabled = true;
@@ -166,7 +124,7 @@
     function typeRoast(text) {
       responseDiv.textContent = "";
       typingSound.currentTime = 0;
-      typingSound.play();
+      typingSound.play().catch(() => {}); // catch autoplay policy blocks
 
       let i = 0;
       const interval = setInterval(() => {
@@ -176,21 +134,23 @@
         } else {
           clearInterval(interval);
           typingSound.pause();
-          burnSound.play();
+          burnSound.play().catch(() => {});
           showRandomReactions();
-          document.getElementById("submitExcuse").disabled = false;
+          button.disabled = false;
         }
       }, 40);
     }
 
     function showRandomReactions() {
       const emojis = ["🔥", "💀", "😂", "💪", "😤"];
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
         const emoji = document.createElement("div");
         emoji.className = "reaction";
         emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-        emoji.style.left = `${50 + (Math.random() * 100 - 50)}%`;
-        emoji.style.bottom = "50px";
+        // Position relative to response box
+        const rect = responseDiv.getBoundingClientRect();
+        emoji.style.left = `${rect.left + (Math.random() * rect.width)}px`;
+        emoji.style.top = `${rect.top}px`;
         document.body.appendChild(emoji);
         setTimeout(() => emoji.remove(), 1500);
       }

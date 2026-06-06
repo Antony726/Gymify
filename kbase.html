@@ -1,235 +1,878 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🏋️‍♂️ Exercise Knowledge Base | Gymify</title>
-<style>
-  body {
-    margin: 0;
-    font-family: Poppins, sans-serif;
-    background: #0b0c10;
-    color: #c5c6c7;
-  }
-  .container {
-    max-width: 100%;
-    margin: auto;
-    padding: 15px;
-  }
-  h2 {
-    color: #66fcf1;
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: 1.8em;
-  }
-  input {
-    width: 70%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #444;
-    background: #1f2833;
-    color: #fff;
-    margin-bottom: 15px;
-    font-size: 14px;
-    outline: none;
-  }
-  input::placeholder {
-    color: #888;
-  }
-  .exercise-card {
-    background: #1f2833;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    box-shadow: 0 0 8px rgba(0,0,0,0.3);
-  }
-  .exercise-card h3 {
-    color: #66fcf1;
-    margin-bottom: 6px;
-    font-size: 1.2em;
-  }
-  .exercise-card p {
-    margin: 4px 0;
-    font-size: 0.9em;
-  }
-  .exercise-card details summary {
-    cursor: pointer;
-    font-weight: 600;
-    margin-top: 6px;
-    font-size: 0.95em;
-  }
-  .exercise-card ol, .exercise-card ul {
-    margin: 6px 0 0 18px;
-    font-size: 0.85em;
-  }
-  .exercise-card img, .exercise-card video {
-    margin-top: 8px;
-    width: 100%;
-    border-radius: 8px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏋️‍♂️ Exercise Knowledge Base | Gymify</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    /* Gym Chatbot styles */
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding-bottom: 5px;
+    }
+    .chat-body {
+      transition: all 0.3s ease;
+      display: none;
+      flex-direction: column;
+      margin-top: 15px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 15px;
+    }
+    .chat-body.open {
+      display: flex;
+    }
+    .chat-messages {
+      max-height: 250px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 5px;
+      margin-bottom: 15px;
+      scrollbar-width: thin;
+    }
+    .chat-messages::-webkit-scrollbar {
+      width: 4px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+    }
+    .chat-message {
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 85%;
+      word-break: break-word;
+    }
+    .chat-message.coach {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+    }
+    .chat-message.user {
+      background: linear-gradient(135deg, var(--color-accent) 0%, #0369a1 100%);
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+    }
+    .chat-input-row {
+      display: flex;
+      gap: 10px;
+    }
+    .chat-input-row input {
+      margin: 0;
+      flex: 1;
+    }
+    .chat-input-row button {
+      padding: 0 16px;
+    }
+    .chat-starters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+    .chat-starter-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .chat-starter-pill:hover {
+      background: rgba(6, 182, 212, 0.1);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+    /* Planned Exercises styling */
+    .plan-tray {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 5px 0 12px 0;
+      scrollbar-width: thin;
+    }
+    .plan-tray::-webkit-scrollbar {
+      height: 4px;
+    }
+    .plan-tray::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+    }
+    .plan-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 20px;
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .plan-pill:hover {
+      border-color: var(--color-accent);
+      background: rgba(6, 182, 212, 0.05);
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.15);
+    }
+    .plan-pill.custom-ex {
+      border-color: var(--color-warning);
+    }
+    .plan-pill.custom-ex:hover {
+      background: rgba(245, 158, 11, 0.05);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+    }
+
+    /* Exercise list SVG highlights positioning */
+    .exercise-flex-layout {
+      display: flex;
+      gap: 15px;
+      align-items: flex-start;
+    }
+    .exercise-details-wrap {
+      flex: 1;
+    }
+    .exercise-svg-wrap {
+      width: 70px;
+      height: 110px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .exercise-card {
+      margin-bottom: 15px;
+    }
+    .exercise-card h3 {
+      color: var(--color-accent);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .exercise-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin: 4px 0;
+    }
+    .exercise-card p strong {
+      color: var(--text-primary);
+    }
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--color-accent);
+      outline: none;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    details[open] summary {
+      color: var(--color-success);
+    }
+    details ol, details ul {
+      margin: 10px 0 0 20px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+    details ol li {
+      margin-bottom: 6px;
+    }
+    details ul {
+      list-style-type: square;
+      border-top: 1px dashed var(--border-color);
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    .exercise-media {
+      margin-top: 12px;
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-premium);
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-  <h2>🏋️‍♂️ Exercise Knowledge Base</h2>
-  <input type="text" id="searchInput" placeholder="Search exercise...">
-  <div id="exerciseList"></div>
-</div>
+  <div class="container" style="margin-top: 20px; padding-bottom: 90px;">
+    <h2 class="text-center glow-text" style="margin-bottom: 25px;">🏋️‍♂️ Exercise Library</h2>
 
-<script>
-// Hardcoded 12 exercises
-const exercises = [
-  {
-    name: "Incline Bench Press",
-    muscles: ["Chest", "Triceps", "Shoulders"],
-    equipment: "Incline Bench, Dumbbells",
-    steps: ["Set bench to 30–45° incline.", "Lie back with feet flat on floor.", "Hold dumbbells and press up.", "Lower slowly to chest level."],
-    tips: ["Keep elbows slightly bent at top.", "Do not arch lower back excessively."],
-    image: "inc.jpg",
-    video: ""
-  },
-  {
-    name: "Squats",
-    muscles: ["Quadriceps", "Glutes", "Hamstrings"],
-    equipment: "Barbell or Bodyweight",
-    steps: ["Stand with feet shoulder-width apart.", "Lower your body by bending knees and hips.", "Keep chest upright and back straight.", "Push through heels to return to standing."],
-    tips: ["Do not let knees collapse inward.", "Go as low as comfortable without pain."],
-    image: "sq.jpg",
-    video: ""
-  },
-  {
-    name: "Deadlift",
-    muscles: ["Back", "Glutes", "Hamstrings"],
-    equipment: "Barbell",
-    steps: ["Stand with feet hip-width apart, bar over mid-foot.", "Grip the bar shoulder-width, keep chest up.", "Lift the bar by extending hips and knees simultaneously.", "Lower bar under control to the floor."],
-    tips: ["Keep back straight throughout the lift.", "Engage core and lats to avoid injury."],
-    image: "dead.jpg",
-    video: ""
-  },
-  {
-    name: "Push-Ups",
-    muscles: ["Chest", "Triceps", "Shoulders"],
-    equipment: "Bodyweight",
-    steps: ["Place hands shoulder-width apart on the floor.", "Keep body straight from head to heels.", "Lower chest to floor.", "Push back up to starting position."],
-    tips: ["Avoid sagging hips.", "Keep elbows at ~45° to torso."],
-    image: "push.jpg",
-    video: ""
-  },
-  {
-    name: "Pull-Ups",
-    muscles: ["Back", "Biceps"],
-    equipment: "Pull-Up Bar",
-    steps: ["Grip bar slightly wider than shoulders.", "Hang fully extended.", "Pull chin above the bar.", "Lower under control."],
-    tips: ["Do not swing body.", "Engage back muscles, not just arms."],
-    image: "pullljpg.jpg",
-    video: ""
-  },
-  {
-    name: "Shoulder Press",
-    muscles: ["Shoulders", "Triceps"],
-    equipment: "Dumbbells or Barbell",
-    steps: ["Sit or stand with back straight.", "Hold dumbbells at shoulder height.", "Press up until arms fully extended.", "Lower slowly back down."],
-    tips: ["Do not arch back.", "Keep core tight."],
-    image: "sh.jpg",
-    video: ""
-  },
-  {
-    name: "Lunges",
-    muscles: ["Quadriceps", "Glutes", "Hamstrings"],
-    equipment: "Bodyweight or Dumbbells",
-    steps: ["Step forward with one leg.", "Lower body until both knees are ~90°.", "Push back to start position.", "Repeat on other leg."],
-    tips: ["Keep chest up.", "Do not let front knee go past toes."],
-    image: "",
-    video: ""
-  },
-  {
-    name: "Plank",
-    muscles: ["Core", "Back"],
-    equipment: "Bodyweight",
-    steps: ["Place forearms on floor, elbows under shoulders.", "Keep body straight from head to heels.", "Hold position for desired time."],
-    tips: ["Avoid sagging hips.", "Engage core fully."],
-    image: "",
-    video: ""
-  },
-  {
-    name: "Bicep Curls",
-    muscles: ["Biceps"],
-    equipment: "Dumbbells",
-    steps: ["Stand upright with dumbbells in hand.", "Curl weights to shoulders.", "Lower slowly back down."],
-    tips: ["Avoid swinging arms.", "Keep elbows close to torso."],
-    image: "",
-    video: ""
-  },
-  {
-    name: "Tricep Dips",
-    muscles: ["Triceps", "Chest"],
-    equipment: "Bench or Chair",
-    steps: ["Place hands on bench, legs extended.", "Lower body by bending elbows.", "Push back up."],
-    tips: ["Do not lock elbows.", "Keep shoulders down."],
-    image: "",
-    video: ""
-  },
-  {
-    name: "Leg Raises",
-    muscles: ["Lower Abs"],
-    equipment: "Bodyweight",
-    steps: ["Lie flat on back, legs straight.", "Lift legs to 90°.", "Lower slowly without touching floor."],
-    tips: ["Do not arch lower back.", "Engage core throughout."],
-    image: "",
-    video: ""
-  },
-  {
-    name: "Mountain Climbers",
-    muscles: ["Core", "Cardio"],
-    equipment: "Bodyweight",
-    steps: ["Start in push-up position.", "Bring knees alternately towards chest rapidly.", "Maintain plank form throughout."],
-    tips: ["Keep hips low.", "Move legs quickly but controlled."],
-    image: "",
-    video: ""
-  }
-];
-
-// DOM references
-const exerciseList = document.getElementById("exerciseList");
-const searchInput = document.getElementById("searchInput");
-
-// Function to render exercises
-function renderExercises(searchTerm = "") {
-  const filtered = exercises.filter(ex => 
-    ex.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (!filtered.length) {
-    exerciseList.innerHTML = "<p style='text-align:center;color:#888;'>No exercises found</p>";
-    return;
-  }
-
-  exerciseList.innerHTML = "";
-  filtered.forEach(ex => {
-    exerciseList.innerHTML += `
-      <div class="exercise-card">
-        <h3>${ex.name}</h3>
-        <p><strong>Muscles:</strong> ${ex.muscles.join(", ")}</p>
-        <p><strong>Equipment:</strong> ${ex.equipment}</p>
-        <details>
-          <summary>Instructions & Tips</summary>
-          <ol>${ex.steps.map(step => `<li>${step}</li>`).join("")}</ol>
-          <ul>${ex.tips.map(tip => `<li>${tip}</li>`).join("")}</ul>
-        </details>
-        ${ex.image ? `<img src="${ex.image}" alt="${ex.name}">` : ""}
-        ${ex.video ? `<video src="${ex.video}" controls></video>` : ""}
+    <!-- AI Gym Coach Section -->
+    <div class="glass-card chatbot-card" style="padding: 15px;">
+      <div class="chat-header" id="chatHeader">
+        <h3 style="font-size: 15px; display: flex; align-items: center; gap: 8px; margin: 0;">🤖 Ask Gymify AI Coach</h3>
+        <span id="chatToggleIcon" style="font-size: 12px; color: var(--text-secondary);">Expand ⚡</span>
       </div>
-    `;
-  });
-}
+      
+      <div class="chat-body" id="chatBody">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-message coach">
+            👋 Hey there! I'm <b>Coach Bruno</b>, your Gymify AI Assistant.<br><br>
+            Got questions about proper form, setups, bench angles, leg routines, lunge positions, or cable pulley alignments? Drop them here!
+          </div>
+        </div>
 
-// Initial render
-renderExercises();
+        <div class="chat-starters">
+          <div class="chat-starter-pill" onclick="sendStarter('Tell me some leg exercises')">Leg Exercises? 🦵</div>
+          <div class="chat-starter-pill" onclick="sendStarter('Lunge form and angle setup?')">Lunge Form? 📐</div>
+          <div class="chat-starter-pill" onclick="sendStarter('Correct incline bench press angle?')">Incline Bench Angle? 📐</div>
+          <div class="chat-starter-pill" onclick="sendStarter('How to set up cable height for flyes?')">Cable Setup? ⛓️</div>
+        </div>
 
-// Search functionality
-searchInput.addEventListener("input", (e) => {
-  renderExercises(e.target.value.trim());
-});
-</script>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Ask about setups, forms, angles, leg exercises..." autocomplete="off" />
+          <button id="chatSendBtn" class="btn">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Planned Exercises Tray -->
+    <div class="glass-card" id="plannedSection" style="display: none; padding: 15px; margin-bottom: 20px;">
+      <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">🎯 Exercises in Your Plan</h3>
+      <div class="plan-tray" id="planTray">
+        <!-- Loaded dynamically from Firestore -->
+      </div>
+    </div>
+    
+    <!-- Search database -->
+    <div class="glass-card" style="margin-bottom: 20px; padding: 15px;">
+      <input type="text" id="searchInput" placeholder="🔍 Search exercise (e.g. Squats, Bench)..." style="margin: 0;" />
+    </div>
+
+    <div id="exerciseList"></div>
+  </div>
+
+  <script type="module" src="js/navigation.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Global set of planned exercises to display badges
+    const plannedExercisesSet = new Set();
+
+    const exercises = [
+      {
+        name: "Incline Bench Press",
+        muscles: ["Chest", "Triceps", "Shoulders"],
+        equipment: "Incline Bench, Dumbbells",
+        steps: ["Set bench to 30–45° incline.", "Lie back with feet flat on floor.", "Hold dumbbells and press up.", "Lower slowly to chest level."],
+        tips: ["Keep elbows slightly bent at top.", "Do not arch lower back excessively."],
+        image: "inc.jpg",
+        video: ""
+      },
+      {
+        name: "Squats",
+        muscles: ["Quadriceps", "Glutes", "Hamstrings"],
+        equipment: "Barbell or Bodyweight",
+        steps: ["Stand with feet shoulder-width apart.", "Lower your body by bending knees and hips.", "Keep chest upright and back straight.", "Push through heels to return to standing."],
+        tips: ["Do not let knees collapse inward.", "Go as low as comfortable without pain."],
+        image: "sq.jpg",
+        video: ""
+      },
+      {
+        name: "Deadlift",
+        muscles: ["Back", "Glutes", "Hamstrings"],
+        equipment: "Barbell",
+        steps: ["Stand with feet hip-width apart, bar over mid-foot.", "Grip the bar shoulder-width, keep chest up.", "Lift the bar by extending hips and knees simultaneously.", "Lower bar under control to the floor."],
+        tips: ["Keep back straight throughout the lift.", "Engage core and lats to avoid injury."],
+        image: "dead.jpg",
+        video: ""
+      },
+      {
+        name: "Push-Ups",
+        muscles: ["Chest", "Triceps", "Shoulders"],
+        equipment: "Bodyweight",
+        steps: ["Place hands shoulder-width apart on the floor.", "Keep body straight from head to heels.", "Lower chest to floor.", "Push back up to starting position."],
+        tips: ["Avoid sagging hips.", "Keep elbows at ~45° to torso."],
+        image: "push.jpg",
+        video: ""
+      },
+      {
+        name: "Pull-Ups",
+        muscles: ["Back", "Biceps"],
+        equipment: "Pull-Up Bar",
+        steps: ["Grip bar slightly wider than shoulders.", "Hang fully extended.", "Pull chin above the bar.", "Lower under control."],
+        tips: ["Do not swing body.", "Engage back muscles, not just arms."],
+        image: "pullljpg.jpg",
+        video: ""
+      },
+      {
+        name: "Shoulder Press",
+        muscles: ["Shoulders", "Triceps"],
+        equipment: "Dumbbells or Barbell",
+        steps: ["Sit or stand with back straight.", "Hold dumbbells at shoulder height.", "Press up until arms fully extended.", "Lower slowly back down."],
+        tips: ["Do not arch back.", "Keep core tight."],
+        image: "sh.jpg",
+        video: ""
+      },
+      {
+        name: "Lunges",
+        muscles: ["Quadriceps", "Glutes", "Hamstrings"],
+        equipment: "Bodyweight or Dumbbells",
+        steps: ["Step forward with one leg.", "Lower body until both knees are ~90°.", "Push back to start position.", "Repeat on other leg."],
+        tips: ["Keep chest up.", "Do not let front knee go past toes."],
+        image: "",
+        video: ""
+      },
+      {
+        name: "Plank",
+        muscles: ["Core", "Back"],
+        equipment: "Bodyweight",
+        steps: ["Place forearms on floor, elbows under shoulders.", "Keep body straight from head to heels.", "Hold position for desired time."],
+        tips: ["Avoid sagging hips.", "Engage core fully."],
+        image: "",
+        video: ""
+      },
+      {
+        name: "Bicep Curls",
+        muscles: ["Biceps"],
+        equipment: "Dumbbells",
+        steps: ["Stand upright with dumbbells in hand.", "Curl weights to shoulders.", "Lower slowly back down."],
+        tips: ["Avoid swinging arms.", "Keep elbows close to torso."],
+        image: "",
+        video: ""
+      },
+      {
+        name: "Tricep Dips",
+        muscles: ["Triceps", "Chest"],
+        equipment: "Bench or Chair",
+        steps: ["Place hands on bench, legs extended.", "Lower body by bending elbows.", "Push back up."],
+        tips: ["Do not lock elbows.", "Keep shoulders down."],
+        image: "",
+        video: ""
+      },
+      {
+        name: "Leg Raises",
+        muscles: ["Lower Abs"],
+        equipment: "Bodyweight",
+        steps: ["Lie flat on back, legs straight.", "Lift legs to 90°.", "Lower slowly without touching floor."],
+        tips: ["Do not arch lower back.", "Engage core throughout."],
+        image: "",
+        video: ""
+      },
+      {
+        name: "Mountain Climbers",
+        muscles: ["Core", "Cardio"],
+        equipment: "Bodyweight",
+        steps: ["Start in push-up position.", "Bring knees alternately towards chest rapidly.", "Maintain plank form throughout."],
+        tips: ["Keep hips low.", "Move legs quickly but controlled."],
+        image: "",
+        video: ""
+      }
+    ];
+
+    // Helper to guess muscles and add custom exercises to local array
+    function addCustomExerciseToLibrary(exName) {
+      const exists = exercises.some(ex => ex.name.toLowerCase() === exName.toLowerCase());
+      if (exists) return;
+
+      const cleanName = exName.toLowerCase();
+      let muscles = ["Full Body"];
+      let equipment = "Gym Equipment";
+      let steps = [
+        "Set up the equipment at the correct height/weight.",
+        "Maintain a stable posture and engage your core.",
+        "Perform the movement slowly through a full range of motion.",
+        "Control the negative phase and squeeze at peak contraction."
+      ];
+      let tips = [
+        "Keep execution controlled and focus on muscle mind connection.",
+        "Ask Coach Bruno in the chat above for specific bench angles or cable pulley adjustments!"
+      ];
+
+      if (cleanName.includes("chest") || cleanName.includes("bench") || cleanName.includes("fly") || cleanName.includes("push")) {
+        muscles = ["Chest", "Shoulders", "Triceps"];
+        if (cleanName.includes("cable")) equipment = "Cable Machine";
+        else if (cleanName.includes("dumbbell")) equipment = "Dumbbells";
+        else if (cleanName.includes("barbell")) equipment = "Barbell";
+      } else if (cleanName.includes("row") || cleanName.includes("pull") || cleanName.includes("lat") || cleanName.includes("chin") || cleanName.includes("deadlift")) {
+        muscles = ["Back", "Biceps"];
+        if (cleanName.includes("cable") || cleanName.includes("lat")) equipment = "Cable Machine";
+        else if (cleanName.includes("dumbbell")) equipment = "Dumbbells";
+        else if (cleanName.includes("barbell") || cleanName.includes("deadlift")) equipment = "Barbell";
+      } else if (cleanName.includes("shoulder") || cleanName.includes("press") || cleanName.includes("raise")) {
+        muscles = ["Shoulders", "Triceps"];
+        if (cleanName.includes("cable")) equipment = "Cable Machine";
+        else if (cleanName.includes("dumbbell")) equipment = "Dumbbells";
+      } else if (cleanName.includes("squat") || cleanName.includes("leg") || cleanName.includes("lunge") || cleanName.includes("calf") || cleanName.includes("hamstring")) {
+        muscles = ["Quadriceps", "Glutes", "Hamstrings", "Calves"];
+        if (cleanName.includes("press") || cleanName.includes("extension")) equipment = "Gym Machine";
+        else if (cleanName.includes("dumbbell")) equipment = "Dumbbells";
+        else if (cleanName.includes("barbell")) equipment = "Barbell";
+      } else if (cleanName.includes("curl") || cleanName.includes("bicep")) {
+        muscles = ["Biceps"];
+        if (cleanName.includes("barbell")) equipment = "Barbell";
+        else equipment = "Dumbbells";
+      } else if (cleanName.includes("dip") || cleanName.includes("extension") || cleanName.includes("tricep") || cleanName.includes("pushdown")) {
+        muscles = ["Triceps"];
+        if (cleanName.includes("pushdown")) equipment = "Cable Machine";
+      } else if (cleanName.includes("abs") || cleanName.includes("plank") || cleanName.includes("crunch") || cleanName.includes("core")) {
+        muscles = ["Core"];
+        equipment = "Bodyweight";
+      }
+
+      exercises.push({
+        name: exName,
+        muscles,
+        equipment,
+        steps,
+        tips,
+        image: "",
+        video: ""
+      });
+    }
+
+    // --- 🧬 SVG Muscle wireframe generator ---
+    function getMuscleSVG(targetMuscles) {
+      const musclesLower = targetMuscles.map(m => m.toLowerCase());
+      const isTarget = (list) => list.some(m => musclesLower.includes(m));
+
+      const chestColor = isTarget(["chest", "pecs"]) ? "var(--color-accent)" : "rgba(255,255,255,0.04)";
+      const shouldersColor = isTarget(["shoulders", "shoulder", "deltoids"]) ? "var(--color-accent)" : "rgba(255,255,255,0.04)";
+      const bicepsColor = isTarget(["biceps", "bicep"]) ? "var(--color-accent)" : "rgba(255,255,255,0.04)";
+      const tricepsColor = isTarget(["triceps", "tricep"]) ? "var(--color-accent)" : "rgba(255,255,255,0.04)";
+      const backColor = isTarget(["back", "lats", "traps", "upper back", "lower back"]) ? "var(--color-accent)" : "rgba(255,255,255,0.04)";
+      const absColor = isTarget(["abs", "core", "lower abs", "cardio"]) ? "var(--color-accent)" : "rgba(255,255,255,0.04)";
+      const legsColor = isTarget(["quadriceps", "quads", "glutes", "hamstrings", "calves", "legs"]) ? "var(--color-accent)" : "rgba(255,255,255,0.04)";
+
+      const isBackView = isTarget(["back", "lats", "traps", "lower back"]);
+
+      if (isBackView) {
+        return `
+          <svg width="55" height="95" viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="18" r="12" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <path d="M 38 35 Q 50 38 62 35 L 60 48 Q 50 51 40 48 Z" fill="${backColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <circle cx="28" cy="48" r="9" fill="${shouldersColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <circle cx="72" cy="48" r="9" fill="${shouldersColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <ellipse cx="23" cy="68" rx="6" ry="12" fill="${tricepsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <ellipse cx="77" cy="68" rx="6" ry="12" fill="${tricepsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <path d="M 32 48 L 68 48 L 64 105 L 36 105 Z" fill="${backColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <ellipse cx="50" cy="115" rx="18" ry="12" fill="${legsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <rect x="36" y="127" width="12" height="35" rx="4" fill="${legsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <rect x="52" y="127" width="12" height="35" rx="4" fill="${legsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <ellipse cx="41" cy="175" rx="6" ry="14" fill="${legsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <ellipse cx="59" cy="175" rx="6" ry="14" fill="${legsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+          </svg>
+        `;
+      } else {
+        return `
+          <svg width="55" height="95" viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="18" r="12" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <circle cx="28" cy="48" r="9" fill="${shouldersColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <circle cx="72" cy="48" r="9" fill="${shouldersColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <ellipse cx="50" cy="58" rx="16" ry="12" fill="${chestColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <ellipse cx="23" cy="68" rx="6" ry="12" fill="${bicepsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <ellipse cx="77" cy="68" rx="6" ry="12" fill="${bicepsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <rect x="39" y="72" width="22" height="30" rx="4" fill="${absColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <rect x="36" y="112" width="12" height="42" rx="4" fill="${legsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <rect x="52" y="112" width="12" height="42" rx="4" fill="${legsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <ellipse cx="41" cy="170" rx="5" ry="15" fill="${legsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+            <ellipse cx="59" cy="170" rx="5" ry="15" fill="${legsColor}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+          </svg>
+        `;
+      }
+    }
+
+    // --- 🤖 Conversational AI Chatbot response matrix ---
+    const chatbotResponses = [
+      {
+        keywords: ["bench", "press", "incline", "flat"],
+        response: `🏋️‍♂️ <b>Barbell & Dumbbell Press Coaching:</b><br><br>
+                   • <b>Bench Angle:</b> Set the incline bench to <b>30° to 45°</b>. Flat benches focus on the mid-chest, while angles >45° shift the load to the shoulders.<br>
+                   • <b>Elbow Position:</b> Tuck your elbows at a <b>45 to 60-degree angle</b> relative to your body. Do not flare them out wide (90°) as this strains the shoulders.<br>
+                   • <b>Bar Placement & Path:</b> Lower the bar to your mid-chest (near the sternum). Press up and slightly back toward your face in a J-curve bar path.<br>
+                   • <b>Proper Form:</b> Retract and squeeze your shoulder blades (scapula) together to create a stable base, and press your feet flat into the floor.`
+      },
+      {
+        keywords: ["cable", "pulley", "flyes", "crossover"],
+        response: `⛓️ <b>Cable Pulley Form Guide:</b><br><br>
+                   • <b>Angle & Pulley Height:</b><br>
+                     - <i>Upper Chest focus:</i> Position pulleys at the bottom and sweep hands upward.<br>
+                     - <i>Mid-Chest focus:</i> Set pulleys at shoulder-height and press straight forward.<br>
+                     - <i>Lower Chest focus:</i> Set pulleys high and press down and forward.<br>
+                   • <b>Placement & Execution:</b> Step forward in the middle of the cables to create starting tension. Maintain a soft, constant bend in your elbows. Squeeze hard at the peak contraction for 1 second.`
+      },
+      {
+        keywords: ["squat", "depth", "knees"],
+        response: `🦵 <b>Squats Setup & Execution:</b><br><br>
+                   • <b>Bar Placement:</b> High-bar sits on your upper traps. Low-bar sits lower on your rear deltoids (helps lift heavier weights by involving more posterior chain).<br>
+                   • <b>Form Depth:</b> Descent until your thighs are at least parallel to the floor. Keep your heels flat and torso as upright as possible.<br>
+                   • <b>Knee Alignment:</b> Track your knees inline with your toes; do not let them cave inward. Push them out.`
+      },
+      {
+        keywords: ["deadlift", "hips"],
+        response: `🎒 <b>Deadlift Form Essentials:</b><br><br>
+                   • <b>Setup Position:</b> Barbell should be over your mid-foot. Shins should touch the bar.<br>
+                   • <b>Hip Hinge:</b> Hinge at your hips, keep your back completely flat (neutral spine), and pull your lats tight. Do not round your lower back under load.<br>
+                   • <b>Execution:</b> Drive through the floor with your legs, keeping the bar scraping close to your shins and thighs.`
+      },
+      {
+        keywords: ["bicep", "elbows"],
+        response: `💪 <b>Bicep Curls Efficiency:</b><br><br>
+                   • <b>Elbow Placement:</b> Keep your elbows pinned close to your ribs. Do not let them swing forward (which shifts work to the front deltoids).<br>
+                   • <b>Range of Motion:</b> Extend fully at the bottom and squeeze the bicep at the top without moving your elbows.`
+      },
+      {
+        keywords: ["dip", "pushdown"],
+        response: `⚡ <b>Triceps Form Tips:</b><br><br>
+                   • <b>Pushdowns:</b> Pin elbows to your sides, pull shoulders down. Stand tall and squeeze the triceps at full extension.<br>
+                   • <b>Dips:</b> Keep your body upright to focus on the triceps. Leaning forward shifts the load to the chest. Lower until elbow is at 90°.`
+      },
+      {
+        keywords: ["lunge", "lunges", "lunging"],
+        response: `🦵 <b>Lunges Placement & Angles:</b><br><br>
+                   • <b>Knee Angle:</b> Step forward and lower your hips until both knees are bent at a <b>90-degree angle</b>.<br>
+                   • <b>Torso Placement:</b> Keep your chest upright and core engaged. Leaning forward slightly targets the glutes more; staying vertical targets the quadriceps.<br>
+                   • <b>Knee Alignment:</b> Ensure your front knee stays behind or directly over your toes (do not push it way past your toes to prevent patellar strain). Keep your feet hip-width apart for balance.`
+      },
+      {
+        keywords: ["leg", "legs", "quad", "hamstring", "calf", "calves"],
+        response: `🦵 <b>Leg Training Guidelines:</b><br><br>
+                   • <b>Exercises you can do:</b> Squats, Lunges, Deadlifts, Leg Raises, and Calf raises.<br>
+                   • <b>Form Tip:</b> Keep your feet flat on the floor and drive through your heels for squats/lunges to protect your knees.<br>
+                   • <b>Range:</b> Focus on a deep range of motion (thighs parallel to floor). Ask me about a specific exercise like <i>"Squat form"</i> or <i>"Lunge angles"</i> for detailed setups!`
+      },
+      {
+        keywords: ["arm", "arms", "bicep", "tricep", "curl", "extension"],
+        response: `💪 <b>Arm Training (Biceps & Triceps) Guide:</b><br><br>
+                   • <b>Biceps:</b> Keep elbows pinned to your ribs, control the descent. supinate (turn palms up) as you curl.<br>
+                   • <b>Triceps:</b> Keep elbows close, retract shoulders. Squeeze at lockout. Ask me about <i>"bicep curl form"</i> or <i>"tricep dips setup"</i> for more!`
+      },
+      {
+        keywords: ["back", "deadlift", "pull", "lat", "row", "traps"],
+        response: `🎒 <b>Back Training (Lats, Traps, & Lower Back):</b><br><br>
+                   • <b>Exercises:</b> Pull-Ups, Deadlifts, Rows, Lat Pulldowns.<br>
+                   • <b>Lats Engagement:</b> Pull your shoulders down and back ("tuck them in your back pockets") to engage lats. Pull with your elbows, not your hands.<br>
+                   • <b>Neutral Spine:</b> Keep your spine flat and core braced during deadlifts and rows to avoid lower back injury.`
+      },
+      {
+        keywords: ["diet", "protein", "eat", "meals", "water"],
+        response: `🍎 <b>Fitness Diet & Nutrition Tips:</b><br><br>
+                   • <b>Protein Intake:</b> Aim for 1.6 to 2.2 grams of protein per kilogram of body weight to support muscle growth and recovery.<br>
+                   • <b>Hydration:</b> Target 3 to 4 liters of water daily, especially around your workouts.<br>
+                   • <b>Caloric Target:</b> Caloric surplus (eating more than you burn) for muscle gain, and caloric deficit for fat loss.`
+      },
+      {
+        keywords: ["sets", "reps", "rest", "progress"],
+        response: `📈 <b>Training Routine Guidelines:</b><br><br>
+                   • <b>Hypertrophy (Muscle Gain):</b> 3-4 sets of 8-12 reps. Rest 60-90s.<br>
+                   • <b>Strength:</b> 3-5 sets of 1-5 reps with heavier weights. Rest 3-5m.<br>
+                   • <b>Endurance:</b> 2-3 sets of 15+ reps. Rest 30-45s.<br>
+                   • <b>Progressive Overload:</b> Gradually increase weight, reps, or sets over time to keep forcing your muscles to adapt.`
+      }
+    ];
+
+    function generateCustomCoachingGuide(name) {
+      const cleanName = name.trim().toLowerCase();
+      
+      let muscle = "Target Area";
+      let setup = "Choose a stable body position.";
+      let tips = "Perform the movement slowly and avoid using momentum.";
+      
+      if (cleanName.includes("chest") || cleanName.includes("bench") || cleanName.includes("fly")) {
+        muscle = "Chest & Front Shoulders";
+        setup = "Set bench angle to 0° (flat) or 30-45° (incline). Set cable pulleys at chest/shoulder level.";
+        tips = "Keep shoulder blades squeezed together. Avoid flaring elbows out to 90 degrees.";
+      } else if (cleanName.includes("row") || cleanName.includes("pull") || cleanName.includes("lat") || cleanName.includes("chin")) {
+        muscle = "Back (Lats, Traps, Upper Back)";
+        setup = "Use a stable seat/bench. Pull bar/handles with chest proud.";
+        tips = "Focus on pulling with your elbows rather than your grip, and squeeze your back at peak contraction.";
+      } else if (cleanName.includes("shoulder") || cleanName.includes("press") || cleanName.includes("deltoid") || cleanName.includes("raise")) {
+        muscle = "Shoulders (Deltoids)";
+        setup = "Stand or sit with neutral back. Set cables or dumbells at shoulder level.";
+        tips = "Keep your core braced. In lateral raises, lead with your elbows and maintain a slight elbow bend.";
+      } else if (cleanName.includes("squat") || cleanName.includes("leg") || cleanName.includes("press") || cleanName.includes("quad") || cleanName.includes("lunge") || cleanName.includes("calf") || cleanName.includes("hamstring")) {
+        muscle = "Legs (Quads, Glutes, Hamstrings, Calves)";
+        setup = "Keep feet hip/shoulder-width. Lower hips down until knees bend to 90 degrees.";
+        tips = "Keep heels planted flat on floor. Ensure knees align with toes and don't cave inward.";
+      } else if (cleanName.includes("curl") || cleanName.includes("bicep")) {
+        muscle = "Biceps";
+        setup = "Stand or sit upright. Keep elbows locked close to your torso.";
+        tips = "Avoid swinging your body. Turn palms upward at top for peak contraction.";
+      } else if (cleanName.includes("dip") || cleanName.includes("extension") || cleanName.includes("pushdown") || cleanName.includes("tricep")) {
+        muscle = "Triceps";
+        setup = "Keep elbows locked in place close to your head or side torso.";
+        tips = "Focus on full elbow extension. Keep shoulders down.";
+      } else if (cleanName.includes("abs") || cleanName.includes("plank") || cleanName.includes("crunch") || cleanName.includes("core")) {
+        muscle = "Core (Rectus Abdominis, Obliques)";
+        setup = "Engage your abdominal wall, keeping a neutral pelvis and flat lower back.";
+        tips = "Do not pull on your neck during crunches. Breathe out as you contract.";
+      }
+
+      return `🤖 <b>Coaching Guide for "${name.toUpperCase()}":</b><br><br>
+              • <b>Estimated Target:</b> ${muscle}<br>
+              • <b>Pulley Height / Setup Angle:</b> ${setup}<br>
+              • <b>Proper Form & Tip:</b> ${tips}<br>
+              • <b>Suggested Routine:</b> Try 3-4 sets of 8-12 reps with controlled execution.`;
+    }
+
+    function getBotResponse(userMsg) {
+      const query = userMsg.toLowerCase().trim();
+      
+      // 1. Direct Keyword Matching
+      for (const item of chatbotResponses) {
+        if (item.keywords.some(kw => query.includes(kw))) {
+          return item.response;
+        }
+      }
+      
+      // 2. Custom Exercise Question Parsing
+      const customExerciseMatch = query.match(/(how to do|proper form for|perform|about|guide for)\s+([a-zA-Z0-9\s]+)/);
+      if (customExerciseMatch && customExerciseMatch[2]) {
+        const exerciseName = customExerciseMatch[2].trim();
+        return generateCustomCoachingGuide(exerciseName);
+      }
+
+      // 3. Check if user typed just an exercise name
+      const matchingEx = exercises.find(ex => query.includes(ex.name.toLowerCase()) || ex.name.toLowerCase().includes(query));
+      if (matchingEx) {
+        return `🤖 <b>Coaching Guide for "${matchingEx.name.toUpperCase()}":</b><br><br>
+                • <b>Target Muscles:</b> ${matchingEx.muscles.join(", ")}<br>
+                • <b>Equipment:</b> ${matchingEx.equipment}<br>
+                • <b>Key Steps:</b><br>${matchingEx.steps.map(s => ` - ${s}`).join("<br>")}<br>
+                • <b>Pro-Tip:</b> ${matchingEx.tips.join(" ")}`;
+      }
+
+      // 4. Default Fallback
+      return `🤖 <b>As your Gymify Coach, I'm here to help!</b><br><br>
+              I can guide you through form setups, bench angles, cable pulley levels, and correct exercises. Try asking:<br>
+              - <i>"How to set up cable flyes?"</i><br>
+              - <i>"What is the correct bench press elbow angle?"</i><br>
+              - <i>"Proper squat depth and back placement?"</i><br>
+              - <i>"Leg exercises or Lunge angles?"</i>`;
+    }
+
+    // --- 🧭 Loader & planned exercises setup ---
+    const exerciseList = document.getElementById("exerciseList");
+    const searchInput = document.getElementById("searchInput");
+
+    function renderExercises(searchTerm = "") {
+      const filtered = exercises.filter(ex => 
+        ex.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ex.muscles.some(m => m.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+
+      if (!filtered.length) {
+        exerciseList.innerHTML = `
+          <div class="glass-card text-center" style="padding: 30px 20px;">
+            <p style="color: var(--text-secondary); font-size: 15px;">🔍 No exercises match your search.</p>
+          </div>
+        `;
+        return;
+      }
+
+      exerciseList.innerHTML = "";
+      filtered.forEach(ex => {
+        const div = document.createElement("div");
+        div.className = "glass-card exercise-card";
+        
+        const isPlanned = plannedExercisesSet.has(ex.name.toLowerCase());
+        
+        div.innerHTML = `
+          <div class="exercise-flex-layout">
+            <div class="exercise-details-wrap">
+              <h3>
+                ${ex.name}
+                ${isPlanned ? `<span style="font-size: 10px; background: rgba(6,182,212,0.15); color: var(--color-accent); padding: 3px 10px; border-radius: 12px; font-weight: 700; margin-left: 10px; vertical-align: middle; white-space: nowrap;">🎯 PLANNED</span>` : ""}
+              </h3>
+              <p><strong>💪 Muscles:</strong> ${ex.muscles.join(", ")}</p>
+              <p><strong>⚙️ Equipment:</strong> ${ex.equipment}</p>
+              <details>
+                <summary>📖 Guide & Tips</summary>
+                <ol>${ex.steps.map(step => `<li>${step}</li>`).join("")}</ol>
+                <ul>${ex.tips.map(tip => `<li>${tip}</li>`).join("")}</ul>
+              </details>
+            </div>
+            <div class="exercise-svg-wrap">
+              ${getMuscleSVG(ex.muscles)}
+            </div>
+          </div>
+          ${ex.image ? `<img class="exercise-media" src="${ex.image}" alt="${ex.name}">` : ""}
+          ${ex.video ? `<video class="exercise-media" src="${ex.video}" controls></video>` : ""}
+        `;
+        exerciseList.appendChild(div);
+      });
+    }
+
+    renderExercises();
+
+    searchInput.addEventListener("input", (e) => {
+      renderExercises(e.target.value.trim());
+    });
+
+    // --- 🎯 Weekly Plan Sync Loader ---
+    async function loadUserPlannedExercises(user) {
+      const planTray = document.getElementById("planTray");
+      const planSection = document.getElementById("plannedSection");
+      
+      try {
+        const planRef = doc(db, "users", user.uid, "data", "plan");
+        const planSnap = await getDoc(planRef);
+        
+        if (!planSnap.exists()) {
+          planSection.style.display = "none";
+          return;
+        }
+
+        const plan = planSnap.data();
+        const allExercises = new Set();
+        
+        const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        weekdays.forEach(day => {
+          if (plan[day] && plan[day].exercises && plan[day].type !== "Rest") {
+            const dayEx = plan[day].exercises.split(",").map(e => e.trim());
+            dayEx.forEach(ex => {
+              const cleanName = ex.match(/(.+?)\s*\(.+?\)/) ? ex.match(/(.+?)\s*\(.+?\)/)[1].trim() : ex.trim();
+              if (cleanName) allExercises.add(cleanName);
+            });
+          }
+        });
+
+        if (allExercises.size === 0) {
+          planSection.style.display = "none";
+          return;
+        }
+
+        planSection.style.display = "block";
+        planTray.innerHTML = "";
+        plannedExercisesSet.clear();
+        
+        allExercises.forEach(exName => {
+          plannedExercisesSet.add(exName.toLowerCase());
+          
+          // Add custom exercise to list if not already present
+          addCustomExerciseToLibrary(exName);
+          
+          const isLocal = exercises.some(ex => ex.name.toLowerCase() === exName.toLowerCase());
+          
+          const pill = document.createElement("div");
+          pill.className = `plan-pill`;
+          pill.innerHTML = `🎯 ${exName}`;
+          
+          pill.addEventListener("click", () => {
+            searchInput.value = exName;
+            renderExercises(exName);
+            document.getElementById("exerciseList").scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+          planTray.appendChild(pill);
+        });
+
+        // Re-render the database lists with the custom exercises injected and PLANNED badges active!
+        renderExercises();
+
+      } catch (err) {
+        console.error("Error loading user planned exercises:", err);
+        planSection.style.display = "none";
+      }
+    }
+
+    // --- 💬 Chatbot interaction script ---
+    const chatHeader = document.getElementById("chatHeader");
+    const chatBody = document.getElementById("chatBody");
+    const chatToggleIcon = document.getElementById("chatToggleIcon");
+    const chatInput = document.getElementById("chatInput");
+    const chatSendBtn = document.getElementById("chatSendBtn");
+    const chatMessages = document.getElementById("chatMessages");
+
+    chatHeader.addEventListener("click", () => {
+      const isOpen = chatBody.classList.contains("open");
+      if (isOpen) {
+        chatBody.classList.remove("open");
+        chatToggleIcon.textContent = "Expand ⚡";
+      } else {
+        chatBody.classList.add("open");
+        chatToggleIcon.textContent = "Collapse ⚡";
+      }
+    });
+
+    window.sendUserMessage = function(text) {
+      if (!text.trim()) return;
+
+      // Append User message
+      const userDiv = document.createElement("div");
+      userDiv.className = "chat-message user";
+      userDiv.textContent = text;
+      chatMessages.appendChild(userDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      // Append Typing Indicator
+      const typingDiv = document.createElement("div");
+      typingDiv.className = "chat-message coach";
+      typingDiv.innerHTML = `<i>Coach Bruno is typing...</i>`;
+      chatMessages.appendChild(typingDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      // Generate reply after delay
+      setTimeout(() => {
+        typingDiv.remove();
+        
+        const replyText = getBotResponse(text);
+        const coachDiv = document.createElement("div");
+        coachDiv.className = "chat-message coach";
+        coachDiv.innerHTML = replyText;
+        chatMessages.appendChild(coachDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 700);
+    };
+
+    window.sendStarter = function(text) {
+      window.sendUserMessage(text);
+    };
+
+    chatSendBtn.addEventListener("click", () => {
+      const val = chatInput.value.trim();
+      if (val) {
+        window.sendUserMessage(val);
+        chatInput.value = "";
+      }
+    });
+
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const val = chatInput.value.trim();
+        if (val) {
+          window.sendUserMessage(val);
+          chatInput.value = "";
+        }
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loadUserPlannedExercises(user);
+      }
+    });
+  </script>
 </body>
 </html>

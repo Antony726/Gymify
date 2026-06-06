@@ -3,20 +3,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🏋️‍♂️ Progress | Gymify</title>
-  <link rel="stylesheet" href="css/dashboard.css" />
-  <link rel="stylesheet" href="css/progress.css" />
+  <title>🏋️‍♂️ Progress Calendar | Gymify</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    /* Custom styling to override container background */
+    .progress-container {
+      background: none;
+      box-shadow: none;
+      padding: 0;
+      width: 100%;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 8px;
+      margin: 25px 0;
+    }
+    @media (max-width: 380px) {
+      .calendar {
+        grid-template-columns: repeat(7, 1fr);
+      }
+    }
+    .day {
+      aspect-ratio: 1;
+      border-radius: 6px;
+      transition: transform 0.2s;
+    }
+    .day:hover {
+      transform: scale(1.1);
+    }
+    .day.workout {
+      background-color: var(--color-success);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+    .day.rest {
+      background-color: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+    }
+  </style>
 </head>
 <body>
-  <div class="progress-container">
-    <h2>📆 Your Gymify Activity</h2>
-    <p id="summary" class="summary">Loading...</p>
+  <div class="container" style="margin-top: 20px; padding-bottom: 90px;">
+    <h2 class="text-center glow-text" style="margin-bottom: 25px;">📊 Workout Analytics</h2>
+    
+    <!-- Consistency Calendar -->
+    <div class="glass-card text-center">
+      <h3 style="font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; color: var(--color-accent); text-align: left;">📆 Workout Consistency</h3>
+      <p id="summary" style="font-size: 14px; font-weight: 600; color: #fff; text-align: left;">Loading activity tracker...</p>
+      
+      <div id="calendar" class="calendar"></div>
+      
+      <div style="display: flex; justify-content: center; gap: 15px; font-size: 12px; color: var(--text-secondary); margin-top: 10px;">
+        <span style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block; width:12px; height:12px; background:var(--color-success); border-radius:3px;"></span> Workout</span>
+        <span style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block; width:12px; height:12px; background:rgba(255,255,255,0.08); border:1px solid var(--border-color); border-radius:3px;"></span> Rest</span>
+      </div>
+    </div>
 
-    <div id="calendar" class="calendar"></div>
+    <!-- Personal Bests Card -->
+    <div class="glass-card">
+      <h3 style="font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; color: var(--color-accent); text-align: left;">🏆 Personal Bests</h3>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); color: var(--text-secondary);">
+              <th style="padding: 8px 4px;">Exercise</th>
+              <th style="padding: 8px 4px;">Best Weight</th>
+              <th style="padding: 8px 4px;">Date</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody">
+            <tr><td colspan="3" style="text-align:center; color:var(--text-secondary); padding: 15px;">Loading personal bests...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-    <button class="back-btn" onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</button>
+    <!-- Top 5 Latest Workout History Card -->
+    <div class="glass-card">
+      <h3 style="font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; color: var(--color-accent); text-align: left;">📜 Latest 5 Workouts</h3>
+      <div id="latest-history-container">
+        <p style="text-align:center; color:var(--text-secondary); padding: 15px; font-size: 13px;">Loading latest workouts...</p>
+      </div>
+    </div>
+
+    <button onclick="window.location.href='dashboard.html'" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">⬅ Back to Dashboard</button>
   </div>
 
   <script type="module" src="js/progress.js"></script>
+  <script type="module" src="js/navigation.js"></script>
 </body>
 </html>

@@ -31,7 +31,7 @@ let setCount = 3;
 addSetBtn.addEventListener("click", () => {
   setCount++;
   if (setCount > 10) {
-    alert("😅 Max 10 sets allowed!");
+    window.showToast("😅 Max 10 sets allowed!", "warning");
     setCount = 10;
     return;
   }
@@ -62,7 +62,7 @@ removeSetBtn.addEventListener("click", () => {
     if (lastSet) lastSet.remove();
     setCount--;
   } else {
-    alert("You must have at least 1 set!");
+    window.showToast("⚠️ You must have at least 1 set!", "warning");
   }
 });
 
@@ -134,11 +134,15 @@ logForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const user = auth.currentUser;
-  if (!user) return alert("Please sign in first!");
+  if (!user) return window.showToast("❌ Please sign in first!", "error");
 
   const selectedWorkout = workoutInput.value.trim();
   if (!selectedWorkout) {
-    return alert("Please select or enter a workout!");
+    return window.showToast("⚠️ Please select or enter a workout!", "warning");
+  }
+
+  if (window.GymifyLoader) {
+    window.GymifyLoader.show("Saving Workout Log...");
   }
 
   const date = dateInput.value;
@@ -177,6 +181,7 @@ logForm.addEventListener("submit", async (e) => {
 
 
   try {
+    if (window.GymifyLoader) window.GymifyLoader.setProgress(20, "Writing log to Firestore...");
     // 💾 Add workout log
     await addDoc(collection(db, "users", user.uid, "logs"), {
       workout: selectedWorkout,
@@ -186,6 +191,7 @@ logForm.addEventListener("submit", async (e) => {
       timestamp: new Date(),
     });
 
+    if (window.GymifyLoader) window.GymifyLoader.setProgress(50, "Updating stats & XP...");
     // ⭐ XP + 🔥 Streak + ❤️ Heart update
     const statsRef = doc(db, "users", user.uid, "data", "stats");
     const statsSnap = await getDoc(statsRef);
@@ -256,7 +262,7 @@ logForm.addEventListener("submit", async (e) => {
               lastWorkoutWasRest: selectedWorkout.toLowerCase().includes("rest"),
             });
             
-            alert("💀 All hearts lost! Your XP has been reset to 0. Streak is now 0. You've been given 4 hearts to start fresh!");
+            window.showToast("💀 All hearts lost! XP reset. 4 hearts given.", "error");
             
             statusDiv.textContent = "💀 All hearts lost! XP and streak reset. Fresh start!";
             statusDiv.style.color = "red";
@@ -270,7 +276,7 @@ logForm.addEventListener("submit", async (e) => {
             return; // Exit early
           } else {
             xp += gainedXP;
-            alert(`💔 You missed ${diffDays} days! Streak reset to 0 and you lost 1 heart. You have ${hearts} hearts remaining.`);
+            window.showToast(`💔 You missed ${diffDays} days! Lost 1 heart (${hearts} left).`, "warning");
           }
         }
       } else {
@@ -297,6 +303,7 @@ logForm.addEventListener("submit", async (e) => {
       lastWorkoutWasRest: selectedWorkout.toLowerCase().includes("rest"),
     });
 
+    if (window.GymifyLoader) window.GymifyLoader.setProgress(80, "Syncing to leaderboard...");
     // 🏆 Update leaderboard entry
     try {
       const profileRef = doc(db, "users", user.uid, "data", "profile");
@@ -329,6 +336,10 @@ logForm.addEventListener("submit", async (e) => {
     logForm.reset();
     dateInput.value = todayISO;
 
+    if (window.GymifyLoader) {
+      window.GymifyLoader.hide();
+    }
+
     // 🟢 Tell dashboard to refresh workout section
     localStorage.setItem("refreshDashboardWorkout", "true");
 
@@ -338,6 +349,9 @@ logForm.addEventListener("submit", async (e) => {
     }, 2000);
 
   } catch (err) {
+    if (window.GymifyLoader) {
+      window.GymifyLoader.hide();
+    }
     console.error("🔥 Error logging workout:", err);
     statusDiv.textContent = "❌ Error logging workout.";
     statusDiv.style.color = "red";
@@ -360,7 +374,7 @@ startTimerBtn.addEventListener("click", () => {
     timeVal = timeVal*60;
   }
   if (isNaN(timeVal) || timeVal <= 0) {
-    alert("⏱️ Enter a valid time in seconds!");
+    window.showToast("⏱️ Enter a valid time in seconds!", "warning");
     return;
   }
 

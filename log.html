@@ -4,265 +4,167 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Log Workout | Gymify</title>
-  <link rel="stylesheet" href="css/log.css" />
-
+  <link rel="stylesheet" href="css/global.css" />
   <style>
-    /* Enhanced input styling + compatibility with existing dark theme */
-/* === 🧩 Layout & Spacing Fix === */
-
-    .container {
-      width: 550px;
-      padding: 30px 35px;
-    }
-
-    /* Headings */
-    h1, h2, h3, h4 {
-      margin-top: 0;
-      margin-bottom: 12px;
-    }
-
-    /* Form Groups */
-    .form-group {
-      margin-bottom: 18px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Labels */
-    label {
-      margin-bottom: 6px;
-      font-weight: 500;
-      color: #ccc;
-    }
-
-    /* Inputs, Selects, and Textareas */
-    input, select, textarea {
-      margin-bottom: 10px;
-      padding: 10px 12px;
-      font-size: 15px;
-    }
-
-    /* Section for Sets */
-    .sets-section {
-      background: #242424;
-      padding: 15px 18px;
-      border-radius: 12px;
-      margin: 20px 0;
-    }
-
-    /* Individual Sets */
     .set-group {
-      margin-bottom: 20px;
+      margin: 10px 0;
+      padding: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.02);
     }
-
     .set-group h4 {
-      margin-bottom: 10px;
-      color: #ffcc00;
-      text-align: left;
+      font-size: 14px;
+      color: var(--color-accent);
+      margin-bottom: 8px;
     }
-
-    /* Align Reps & Weight neatly */
     .input-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
-
-    .input-group {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .input-group label {
-      font-size: 13px;
-      color: #aaa;
+    .input-row label {
       margin-bottom: 4px;
     }
-
-    /* Notes section */
-    textarea {
-      resize: none;
-      min-height: 70px;
+    .input-row input {
+      margin-bottom: 0;
     }
-
-    /* Buttons */
-    .submit-btn {
-      margin-top: 15px;
-    }
-
-    #back-btn {
-      margin-top: 18px;
-      width: 100%;
-      background: #444;
-    }
-
-    #back-btn:hover {
-      background: #555;
-    }
-
-    /* Small tips */
-    small {
-      color: #888;
-      margin-top: 3px;
-      font-size: 13px;
-    }
-
-    /* Input focus styling (glow) */
-    input:focus, textarea:focus {
-      border-color: #00bcd4;
-      box-shadow: 0 0 8px rgba(0, 188, 212, 0.5);
-      outline: none;
-    }
-    /* === Dynamic Sets Controls === */
     .set-controls {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 15px 0;
+    }
+    .set-controls button {
+      font-size: 13px;
+      padding: 10px;
+    }
+    .rest-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr;
+      gap: 12px;
+      align-items: center;
+    }
+    .rest-row input {
+      margin-bottom: 0;
+    }
+    .rest-row button {
+      padding: 11px;
+    }
+    #timerDisplay {
       margin-top: 10px;
-    }
-
-    #set1-weight:focus, 
-    #set2-weight:focus, 
-    #set3-weight:focus {
-      outline: none;
-    }
-
-    #set1-reps:focus, 
-    #set2-reps:focus, 
-    #set3-reps:focus {
-      outline: none;
-    }
-
-    #set1-reps, #set2-reps, #set3-reps,
-    #set1-weight, #set2-weight, #set3-weight {
-      border-radius: 8px;
-    }
-
-    /* Add/Remove Buttons */
-    #set-controls button,
-    #set-controls .set-controls button {
-      background: #333;
-      border: 1px solid #555;
-      color: #fff;
       font-size: 15px;
-      border-radius: 10px;
-      padding: 8px 16px;
-      transition: 0.3s;
+      font-weight: 700;
+      color: var(--color-warning);
+      text-align: center;
     }
-
-    .set-controls button:hover {
-      background: #00bcd4;
-      border-color: #00bcd4;
-      color: #000;
-      cursor: pointer;
-    }
-
-
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>📝 Log Your Workout</h1>
-    </header>
-    
+    <h2 class="text-center glow-text" style="margin-top: 15px; margin-bottom: 10px;">📝 Log Workout</h2>
+
     <form id="log-form">
-      <div class="form-group">
-        <label for="workout-input">🏋️ Select Workout (Today's workouts shown first)</label>
+      <div class="card">
+        <label for="workout-input">🏋️ Search or Type Exercise</label>
         <input 
-        type="text" 
-        id="workout-input" 
-        name="workout" 
-        list="workout-list" 
-        placeholder="Start typing to search..." 
-        required
-        autocomplete="off"
+          type="text" 
+          id="workout-input" 
+          name="workout" 
+          list="workout-list" 
+          placeholder="Start typing (e.g., Bench Press)..." 
+          required
+          autocomplete="off"
         />
         <datalist id="workout-list">
-          <!-- Options will be added by JS -->
+          <!-- Options added dynamically -->
         </datalist>
-        <small>💡 Tip: Type to search or scroll to see all workouts</small>
+        <span style="font-size: 12px; color: var(--text-secondary);">💡 Search suggestions appear as you type.</span>
       </div>
-      
-      <div class="form-group">
-        <label for="date">📅 Date</label>
+
+      <div class="card">
+        <label for="date">📅 Workout Date</label>
         <input type="date" id="date" name="date" required />
       </div>
+
       <div class="card rest-card">
-        <h3>⏱️ Rest Timer</h3>
-        <input type="number" id="restInput" placeholder="Enter seconds" min="10" />
-        <button type="button" id="startTimer">Start Rest</button>
+        <h3 style="font-size: 16px; margin-bottom: 10px;">⏱️ Rest Timer</h3>
+        <div class="rest-row">
+          <input type="number" id="restInput" placeholder="Seconds (e.g., 60)" min="10" />
+          <button type="button" id="startTimer">Start Rest</button>
+        </div>
         <p id="timerDisplay"></p>
       </div>
 
-      
-      <div class="sets-section">
-        <h3>💪 Sets & Reps</h3>
-        <p style="color: #999; font-size: 14px; margin-bottom: 15px;">
-          ⚖️ You can enter decimal weights (e.g., 7.5, 12.5, 15.25)
+      <div class="card">
+        <h3 style="font-size: 16px; margin-bottom: 10px;">💪 Sets & Reps</h3>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
+          ⚖️ Enter weights in kg (decimals allowed, e.g., 7.5)
         </p>
-        
-        <div class="set-group">
-          <h4>Set 1</h4>
-          <div class="input-row">
-            <div class="input-group">
-              <label for="set1-reps">Reps</label>
-              <input type="number" id="set1-reps" min="0" placeholder="12" required />
+
+        <div class="sets-section">
+          <!-- Sets dynamically managed. First 3 generated in HTML for speed -->
+          <div class="set-group">
+            <h4>Set 1</h4>
+            <div class="input-row">
+              <div>
+                <label for="set1-reps">Reps</label>
+                <input type="number" id="set1-reps" min="0" placeholder="12" required />
+              </div>
+              <div>
+                <label for="set1-weight">Weight (kg)</label>
+                <input type="number" id="set1-weight" min="0" step="0.5" placeholder="20" required />
+              </div>
             </div>
-            <div class="input-group">
-              <label for="set1-weight">Weight (kg)</label>
-              <input type="number" id="set1-weight" min="0" step="0.5" placeholder="20.5" required />
+          </div>
+
+          <div class="set-group">
+            <h4>Set 2</h4>
+            <div class="input-row">
+              <div>
+                <label for="set2-reps">Reps</label>
+                <input type="number" id="set2-reps" min="0" placeholder="10" required />
+              </div>
+              <div>
+                <label for="set2-weight">Weight (kg)</label>
+                <input type="number" id="set2-weight" min="0" step="0.5" placeholder="22.5" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="set-group">
+            <h4>Set 3</h4>
+            <div class="input-row">
+              <div>
+                <label for="set3-reps">Reps</label>
+                <input type="number" id="set3-reps" min="0" placeholder="8" required />
+              </div>
+              <div>
+                <label for="set3-weight">Weight (kg)</label>
+                <input type="number" id="set3-weight" min="0" step="0.5" placeholder="25" required />
+              </div>
             </div>
           </div>
         </div>
-        
-        <div class="set-group">
-          <h4>Set 2</h4>
-          <div class="input-row">
-            <div class="input-group">
-              <label for="set2-reps">Reps</label>
-              <input type="number" id="set2-reps" min="0" placeholder="10" required />
-            </div>
-            <div class="input-group">
-              <label for="set2-weight">Weight (kg)</label>
-              <input type="number" id="set2-weight" min="0" step="0.5" placeholder="22.5" required />
-            </div>
-          </div>
+
+        <div class="set-controls">
+          <button type="button" id="add-set-btn" class="btn-secondary">➕ Add Set</button>
+          <button type="button" id="remove-set-btn" class="btn-secondary">➖ Remove Set</button>
         </div>
-        
-        <div class="set-group">
-          <h4>Set 3</h4>
-          <div class="input-row">
-            <div class="input-group">
-              <label for="set3-reps">Reps</label>
-              <input type="number" id="set3-reps" min="0" placeholder="8" required />
-            </div>
-            <div class="input-group">
-              <label for="set3-weight">Weight (kg)</label>
-              <input type="number" id="set3-weight" min="0" step="0.5" placeholder="25" required />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="set-controls">
-        <button type="button" id="add-set-btn">➕ Add Set</button>
-        <button type="button" id="remove-set-btn">➖ Remove Set</button>
       </div>
 
-      
-      <div class="form-group">
+      <div class="card">
         <label for="notes">📝 Notes (Optional)</label>
-        <textarea id="notes" name="notes" rows="4" placeholder="How did it feel? Any challenges?"></textarea>
+        <textarea id="notes" name="notes" rows="3" placeholder="How did the workout feel?"></textarea>
       </div>
-      
-      <button type="submit" class="submit-btn">✅ Log Workout</button>
+
+      <button type="submit" class="submit-btn" style="width: 100%; margin-top: 10px; font-size: 16px; padding: 14px;">✅ Save Workout Log</button>
     </form>
-    <button id="back-btn" class="back-btn">⬅️ Back to Dashboard</button>
     
-    <div id="status"></div>
+    <div id="status" style="margin-top: 15px; font-weight: bold; text-align: center;"></div>
   </div>
-  
+
   <script type="module" src="js/log.js"></script>
+  <script type="module" src="js/navigation.js"></script>
 </body>
 </html>

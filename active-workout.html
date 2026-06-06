@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚡ Active Workout | Gymify</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    .active-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .active-header h2 {
+      font-size: 20px;
+      color: var(--color-accent);
+    }
+    .exercise-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 5px;
+    }
+    .set-row {
+      display: grid;
+      grid-template-columns: 50px 1fr 1fr 50px;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      transition: all 0.2s ease;
+    }
+    .set-row.completed {
+      background: rgba(16, 185, 129, 0.06);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .set-row label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: none;
+    }
+    .set-row.completed label {
+      color: var(--color-success);
+    }
+    .set-row input {
+      margin: 0;
+      padding: 8px 10px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .set-row.completed input {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-secondary);
+      border-color: transparent;
+      pointer-events: none;
+    }
+    .set-checkbox {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      accent-color: var(--color-success);
+    }
+
+    /* Timer Popup Modal */
+    .timer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .timer-content {
+      background: rgba(13, 21, 37, 0.95);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 30px;
+      text-align: center;
+      width: 90%;
+      max-width: 340px;
+      box-shadow: var(--shadow-premium);
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .timer-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+    .timer-overlay.show .timer-content {
+      transform: scale(1);
+    }
+    .timer-ring {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      margin: 20px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .timer-ring svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .timer-value {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--color-accent);
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" style="margin-top: 20px; padding-bottom: 40px;">
+    <!-- Active Header -->
+    <div class="active-header">
+      <h2>⚡ Active Workout</h2>
+      <button onclick="confirmExit()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; border-radius: 8px;">✕ Cancel</button>
+    </div>
+
+    <!-- Progress Card -->
+    <div class="glass-card" style="padding: 15px; margin-bottom: 15px;">
+      <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary);">
+        <span>Progress</span>
+        <span id="workout-progress">Exercise 1 of 1</span>
+      </div>
+      <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; margin-top: 10px;">
+        <div id="progress-bar" style="width: 0%; height: 100%; background: var(--color-accent); border-radius: 10px; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+
+    <!-- Active Exercise Card -->
+    <div class="glass-card" style="margin-bottom: 15px;">
+      <h3 class="exercise-title" id="exercise-name">Loading exercise...</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;" id="exercise-target">Rest Split</p>
+      
+      <!-- Set Checklist -->
+      <div id="sets-container">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button id="add-set-btn" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 12px;">➕ Add Set</button>
+        <button id="skip-ex-btn" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 12px; background: rgba(244,63,94,0.1); border-color: rgba(244,63,94,0.2); color: #f43f5e;">⏭️ Skip</button>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <button id="next-ex-btn" class="btn" style="width: 100%; margin-top: 10px; display: none;">Next Exercise ➡️</button>
+    <button id="finish-workout-btn" class="btn" style="width: 100%; margin-top: 10px; background: linear-gradient(135deg, var(--color-success) 0%, #059669 100%); display: none;">🏁 Finish Workout</button>
+  </div>
+  <!-- Resume Workout Modal Dialog -->
+  <div class="modal" id="resumeModal" style="display: none; transition: opacity 0.25s ease; opacity: 0; justify-content: center; align-items: center;">
+    <div class="modal-content" style="max-width: 340px; border-color: var(--color-warning); box-shadow: 0 0 25px rgba(245, 158, 11, 0.3);">
+      <h3 style="font-size: 18px; color: var(--color-warning); margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">🔄 Session in Progress</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; text-align: left;">
+        We detected an active workout session in progress from today. Would you like to resume from where you left off, or start a fresh session?
+      </p>
+      <div class="modal-buttons" style="flex-direction: column; gap: 10px; width: 100%;">
+        <button id="resume-yes-btn" class="btn" style="width: 100%;">🔄 Resume Session</button>
+        <button id="resume-no-btn" class="btn btn-secondary" style="width: 100%; border-color: rgba(244,63,94,0.3); color: var(--color-danger);">🗑️ Start Fresh (Discard)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exit Workout Modal Dialog -->
+  <div class="modal" id="exitModal" style="display: none; transition: opacity 0.25s ease; opacity: 0; justify-content: center; align-items: center;">
+    <div class="modal-content" style="max-width: 340px; border-color: var(--color-danger); box-shadow: 0 0 25px rgba(244, 63, 94, 0.3);">
+      <h3 style="font-size: 18px; color: var(--color-danger); margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">🚪 Exit Workout?</h3>
+      <p id="exitModalText" style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; text-align: left;">
+        Are you sure you want to exit? Your completed exercises and sets so far will be saved to your history.
+      </p>
+      <div class="modal-buttons" style="flex-direction: column; gap: 10px; width: 100%;">
+        <button id="exit-save-btn" class="btn" style="width: 100%; background: linear-gradient(135deg, var(--color-success) 0%, #059669 100%);">💾 Save & Exit</button>
+        <button id="exit-discard-btn" class="btn btn-secondary" style="width: 100%; border-color: rgba(244,63,94,0.3); color: var(--color-danger);">🗑️ Discard Remaining & Exit</button>
+        <button id="exit-cancel-btn" class="btn btn-secondary" style="width: 100%;">💪 Keep Lifting</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rest Timer Overlay -->
+  <div id="restTimerOverlay" class="timer-overlay">
+    <div class="timer-content">
+      <h3 class="glow-text" style="font-size: 18px;">🔥 Rest Active</h3>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;" id="timer-exercise-name">Resting for next set</p>
+      
+      <div class="timer-ring">
+        <svg viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"></circle>
+          <circle id="timerCircle" cx="50" cy="50" r="45" fill="none" stroke="var(--color-accent)" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="0" stroke-linecap="round" style="transition: stroke-dashoffset 0.1s linear;"></circle>
+        </svg>
+        <div class="timer-value" id="timerValue">60s</div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button id="timer-skip-btn" class="btn" style="flex: 1; padding: 10px; font-size: 13px;">Skip Rest ⏭️</button>
+        <button id="timer-add30-btn" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 13px;">+30s</button>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; font-size: 13px; color: var(--text-secondary);">
+        <span>Default Rest:</span>
+        <button id="timer-dec-btn" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; margin: 0; min-width: auto; height: auto;">-10s</button>
+        <span id="defaultRestDisplay" style="color: #fff; font-weight: 600; min-width: 32px; text-align: center;">60s</span>
+        <button id="timer-inc-btn" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; margin: 0; min-width: auto; height: auto;">+10s</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/active-workout.js"></script>
+  <script type="module" src="js/navigation.js"></script>
+</body>
+</html>

@@ -80,6 +80,8 @@ createBtn.addEventListener("click", async () => {
 });
 
 // Back to dashboard
-backBtn.addEventListener("click", () => {
-  window.location.href = "dashboard.html";
-});
+if (backBtn) {
+  backBtn.addEventListener("click", () => {
+    window.location.href = "dashboard.html";
+  });
+}

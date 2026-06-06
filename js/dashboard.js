@@ -33,6 +33,13 @@ const quoteEl = document.getElementById("coach-quote");
 const xpEl = document.getElementById("xp-display");
 const streakEl = document.getElementById("streak-display");
 const gymifyLevelEl = document.getElementById("gymify-level");
+const startActiveBtn = document.getElementById("start-active-btn");
+
+if (startActiveBtn) {
+  startActiveBtn.addEventListener("click", () => {
+    window.location.href = "active-workout.html";
+  });
+}
 
 // 🧠 Random Quests + Quotes
 const quests = [
@@ -83,15 +90,17 @@ async function loadNextWorkout(user) {
     if (!planSnap.exists()) {
       todayDiv.textContent = "⚠️ No workout plan found.";
       nextDiv.textContent = "";
+      if (startActiveBtn) startActiveBtn.style.display = "none";
       return;
     }
 
     const plan = planSnap.data();
     const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
 
-    if (!plan[todayName] || !plan[todayName].exercises) {
+    if (!plan[todayName] || !plan[todayName].exercises || plan[todayName].type === "Rest") {
       todayDiv.textContent = `🗓️ Rest day or no plan found for ${todayName}.`;
       nextDiv.textContent = "";
+      if (startActiveBtn) startActiveBtn.style.display = "none";
       return;
     }
 
@@ -110,7 +119,6 @@ async function loadNextWorkout(user) {
 
     const doneExercises = todayLogs
       .map(l => {
-        // Extract just the exercise name portion
         if (l.workout?.includes(" - ")) {
           return l.workout.split(" - ")[1].trim();
         }
@@ -118,16 +126,27 @@ async function loadNextWorkout(user) {
       })
       .filter(Boolean);
 
-    const nextExercise = todayExercises.find(e => !doneExercises.includes(e));
+    // Helper to extract base exercise name without sets info
+    const getBaseName = (name) => {
+      const match = name.match(/(.+?)\s*\(.+?\)/);
+      return match ? match[1].trim() : name.trim();
+    };
+
+    const cleanDoneExercises = doneExercises.map(e => getBaseName(e));
+
+    const nextExercise = todayExercises.find(ex => {
+      const baseName = getBaseName(ex);
+      return !cleanDoneExercises.some(d => d.toLowerCase() === baseName.toLowerCase());
+    });
 
     // 🧾 Update today's workout section
     todayDiv.innerHTML = `
       <b>${todayName} Workout:</b><br>
-      ${todayExercises.map(ex => 
-        doneExercises.includes(ex)
-          ? `✅ ${ex}`
-          : `⬜ ${ex}`
-      ).join("<br>")}
+      ${todayExercises.map(ex => {
+        const baseName = getBaseName(ex);
+        const isDone = cleanDoneExercises.some(d => d.toLowerCase() === baseName.toLowerCase());
+        return isDone ? `✅ ${ex}` : `⬜ ${ex}`;
+      }).join("<br>")}
     `;
 
     // 🎯 Next workout suggestion
@@ -136,10 +155,13 @@ async function loadNextWorkout(user) {
     } else {
       nextDiv.innerHTML = `<b>Next up:</b> ${nextExercise}`;
     }
+
+    if (startActiveBtn) startActiveBtn.style.display = "block";
   } catch (err) {
     console.error("❌ Error loading next workout:", err);
     todayDiv.textContent = "❌ Error loading workout.";
     nextDiv.textContent = "❌ Error loading next workout.";
+    if (startActiveBtn) startActiveBtn.style.display = "none";
   }
 }
 
@@ -201,25 +223,25 @@ questBtn?.addEventListener("click", async () => {
 
   const questRef = doc(db, "users", user.uid, "data", "dailyQuest");
   const questSnap = await getDoc(questRef);
-  if (!questSnap.exists()) return alert("No quest found for today.");
+  if (!questSnap.exists()) return window.showToast("⚠️ No quest found for today.", "warning");
 
   const quest = questSnap.data();
-  if (quest.completed) return alert("🎯 You already completed today's quest!");
+  if (quest.completed) return window.showToast("🎯 You already completed today's quest!", "info");
 
   const statsRef = doc(db, "users", user.uid, "data", "stats");
   const statsSnap = await getDoc(statsRef);
-  if (!statsSnap.exists()) return alert("No stats found yet.");
+  if (!statsSnap.exists()) return window.showToast("❌ No stats found yet.", "error");
 
   let { xp = 0, hearts = 4 } = statsSnap.data();
   const xpGain = quest.isSpecial ? 20 : 10;
 
   if (quest.isSpecial && hearts < 4) {
     hearts += 1;
-    alert("🌟 Special Quest Complete! +1 ❤️ and +20 XP!");
+    window.showToast("🌟 Special Quest Complete! +1 ❤️ and +20 XP!", "success");
   } else if (quest.isSpecial) {
-    alert("🌟 Special Quest Complete! ❤️ Full, +20 XP!");
+    window.showToast("🌟 Special Quest Complete! ❤️ Full, +20 XP!", "success");
   } else {
-    alert("🎯 Quest Completed! +10 XP!");
+    window.showToast("🎯 Quest Completed! +10 XP!", "success");
   }
 
   xp += xpGain;
@@ -235,18 +257,77 @@ questBtn?.addEventListener("click", async () => {
 });
 
 // 🚪 Logout
-logoutBtn?.addEventListener("click", async () => {
-  await signOut(auth);
-  window.location.href = "login.html";
-});
+// Progress bar controller helper
+let isLongLoad = false;
+const setLoadProgress = (percentage, statusText) => {
+  const loader = document.getElementById("dashboardLoader");
+  const bar = document.getElementById("loader-progress-bar");
+  const txt = document.getElementById("loader-text");
+  const details = document.getElementById("loader-details-block");
+  
+  if (percentage > 0 && percentage < 100 && !isLongLoad) {
+    isLongLoad = true;
+    clearTimeout(loadTimeout);
+    if (loader) {
+      loader.style.background = "rgba(9, 13, 22, 0.97)";
+      loader.style.backdropFilter = "blur(15px)";
+      loader.style.webkitBackdropFilter = "blur(15px)";
+    }
+    if (details) {
+      details.style.display = "block";
+      setTimeout(() => { details.style.opacity = "1"; }, 20);
+    }
+  }
+
+  if (bar) bar.style.width = `${percentage}%`;
+  if (txt) txt.textContent = statusText;
+};
+
+// Setup load timeout (show progress bar if not complete in 800ms)
+let loadTimeout = setTimeout(() => {
+  isLongLoad = true;
+  const loader = document.getElementById("dashboardLoader");
+  const details = document.getElementById("loader-details-block");
+  if (loader) {
+    loader.style.background = "rgba(9, 13, 22, 0.97)";
+    loader.style.backdropFilter = "blur(15px)";
+    loader.style.webkitBackdropFilter = "blur(15px)";
+  }
+  if (details) {
+    details.style.display = "block";
+    setTimeout(() => { details.style.opacity = "1"; }, 20);
+  }
+  setLoadProgress(15, "Connecting to database...");
+}, 800);
+
+const finishLoading = () => {
+  clearTimeout(loadTimeout);
+  const loader = document.getElementById("dashboardLoader");
+  const bar = document.getElementById("loader-progress-bar");
+  const txt = document.getElementById("loader-text");
+
+  if (isLongLoad) {
+    if (bar) bar.style.width = "100%";
+    if (txt) txt.textContent = "Ready!";
+  }
+
+  setTimeout(() => {
+    if (loader) {
+      loader.style.opacity = "0";
+      setTimeout(() => loader.style.display = "none", 500);
+    }
+  }, isLongLoad ? 200 : 50);
+};
 
 // 👀 Auth State (main block)
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
+    clearTimeout(loadTimeout);
     window.location.href = "login.html";
     return;
   }
 
+  setLoadProgress(30, "Checking user profile...");
   console.log("Logged in user:", user.uid, user.email);
 
   // Profile
@@ -257,11 +338,13 @@ onAuthStateChanged(auth, async (user) => {
     user.displayName ||
     user.email.split("@")[0];
 
+  setLoadProgress(55, "Fetching training statistics...");
+
   // Stats + XP + Hearts + Streak
   try {
     const statsRef = doc(db, "users", user.uid, "data", "stats");
     const statsSnap = await getDoc(statsRef);
-    let xp = 0, streak = 0, hearts = 4;
+    let xp = 0, streak = 0, hearts = 4, lastLogDate = "";
 
     if (!statsSnap.exists()) {
       await setDoc(statsRef, { xp, streak, hearts, lastLogDate: "", updatedAt: serverTimestamp() });
@@ -270,11 +353,12 @@ onAuthStateChanged(auth, async (user) => {
       xp = data.xp || 0;
       streak = data.streak || 0;
       hearts = data.hearts !== undefined ? data.hearts : 4;
+      lastLogDate = data.lastLogDate || "";
     }
 
     // Display stats
     xpEl.textContent = `⭐ XP: ${xp}`;
-    streakEl.textContent = `🔥 Streak: ${streak} days`;
+    streakEl.textContent = `${streak} days`;
     updateHeartsDisplay(hearts);
 
     const levelInfo = getLevelFromXP(xp);
@@ -286,17 +370,26 @@ onAuthStateChanged(auth, async (user) => {
     console.error("⚠️ Error loading stats:", e);
   }
 
+  setLoadProgress(75, "Loading workout schedules...");
+
   // Load workouts + quest
-  await loadNextWorkout(user);
-
-  // If user just came from workout page after logging
-  if (localStorage.getItem("refreshDashboardWorkout") === "true") {
-    console.log("Detected refresh flag — reloading next workout...");
+  try {
     await loadNextWorkout(user);
-    localStorage.removeItem("refreshDashboardWorkout");
-  }
 
-  await loadDailyQuest(user);
+    // If user just came from workout page after logging
+    if (localStorage.getItem("refreshDashboardWorkout") === "true") {
+      console.log("Detected refresh flag — reloading next workout...");
+      await loadNextWorkout(user);
+      localStorage.removeItem("refreshDashboardWorkout");
+    }
+
+    setLoadProgress(90, "Loading daily quests...");
+    await loadDailyQuest(user);
+  } catch (e) {
+    console.error("Error loading quest/workout data:", e);
+  } finally {
+    finishLoading();
+  }
 });
 
 // 💧 Water Tracker Logic
@@ -323,13 +416,13 @@ addWaterBtn.addEventListener("click", () => {
     localStorage.setItem("lastWaterDate", today);
     waterCountEl.textContent = waterCount;
   } else {
-    alert("💧 You've reached your daily goal of 10 glasses!");
+    window.showToast("💧 You've reached your daily goal of 10 glasses!", "success");
   }
 });
 
 // Optional reminder every 2 hours
 setInterval(() => {
-  alert("💧 Time to drink some water!");
+  window.showToast("💧 Time to drink some water!", "info");
 }, 2 * 60 * 60 * 1000); // every 2 hours
 
 
@@ -360,27 +453,4 @@ const restInput = document.getElementById("restInput");
 //     }
 //   }, 1000);
 // });
-document.addEventListener("DOMContentLoaded", () => {
-  const hamburgerBtn = document.getElementById("hamburger-btn");
-  const hamburgerMenu = document.getElementById("hamburger-menu");
-  const closeBtn = document.getElementById("close-btn");
-
-  if (!hamburgerBtn || !hamburgerMenu || !closeBtn) {
-    console.error("❌ Hamburger menu elements not found in DOM.");
-    return;
-  }
-
-  hamburgerBtn.addEventListener("click", () => {
-    hamburgerMenu.classList.add("show");
-    console.log("✅ Menu opened");
-  });
-
-  closeBtn.addEventListener("click", () => {
-    hamburgerMenu.classList.remove("show");
-    console.log("❌ Menu closed");
-  });
-
-  document.querySelectorAll(".menu-buttons button").forEach(btn => {
-    btn.addEventListener("click", () => hamburgerMenu.classList.remove("show"));
-  });
-});
+// Dead hamburger menu listeners removed. Bottom nav handles menu actions.

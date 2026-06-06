@@ -4,26 +4,92 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Workout Plan | Gymify</title>
+  <link rel="stylesheet" href="css/global.css" />
   <link rel="stylesheet" href="css/plan.css" />
 </head>
 <body>
-  <div class="container">
-    <h2>🏋️‍♂️ Weekly Workout Plan</h2>
+  <div class="container" style="margin-top: 20px;">
+    <h2 class="text-center glow-text" style="margin-bottom: 25px;">📅 Weekly Workout Plan</h2>
+    
+    <button type="button" id="ai-wizard-btn" class="btn" style="width: 100%; background: linear-gradient(135deg, var(--color-accent) 0%, #0891b2 100%); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2); margin-bottom: 20px;">🪄 Generate Split with AI</button>
+
     <form id="plan-form">
       <div id="days-container"></div>
-      <button type="submit">💾 Save Plan</button>
+      <button type="submit" class="btn" style="width: 100%; margin-top: 15px; margin-bottom: 15px;">💾 Save Plan</button>
     </form>
-    <button type="button" id="export-btn">📤 Export Plan</button>
+    
+    <div class="glass-card">
+      <h3 style="font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">📤 Export Your Plan</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">Export your current plan as an encrypted code to share with friends so they can copy your workout routine.</p>
+      <button type="button" id="export-btn" class="btn btn-secondary" style="width: 100%;">📤 Copy Share Code</button>
+    </div>
 
-    <h3 style="text-align:center; color:#66fcf1;">📥 Import Plan</h3>
-    <textarea id="import-box" placeholder="Paste JSON plan code here..."></textarea>
-    <button type="button" id="import-btn">📥 Import</button>
+    <div class="glass-card">
+      <h3 style="font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">📥 Import Workout Plan</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">Paste a share code from a friend below to overwrite your current weekly routine.</p>
+      <textarea id="import-box" placeholder="Paste plan code here..." style="height: 80px; font-family: monospace; font-size: 11px;"></textarea>
+      <button type="button" id="import-btn" class="btn" style="width: 100%; margin-top: 5px;">📥 Import & Apply</button>
+    </div>
 
-    <div id="status"></div>
-    <button id="back-btn">⬅ Back to Dashboard</button>
+    <div id="status" style="margin: 15px 0; font-size: 14px; text-align: center;"></div>
+    
+    <button id="back-btn" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">⬅ Back to Dashboard</button>
   </div>
 
-  <!-- Only import plan.js - it will import firebase-config.js -->
+  <!-- AI Generator Modal -->
+  <div id="aiModal" class="modal">
+    <div class="modal-content" style="max-width: 420px;">
+      <h3 class="glow-text">🪄 AI Workout Generator</h3>
+      
+      <!-- Step 1: Experience -->
+      <div id="ai-step-1" class="ai-step">
+        <p style="color: var(--text-secondary); margin-top: 5px; margin-bottom: 20px; font-size: 13px;">Choose your fitness experience level:</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" class="btn btn-secondary ai-opt-btn" data-step="1" data-type="level" data-val="Beginner" style="width: 100%; text-align: left;">🟢 Beginner (0-6 months)</button>
+          <button type="button" class="btn btn-secondary ai-opt-btn" data-step="1" data-type="level" data-val="Intermediate" style="width: 100%; text-align: left;">🟡 Intermediate (6-24 months)</button>
+          <button type="button" class="btn btn-secondary ai-opt-btn" data-step="1" data-type="level" data-val="Advanced" style="width: 100%; text-align: left;">🔴 Advanced (2+ years)</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Goal -->
+      <div id="ai-step-2" class="ai-step" style="display: none;">
+        <p style="color: var(--text-secondary); margin-top: 5px; margin-bottom: 20px; font-size: 13px;">Select your primary training focus:</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" class="btn btn-secondary ai-opt-btn" data-step="2" data-type="goal" data-val="Hypertrophy" style="width: 100%; text-align: left;">💪 Build Muscle (Hypertrophy)</button>
+          <button type="button" class="btn btn-secondary ai-opt-btn" data-step="2" data-type="goal" data-val="Strength" style="width: 100%; text-align: left;">⚡ Increase Strength & Power</button>
+          <button type="button" class="btn btn-secondary ai-opt-btn" data-step="2" data-type="goal" data-val="Endurance" style="width: 100%; text-align: left;">🫁 Endurance & Cardio Tone</button>
+        </div>
+        <button type="button" class="btn btn-secondary ai-prev-btn" data-prev="1" style="width: 100%; margin-top: 15px; font-size: 12px; padding: 8px;">⬅ Back</button>
+      </div>
+
+      <!-- Step 3: Days per week -->
+      <div id="ai-step-3" class="ai-step" style="display: none;">
+        <p style="color: var(--text-secondary); margin-top: 5px; margin-bottom: 20px; font-size: 13px;">How many days per week can you lift?</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" class="btn btn-secondary ai-opt-btn" data-step="3" data-type="days" data-val="3" style="width: 100%; text-align: left;">📅 3 Days (Full Body)</button>
+          <button type="button" class="btn btn-secondary ai-opt-btn" data-step="3" data-type="days" data-val="4" style="width: 100%; text-align: left;">📅 4 Days (Upper / Lower)</button>
+          <button type="button" class="btn btn-secondary ai-opt-btn" data-step="3" data-type="days" data-val="5" style="width: 100%; text-align: left;">📅 5 Days (Push / Pull / Legs)</button>
+        </div>
+        <button type="button" class="btn btn-secondary ai-prev-btn" data-prev="2" style="width: 100%; margin-top: 15px; font-size: 12px; padding: 8px;">⬅ Back</button>
+      </div>
+
+      <!-- Step 4: Generate Confirm -->
+      <div id="ai-step-4" class="ai-step" style="display: none;">
+        <p style="color: var(--text-secondary); margin-top: 5px; margin-bottom: 20px; font-size: 13px;">Summary of selections:</p>
+        <div class="card" style="text-align: left; padding: 12px; margin-bottom: 15px; background: rgba(255,255,255,0.03); font-size: 13px; line-height: 1.6; border: 1px solid var(--border-color);">
+          🟢 Level: <strong id="summary-level" style="color:#fff;">-</strong><br>
+          🎯 Goal: <strong id="summary-goal" style="color:#fff;">-</strong><br>
+          📅 Split: <strong id="summary-days" style="color:#fff;">-</strong>
+        </div>
+        <button type="button" id="ai-generate-btn" class="btn" style="width: 100%;">🪄 Generate & Apply Plan</button>
+        <button type="button" class="btn btn-secondary ai-prev-btn" data-prev="3" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;">⬅ Back</button>
+      </div>
+
+      <button id="closeAiModal" class="btn btn-secondary" style="width: 100%; margin-top: 15px; background: none; border: 0; color: var(--text-secondary); font-size: 12px; cursor: pointer; padding: 0;">✕ Cancel</button>
+    </div>
+  </div>
+
   <script type="module" src="js/plan.js"></script>
+  <script type="module" src="js/navigation.js"></script>
 </body>
 </html>

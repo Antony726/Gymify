@@ -6,9 +6,11 @@ const historyContainer = document.getElementById("history-container");
 const backBtn = document.getElementById("back-btn");
 const downloadBtn = document.getElementById("download-pdf-btn");
 
-backBtn.addEventListener("click", () => {
-  window.location.href = "dashboard.html";
-});
+if (backBtn) {
+  backBtn.addEventListener("click", () => {
+    window.location.href = "dashboard.html";
+  });
+}
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -36,10 +38,11 @@ onAuthStateChanged(auth, async (user) => {
       const formattedDate = data.date || new Date(data.timestamp?.toDate()).toLocaleDateString();
 
       logDiv.innerHTML = `
-        <strong>${formattedDate}</strong> - <em>${data.workout}</em><br>
-        🏋️‍♂️ ${data.sets?.map((s) => `Set ${s.set}: ${s.reps} reps × ${s.weight} kg`).join("<br>") || "No set data"}
-        <br><br>
-        📝 Notes: ${data.notes || "—"}
+        <strong>${formattedDate}</strong> - <em>${data.workout}</em>
+        <div class="sets-list">
+          ${data.sets?.map((s) => `Set ${s.set}: <b>${s.reps}</b> reps × <b>${s.weight}</b> kg`).join("<br>") || "No set data"}
+        </div>
+        ${data.notes ? `<div class="notes-box">📝 Notes: ${data.notes}</div>` : ''}
       `;
 
       historyContainer.appendChild(logDiv);

@@ -4,19 +4,70 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Workout History | Gymify</title>
-  <link rel="stylesheet" href="css/history.css" />
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    .log-entry {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 15px;
+      margin-bottom: 12px;
+      transition: all 0.2s ease;
+    }
+    .log-entry:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(6, 182, 212, 0.15);
+    }
+    .log-entry strong {
+      color: #fff;
+      font-size: 15px;
+    }
+    .log-entry em {
+      color: var(--color-accent);
+      font-style: normal;
+      font-weight: 600;
+    }
+    .sets-list {
+      margin-top: 8px;
+      padding-left: 10px;
+      border-left: 2px solid rgba(255, 255, 255, 0.1);
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .notes-box {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+    .history-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+    .history-actions button {
+      flex: 1;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h2>📜 Workout History</h2>
+    <h2 class="text-center glow-text" style="margin-top: 15px; margin-bottom: 15px;">📜 Workout History</h2>
+
+    <div class="history-actions">
+      <button id="download-pdf-btn" style="background: linear-gradient(135deg, var(--color-accent) 0%, #0891b2 100%); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);">📄 Download PDF Report</button>
+    </div>
 
     <div id="history-container">
-      <p>Loading your logs...</p>
+      <p class="text-center" style="color:var(--text-secondary); padding:20px;">Loading your logs...</p>
     </div>
-    <button id="download-pdf-btn">📄 Download PDF</button>
-    <button id="back-btn">⬅ Back to Dashboard</button>
   </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script type="module" src="js/history.js"></script>
+  <script type="module" src="js/navigation.js"></script>
 </body>
 </html>

@@ -3,28 +3,71 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Personal Records</title>
-  <link rel="stylesheet" href="css/weig.css" />
+  <title>Personal Records | Gymify</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    /* Table styles matching glassmorphism theme */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+    }
+    th {
+      background: rgba(6, 182, 212, 0.1);
+      color: var(--color-accent);
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    td {
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover {
+      background: rgba(6, 182, 212, 0.05);
+    }
+    @media (max-width: 450px) {
+      th, td {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h2>🏋️ Personal Records</h2>
-    <table id="personal-records" class="records-table">
-    <thead>
-        <tr>
-        <th>Workout</th>
-        <th>Personal Best (kg)</th>
-        <th>Date</th>
-        </tr>
-    </thead>
-    <tbody id="recordsBody">
-        <tr><td colspan="3">Loading...</td></tr>
-    </tbody>
-    </table>
+    <h2 class="text-center glow-text" style="margin-top: 15px; margin-bottom: 15px;">🏋️ Personal Records</h2>
 
-    <button onclick="window.location.href='dashboard.html'">⬅️ Back to Dashboard</button>
+    <div class="card" style="padding: 10px; overflow-x: auto;">
+      <table id="personal-records">
+        <thead>
+          <tr>
+            <th>Workout</th>
+            <th>Personal Best</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="recordsBody">
+          <tr><td colspan="3" class="text-center" style="color:var(--text-secondary); font-style:italic;">Loading personal bests...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <script type="module" src="js/weight_track.js"></script>
+  <script type="module" src="js/navigation.js"></script>
 </body>
 </html>

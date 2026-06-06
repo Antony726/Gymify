@@ -4,66 +4,520 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🏋️ Profile | Gymify</title>
-  <link rel="stylesheet" href="css/profile.css" />
+  <link rel="stylesheet" href="css/global.css" />
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <style>
+    body { padding-bottom: 80px; }
+
+    .profile-hero {
+      text-align: center;
+      padding: 25px 0 15px;
+    }
+    .profile-hero h2 {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 0%, #22d3ee 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+    .profile-hero p {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    /* Progress Steps */
+    .profile-steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 20px;
+    }
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      border: 2px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    .step-dot.active {
+      border-color: var(--color-accent);
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--color-accent);
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+    }
+    .step-dot.done {
+      border-color: var(--color-success);
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--color-success);
+    }
+    .step-line {
+      width: 30px;
+      height: 2px;
+      background: rgba(255,255,255,0.06);
+      flex-shrink: 0;
+      transition: background 0.3s ease;
+    }
+    .step-line.done {
+      background: var(--color-success);
+    }
+
+    /* Section Cards */
+    .profile-section {
+      background: var(--bg-card);
+      backdrop-filter: blur(var(--blur-amount));
+      -webkit-backdrop-filter: blur(var(--blur-amount));
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-premium);
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .section-title .section-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--color-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* Avatar Grid */
+    .avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 5px;
+    }
+    @media (max-width: 420px) {
+      .avatar-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .avatar-option {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      background: rgba(255, 255, 255, 0.05);
+      object-fit: cover;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .avatar-option:hover {
+      transform: scale(1.1);
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+    .avatar-option.selected {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
+      transform: scale(1.05);
+    }
+
+    /* Live Preview Card */
+    .live-preview {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(9, 13, 22, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 14px 16px;
+      border-radius: 16px;
+      margin-top: 12px;
+    }
+    .preview-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(6, 182, 212, 0.2);
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.03);
+    }
+    .preview-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .preview-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .preview-detail {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .preview-badges {
+      display: flex;
+      gap: 6px;
+      margin-top: 5px;
+    }
+    .preview-badge {
+      font-size: 8px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .preview-badge.cyan {
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--color-accent);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+    .preview-badge.green {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--color-success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    /* Custom Dropdown Replacement */
+    .custom-dropdown {
+      position: relative;
+      width: 100%;
+    }
+    .dropdown-trigger {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: #fff;
+      font-family: var(--font-family);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+      margin: 8px 0 16px 0;
+      user-select: none;
+    }
+    .dropdown-trigger:hover, .dropdown-trigger.open {
+      border-color: var(--color-accent);
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .dropdown-trigger .arrow {
+      font-size: 10px;
+      color: var(--text-secondary);
+      transition: transform 0.2s ease;
+    }
+    .dropdown-trigger.open .arrow {
+      transform: rotate(180deg);
+    }
+    .dropdown-list {
+      position: absolute;
+      top: calc(100% - 10px);
+      left: 0;
+      right: 0;
+      background: rgba(13, 21, 37, 0.97);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 14px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 500;
+      display: none;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      padding: 6px;
+    }
+    .dropdown-list.open {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .dropdown-item {
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.15s ease;
+    }
+    .dropdown-item:hover {
+      background: rgba(6, 182, 212, 0.08);
+      color: #fff;
+    }
+    .dropdown-item.selected {
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+    .dropdown-item.add-new {
+      color: var(--color-success);
+      border-top: 1px solid var(--border-color);
+      margin-top: 4px;
+      padding-top: 10px;
+    }
+
+    /* Field Group Row */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 400px) {
+      .field-row { grid-template-columns: 1fr; }
+    }
+
+    /* Location Widget */
+    .location-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .location-row input { flex: 1; }
+    .detect-btn {
+      padding: 12px !important;
+      margin-top: 8px;
+      min-width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      border-radius: 12px;
+    }
+    .detect-btn.loading {
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    /* Save Button */
+    .save-profile-btn {
+      width: 100%;
+      margin-top: 5px;
+      font-size: 16px;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--color-accent) 0%, #6366f1 100%) !important;
+      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3) !important;
+      font-weight: 700;
+      border-radius: 14px;
+    }
+    .save-profile-btn:hover {
+      box-shadow: 0 6px 25px rgba(6, 182, 212, 0.5) !important;
+    }
+
+    /* QR Section */
+    .qr-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 22px;
+    }
+    #qrcode {
+      padding: 14px;
+      background: #fff;
+      border-radius: 14px;
+      display: inline-block;
+      margin-top: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+    #qrcode img { display: block; }
+
+    /* Birthday Msg */
+    .birthday-msg {
+      margin: 15px 0;
+      padding: 12px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px dashed var(--color-warning);
+      border-radius: 12px;
+      font-size: 1.1rem;
+      color: var(--color-warning);
+      font-weight: 600;
+      text-align: center;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.02); }
+      100% { opacity: 0.8; transform: scale(1); }
+    }
+    .confetti-piece {
+      position: fixed;
+      top: -10px;
+      width: 10px;
+      height: 10px;
+      opacity: 0.9;
+      animation: fall 3s linear forwards;
+      z-index: 99999;
+      border-radius: 50%;
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>💪 Your Gymify Profile</h2>
-
-    <!-- Avatar Selection -->
-    <div class="avatar-section">
-      <h3>🧑 Choose Your Avatar</h3>
-      <div id="avatarGrid" class="avatar-grid"></div>
+  <div class="container" style="margin-top: 15px;">
+    <!-- Hero Header -->
+    <div class="profile-hero">
+      <h2>⚙️ Your Gymify Profile</h2>
+      <p>Set up your character card, gym, and share your QR.</p>
     </div>
 
-    <!-- Profile Form -->
+    <!-- Progress Steps -->
+    <div class="profile-steps">
+      <div class="step-dot active" id="step1">1</div>
+      <div class="step-line" id="line1"></div>
+      <div class="step-dot" id="step2">2</div>
+      <div class="step-line" id="line2"></div>
+      <div class="step-dot" id="step3">3</div>
+      <div class="step-line" id="line3"></div>
+      <div class="step-dot" id="step4">4</div>
+    </div>
+
     <form id="profileForm">
-      <label>👤 Username</label>
-      <input type="text" id="username" placeholder="Your name" required />
+      <!-- Section 1: Avatar -->
+      <div class="profile-section" id="section-avatar">
+        <div class="section-title">
+          <span class="section-num">1</span>
+          Choose Your Avatar
+        </div>
+        <div id="avatarGrid" class="avatar-grid"></div>
 
-      <label>🏋️ Gym Name</label>
-      <select id="gymSelect">
-        <option value="">Select your gym...</option>
-      </select>
-      <button type="button" id="addGymBtn" class="secondary-btn">➕ Add New Gym</button>
+        <!-- Live Preview -->
+        <div class="live-preview">
+          <img src="assets/avatars/avatar1.jpg" alt="Preview" class="preview-avatar" id="previewAvatarImg">
+          <div class="preview-info">
+            <div class="preview-name" id="previewName">GymBro</div>
+            <div class="preview-detail" id="previewGym">No gym selected</div>
+            <div class="preview-badges">
+              <span class="preview-badge cyan">LVL.1</span>
+              <span class="preview-badge green" id="previewGoalBadge">Stay Fit</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <label>📍 Area</label>
-      <input type="text" id="gymArea" placeholder="Auto-filled or add manually" />
+      <!-- Section 2: Identity -->
+      <div class="profile-section" id="section-identity">
+        <div class="section-title">
+          <span class="section-num">2</span>
+          Identity & Details
+        </div>
+        <label for="username">👤 Username</label>
+        <input type="text" id="username" placeholder="Your name" required />
 
-      <label>🎂 Date of Birth</label>
-      <input type="date" id="dob" />
+        <div class="field-row">
+          <div>
+            <label for="dob">🎂 Date of Birth</label>
+            <input type="date" id="dob" />
+          </div>
+          <div>
+            <label for="fitnessGoal">🎯 Fitness Goal</label>
+            <input type="text" id="fitnessGoal" placeholder="Bulking, Cutting" />
+          </div>
+        </div>
 
-      <label>🎧 Favorite Music</label>
-      <input type="text" id="favMusic" placeholder="Optional (e.g. Beast Mode - Anirudh)" />
+        <label for="favMusic">🎧 Favorite Music</label>
+        <input type="text" id="favMusic" placeholder="e.g. Beast Mode - Anirudh" />
+      </div>
 
-      <label>🎯 Fitness Goal</label>
-      <input type="text" id="fitnessGoal" placeholder="Optional (e.g. Bulking, Cutting)" />
+      <!-- Section 3: Gym & Location -->
+      <div class="profile-section" id="section-gym">
+        <div class="section-title">
+          <span class="section-num">3</span>
+          Gym & Location
+        </div>
 
-      <button type="submit" class="save-btn">💾 Save Profile</button>
+        <label>🏋️ Gym Name</label>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <div class="custom-dropdown" style="flex: 1;">
+            <div class="dropdown-trigger" id="gymDropdownTrigger">
+              <span id="gymDropdownLabel">Select your gym...</span>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="dropdown-list" id="gymDropdownList"></div>
+          </div>
+          <button type="button" id="addGymBtn" class="btn btn-secondary" style="padding: 12px; margin-top: 8px; min-width: 44px; height: 44px;">➕</button>
+        </div>
+        <!-- Hidden select for form value -->
+        <select id="gymSelect" style="display: none;">
+          <option value="">Select your gym...</option>
+        </select>
+
+        <label for="gymArea">📍 Area</label>
+        <div class="location-row">
+          <input type="text" id="gymArea" placeholder="Auto-detect or type manually" />
+          <button type="button" id="detectLocationBtn" class="btn btn-secondary detect-btn" title="Detect my location">📍</button>
+        </div>
+      </div>
+
+      <!-- Section 4: Save -->
+      <div class="profile-section" id="section-save">
+        <div class="section-title">
+          <span class="section-num">4</span>
+          Save & Share
+        </div>
+        <button type="submit" class="save-profile-btn btn">💾 Save Profile</button>
+      </div>
     </form>
 
-    <div id="birthdayMsg" class="birthday-msg"></div>
+    <div id="birthdayMsg" class="birthday-msg" style="display: none;"></div>
 
-    <div class="qr-section">
-      <h3>🎫 Your Gymify QR</h3>
+    <!-- QR Section -->
+    <div class="profile-section qr-section">
+      <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px;">🎫 Your Gymify QR</div>
+      <p style="font-size: 11px; color: var(--text-secondary); text-align: center; margin-bottom: 5px;">Share this QR with gym bros!</p>
       <div id="qrcode"></div>
     </div>
 
-    <button class="back-btn" onclick="window.location.href='dashboard.html'">⬅ Back</button>
+    <button class="back-btn btn btn-secondary" onclick="window.location.href='dashboard.html'" style="width: 100%; margin-top: 5px; margin-bottom: 10px;">⬅ Back to Dashboard</button>
   </div>
 
   <!-- Add Gym Modal -->
   <div id="addGymModal" class="modal">
     <div class="modal-content">
-      <h3>➕ Add New Gym</h3>
-      <input type="text" id="newGymName" placeholder="Gym Name" />
-      <input type="text" id="newGymArea" placeholder="Gym Area" />
-      <button id="saveGymBtn">Save</button>
-      <button id="closeModal">Cancel</button>
+      <h3 class="glow-text">➕ Add New Gym</h3>
+      <div style="text-align: left; margin-bottom: 15px;">
+        <label for="newGymName">Gym Name</label>
+        <input type="text" id="newGymName" placeholder="e.g. Muscle Mania" />
+      </div>
+      <div style="text-align: left; margin-bottom: 20px;">
+        <label for="newGymArea">Gym Area</label>
+        <input type="text" id="newGymArea" placeholder="e.g. Downtown" />
+      </div>
+      <div class="modal-buttons">
+        <button type="button" id="saveGymBtn" class="btn">Save</button>
+        <button type="button" id="closeModal" class="btn btn-secondary">Cancel</button>
+      </div>
     </div>
   </div>
 
   <script type="module" src="js/profile.js"></script>
+  <script type="module" src="js/navigation.js"></script>
 </body>
 </html>

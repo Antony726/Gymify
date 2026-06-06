@@ -3,407 +3,125 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gymify Body Heatmap</title>
+  <title>Muscle Heatmap | Gymify</title>
+  <link rel="stylesheet" href="css/global.css" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
-    color: #f0f0f0;
-    min-height: 100vh;
-    padding: 20px;
-    }
-
-
-    .container {
-    max-width: 80%;
-    margin: 0 auto;
-    background: #1f2937;
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    header h2 {
-    color: #66fcf1;
-    font-size: 30px;
-    margin-bottom: 10px;
-    }
-
-    header p {
-      color: #ffffff;
-      font-size: 16px;
-    }
-
-    .legend {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin: 20px 0;
-      flex-wrap: wrap;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .legend-color {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      border: 2px solid #ddd;
-    }
-
-
-    .legend-text {
-      font-size: 14px;
-      color: #ffffff;
-      font-weight: 500;
-    }
-
-    .body-container {
-      display: flex;
-      justify-content: center;
-      gap: 50px;
-      margin: 30px 0;
-      flex-wrap: wrap;
-    }
-
-    .body-view {
-      text-align: center;
-    }
-
-    .body-view h3 {
-      color: #667eea;
-      margin-bottom: 15px;
-      font-size: 20px;
-    }
-
-    svg {
-      max-width: 300px;
-      height: auto;
-      filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.1));
-    }
-
-    .muscle {
-      cursor: pointer;
-      transition: all 0.3s ease;
-      stroke: #333;
-      stroke-width: 2;
-    }
-
-    .muscle:hover {
-      opacity: 0.8;
-      stroke: #fff;
-      stroke-width: 3;
-      filter: brightness(1.1);
-    }
-
-    .info-panel {
-      background: linear-gradient(135deg, #0c1118 0%, #0f172a 100%);
-      color: #f8fafc;
-      border-radius: 15px;
-      padding: 25px;
-      margin-top: 30px;
-      display: none;
-      animation: slideIn 0.3s ease;
-    }
-    .info-card {
-    background: #111827;
-    color: #ffffff;
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-    }
-
-
-    .info-panel.active {
-      display: block;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .info-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .info-header h3 {
-      color: #fbfcff;
-      font-size: 24px;
-    }
-
-    .close-btn {
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s;
-    }
-
-    .close-btn:hover {
-      background: #c82333;
-      transform: scale(1.05);
-    }
-
-    .info-grid {
+    .body-card-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-    }
-
-    /* .info-card {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    } */
-
-    .info-label {
-      font-size: 12px;
-      color: #d3d3d3;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-    }
-
-    .info-value {
-      font-size: 18px;
-      color: #cfcfcf;
-      font-weight: 600;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 5px 15px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      margin-top: 5px;
-    }
-
-        .status-fresh {
-    background: #16a34a;
-    color: #fff;
-    }
-    .status-optimal {
-    background: #2563eb;
-    color: #fff;
-    }
-    .status-recovery {
-    background: #facc15;
-    color: #000;
-    }
-    .status-neglected {
-    background: #ef4444;
-    color: #fff;
-    }
-
-
-    .back-btn {
-    background: linear-gradient(135deg, #66fcf1, #45a29e);
-    /* margin-left: 50%; */
-    /* text-align: center; */
-    border-radius: 10px;
-    border: none;
-    height: 50px;
-    width: 250px;
-    color: #0d1117;
-    display: block;
-    margin: 0 auto;  
-    }
-    .back-btn:hover {
-    background: linear-gradient(135deg, #45a29e, #66fcf1);
-    }
-
-    .stats-summary {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 15px;
       margin: 20px 0;
-    }
-
-    .stat-box {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
-    }
-
-    .stat-box h4 {
-      font-size: 14px;
-      opacity: 0.9;
-      margin-bottom: 5px;
-    }
-
-    .stat-box p {
-      font-size: 28px;
-      font-weight: bold;
-    }
-
-    @media (max-width: 768px) {
-    .container {
-    width: 95%;
-    margin: 10px auto;
-    padding: 15px;
-    }
-
-    .container {
-        padding: 20px;
-        border-radius: 12px;
-    }
-
-    header h2 {
-        font-size: 24px;
-    }
-
-    .body-container {
-        flex-direction: column;
-        align-items: center;
-        gap: 25px;
-    }
-
-    svg {
-        max-width: 220px;
-    }
-
-    .info-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .stat-box p {
-        font-size: 22px;
-    }
-
-    .back-btn {
-        padding: 12px;
-        font-size: 14px;
-    }
     }
     @media (max-width: 480px) {
-        
-    .container {
-        width: 100%;
-        padding: 10px;
-        border-radius: 10px;
+      .body-card-container {
+        grid-template-columns: 1fr;
+      }
     }
-
-    header h2 {
-        font-size: 20px;
+    .body-view {
+      text-align: center;
+      padding: 15px;
     }
-
-    header p {
-        font-size: 13px;
+    .body-view h3 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
     }
+    svg {
+      width: 100%;
+      max-width: 200px;
+      height: auto;
+      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.3));
     }
-
-
+    .muscle {
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      stroke: #090d16;
+      stroke-width: 1.5;
+    }
+    .muscle:hover {
+      filter: brightness(1.2) saturate(1.2);
+      stroke: #fff;
+      stroke-width: 2;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h2>🗺️ Muscle Training Heatmap</h2>
-      <p>Visualize your training balance and identify neglected muscle groups</p>
-    </header>
+  <div class="container" style="margin-top: 20px; padding-bottom: 90px;">
+    <h2 class="text-center glow-text" style="margin-bottom: 25px;">🗺️ Muscle Heatmap</h2>
 
-    <div class="legend">
-      <div class="legend-item">
-        <div class="legend-color" style="background: #4caf50;"></div>
-        <span class="legend-text">Fresh (0-2 days)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: #2196f3;"></div>
-        <span class="legend-text">Optimal (Now’s the best time to train again) (3-5 days)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: #ff9800;"></div>
-        <span class="legend-text">Recovery (6-7 days)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: #f44336;"></div>
-        <span class="legend-text">Neglected (8+ days)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: #9e9e9e;"></div>
-        <span class="legend-text">Never Trained</span>
+    <!-- Color Legend -->
+    <div class="glass-card" style="padding: 15px;">
+      <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Color Legend</h3>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 14px; height: 14px; border-radius: 4px; background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);"></div>
+          <span>Fresh (0-2d)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 14px; height: 14px; border-radius: 4px; background: #06b6d4; box-shadow: 0 0 6px rgba(6, 182, 212, 0.3);"></div>
+          <span>Optimal (3-5d)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 14px; height: 14px; border-radius: 4px; background: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.3);"></div>
+          <span>Recovery (6-7d)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 14px; height: 14px; border-radius: 4px; background: #f43f5e; box-shadow: 0 0 6px rgba(244, 63, 94, 0.3);"></div>
+          <span>Neglected (8d+)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; grid-column: span 2;">
+          <div style="width: 14px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color);"></div>
+          <span>Never Trained</span>
+        </div>
       </div>
     </div>
 
-    <div class="stats-summary" id="statsSummary">
-      <div class="stat-box">
-        <h4>Muscles Trained</h4>
-        <p id="trainedCount">-</p>
+    <!-- Stats Summary Row -->
+    <div class="stats-row" id="statsSummary" style="grid-template-columns: repeat(3, 1fr); margin: 15px 0; display: grid; gap: 10px;">
+      <div class="card text-center" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.15); margin: 0; padding: 12px 6px;">
+        <h4 style="font-size: 10px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;">Trained</h4>
+        <span id="trainedCount" style="font-size: 18px; font-weight: 800; color: var(--color-success);">-</span>
       </div>
-      <div class="stat-box">
-        <h4>Most Trained</h4>
-        <p id="mostTrained">-</p>
+      <div class="card text-center" style="background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.15); margin: 0; padding: 12px 6px; overflow: hidden;">
+        <h4 style="font-size: 10px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;">Fav Muscle</h4>
+        <span id="mostTrained" style="font-size: 12px; font-weight: 800; color: var(--color-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">-</span>
       </div>
-      <div class="stat-box">
-        <h4>Needs Attention</h4>
-        <p id="needsAttention">-</p>
+      <div class="card text-center" style="background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.15); margin: 0; padding: 12px 6px;">
+        <h4 style="font-size: 10px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;">Neglected</h4>
+        <span id="needsAttention" style="font-size: 18px; font-weight: 800; color: var(--color-danger);">-</span>
       </div>
     </div>
 
-    <div class="body-container">
+    <!-- Interactive Heatmap Panel -->
+    <div class="glass-card body-card-container">
       <div class="body-view">
         <h3>Front View</h3>
         <svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
           <!-- Head -->
-          <circle cx="100" cy="25" r="20" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
-          
+          <circle cx="100" cy="25" r="20" fill="rgba(255,255,255,0.06)" stroke="var(--border-color)" stroke-width="1.5"/>
           <!-- Neck -->
-          <rect x="92" y="40" width="16" height="15" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
-          
+          <rect x="92" y="40" width="16" height="15" fill="rgba(255,255,255,0.06)" stroke="var(--border-color)" stroke-width="1.5"/>
           <!-- Shoulders -->
-          <ellipse id="shoulders" class="muscle" cx="70" cy="65" rx="20" ry="15" fill="#9e9e9e"/>
-          <ellipse id="shouldersR" class="muscle" cx="130" cy="65" rx="20" ry="15" fill="#9e9e9e"/>
-          
+          <ellipse id="shoulders" class="muscle" cx="70" cy="65" rx="20" ry="15" fill="rgba(255, 255, 255, 0.08)"/>
+          <ellipse id="shouldersR" class="muscle" cx="130" cy="65" rx="20" ry="15" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Chest -->
-          <ellipse id="chest" class="muscle" cx="100" cy="85" rx="35" ry="25" fill="#9e9e9e"/>
-          
+          <ellipse id="chest" class="muscle" cx="100" cy="85" rx="35" ry="25" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Abs -->
-          <rect id="abs" class="muscle" x="85" y="105" width="30" height="45" rx="8" fill="#9e9e9e"/>
-          
+          <rect id="abs" class="muscle" x="85" y="105" width="30" height="45" rx="8" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Biceps -->
-          <ellipse id="biceps" class="muscle" cx="55" cy="95" rx="12" ry="20" fill="#9e9e9e"/>
-          <ellipse id="bicepsR" class="muscle" cx="145" cy="95" rx="12" ry="20" fill="#9e9e9e"/>
-          
+          <ellipse id="biceps" class="muscle" cx="55" cy="95" rx="12" ry="20" fill="rgba(255, 255, 255, 0.08)"/>
+          <ellipse id="bicepsR" class="muscle" cx="145" cy="95" rx="12" ry="20" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Forearms -->
-          <rect id="forearms" class="muscle" x="48" y="115" width="12" height="35" rx="6" fill="#9e9e9e"/>
-          <rect id="forearmsR" class="muscle" x="140" y="115" width="12" height="35" rx="6" fill="#9e9e9e"/>
-          
+          <rect id="forearms" class="muscle" x="48" y="115" width="12" height="35" rx="6" fill="rgba(255, 255, 255, 0.08)"/>
+          <rect id="forearmsR" class="muscle" x="140" y="115" width="12" height="35" rx="6" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Quads -->
-          <rect id="quads" class="muscle" x="82" y="155" width="16" height="60" rx="8" fill="#9e9e9e"/>
-          <rect id="quadsR" class="muscle" x="102" y="155" width="16" height="60" rx="8" fill="#9e9e9e"/>
-          
+          <rect id="quads" class="muscle" x="82" y="155" width="16" height="60" rx="8" fill="rgba(255, 255, 255, 0.08)"/>
+          <rect id="quadsR" class="muscle" x="102" y="155" width="16" height="60" rx="8" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Calves -->
-          <ellipse id="calves" class="muscle" cx="90" cy="235" rx="8" ry="25" fill="#9e9e9e"/>
-          <ellipse id="calvesR" class="muscle" cx="110" cy="235" rx="8" ry="25" fill="#9e9e9e"/>
+          <ellipse id="calves" class="muscle" cx="90" cy="235" rx="8" ry="25" fill="rgba(255, 255, 255, 0.08)"/>
+          <ellipse id="calvesR" class="muscle" cx="110" cy="235" rx="8" ry="25" fill="rgba(255, 255, 255, 0.08)"/>
         </svg>
       </div>
 
@@ -411,68 +129,68 @@
         <h3>Back View</h3>
         <svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
           <!-- Head -->
-          <circle cx="100" cy="25" r="20" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
-          
+          <circle cx="100" cy="25" r="20" fill="rgba(255,255,255,0.06)" stroke="var(--border-color)" stroke-width="1.5"/>
           <!-- Neck -->
-          <rect x="92" y="40" width="16" height="15" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
-          
+          <rect x="92" y="40" width="16" height="15" fill="rgba(255,255,255,0.06)" stroke="var(--border-color)" stroke-width="1.5"/>
           <!-- Traps -->
-          <path id="traps" class="muscle" d="M 75 55 Q 100 60 125 55 L 120 75 Q 100 80 80 75 Z" fill="#9e9e9e"/>
-          
+          <path id="traps" class="muscle" d="M 75 55 Q 100 60 125 55 L 120 75 Q 100 80 80 75 Z" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Upper Back -->
-          <rect id="upperback" class="muscle" x="75" y="75" width="50" height="30" rx="10" fill="#9e9e9e"/>
-          
+          <rect id="upperback" class="muscle" x="75" y="75" width="50" height="30" rx="10" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Lower Back -->
-          <rect id="lowerback" class="muscle" x="80" y="105" width="40" height="35" rx="8" fill="#9e9e9e"/>
-          
+          <rect id="lowerback" class="muscle" x="80" y="105" width="40" height="35" rx="8" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Triceps -->
-          <ellipse id="triceps" class="muscle" cx="55" cy="95" rx="12" ry="22" fill="#9e9e9e"/>
-          <ellipse id="tricepsR" class="muscle" cx="145" cy="95" rx="12" ry="22" fill="#9e9e9e"/>
-          
+          <ellipse id="triceps" class="muscle" cx="55" cy="95" rx="12" ry="22" fill="rgba(255, 255, 255, 0.08)"/>
+          <ellipse id="tricepsR" class="muscle" cx="145" cy="95" rx="12" ry="22" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Glutes -->
-          <ellipse id="glutes" class="muscle" cx="100" cy="150" rx="30" ry="20" fill="#9e9e9e"/>
-          
+          <ellipse id="glutes" class="muscle" cx="100" cy="150" rx="30" ry="20" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Hamstrings -->
-          <rect id="hamstrings" class="muscle" x="82" y="165" width="16" height="50" rx="8" fill="#9e9e9e"/>
-          <rect id="hamstringsR" class="muscle" x="102" y="165" width="16" height="50" rx="8" fill="#9e9e9e"/>
-          
+          <rect id="hamstrings" class="muscle" x="82" y="165" width="16" height="50" rx="8" fill="rgba(255, 255, 255, 0.08)"/>
+          <rect id="hamstringsR" class="muscle" x="102" y="165" width="16" height="50" rx="8" fill="rgba(255, 255, 255, 0.08)"/>
           <!-- Calves -->
-          <ellipse id="calvesBack" class="muscle" cx="90" cy="235" rx="8" ry="25" fill="#9e9e9e"/>
-          <ellipse id="calvesBackR" class="muscle" cx="110" cy="235" rx="8" ry="25" fill="#9e9e9e"/>
+          <ellipse id="calvesBack" class="muscle" cx="90" cy="235" rx="8" ry="25" fill="rgba(255, 255, 255, 0.08)"/>
+          <ellipse id="calvesBackR" class="muscle" cx="110" cy="235" rx="8" ry="25" fill="rgba(255, 255, 255, 0.08)"/>
         </svg>
       </div>
     </div>
 
-    <div class="info-panel" id="infoPanel">
-      <div class="info-header">
-        <h3 id="muscleName">-</h3>
-        <button class="close-btn" onclick="document.getElementById('infoPanel').classList.remove('active')">✕ Close</button>
-      </div>
-      <div class="info-grid">
-        <div class="info-card">
-          <div class="info-label">Last Trained</div>
-          <div class="info-value" id="lastTrained">-</div>
+    <!-- Muscle Info Modal -->
+    <div class="modal" id="muscleModal" style="transition: opacity 0.25s ease; opacity: 0;">
+      <div class="modal-content" style="max-width: 340px; border-color: var(--color-accent); box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 15px;">
+          <h3 id="muscleName" style="font-size: 18px; color: #fff; margin: 0;">-</h3>
+          <span id="closeMuscleModal" style="cursor: pointer; font-size: 18px; color: var(--text-secondary); font-weight: bold; padding: 4px 8px;">✕</span>
         </div>
-        <div class="info-card">
-          <div class="info-label">Days Since</div>
-          <div class="info-value" id="daysSince">-</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Total Workouts</div>
-          <div class="info-value" id="totalWorkouts">-</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Status</div>
-          <div class="info-value">
-            <span class="status-badge" id="muscleStatus">-</span>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 12px; text-align: left;">
+          
+          <div style="background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Status</span>
+            <span id="muscleStatus" style="font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600; text-transform: uppercase;">-</span>
           </div>
+          
+          <div style="background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Last Trained</span>
+            <span id="lastTrained" style="font-size: 14px; color: #fff; font-weight: 600;">-</span>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Days Since</span>
+            <span id="daysSince" style="font-size: 14px; color: #fff; font-weight: 600;">-</span>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Total Workouts</span>
+            <span id="totalWorkouts" style="font-size: 14px; color: #fff; font-weight: 600;">-</span>
+          </div>
+          
         </div>
+        <button id="modalOkBtn" class="btn" style="width: 100%; margin-top: 20px; font-size: 14px; padding: 12px;">Awesome</button>
       </div>
     </div>
-
-    <button onclick="window.location.href='dashboard.html'" class="back-btn">⬅️ Back to Dashboard</button>
+ 
+    <button onclick="window.location.href='dashboard.html'" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">⬅ Back to Dashboard</button>
   </div>
 
+  <script type="module" src="js/navigation.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
@@ -535,19 +253,19 @@
     }
 
     function getColor(days) {
-      if (days === null || days === 999) return "#9e9e9e"; // Never trained
-      if (days <= 2) return "#4caf50";  // Fresh
-      if (days <= 5) return "#2196f3";  // Optimal
-      if (days <= 7) return "#ff9800";  // Recovery
-      return "#f44336";                 // Neglected
+      if (days === null || days === 999) return "rgba(255, 255, 255, 0.08)"; // Never trained
+      if (days <= 2) return "#10b981";  // Fresh (emerald)
+      if (days <= 5) return "#06b6d4";  // Optimal (cyan)
+      if (days <= 7) return "#f59e0b";  // Recovery (amber)
+      return "#f43f5e";                 // Neglected (rose)
     }
 
     function getStatus(days) {
-      if (days === null || days === 999) return { text: "Never Trained", class: "status-neglected" };
-      if (days <= 2) return { text: "Fresh", class: "status-fresh" };
-      if (days <= 5) return { text: "Optimal", class: "status-optimal" };
-      if (days <= 7) return { text: "Recovery", class: "status-recovery" };
-      return { text: "Neglected", class: "status-neglected" };
+      if (days === null || days === 999) return { text: "Never Trained", style: "background:rgba(255,255,255,0.06); color:var(--text-secondary);" };
+      if (days <= 2) return { text: "Fresh", style: "background:rgba(16, 185, 129, 0.15); color:#10b981;" };
+      if (days <= 5) return { text: "Optimal", style: "background:rgba(6, 182, 212, 0.15); color:#06b6d4;" };
+      if (days <= 7) return { text: "Recovery", style: "background:rgba(245, 158, 11, 0.15); color:#f59e0b;" };
+      return { text: "Neglected", style: "background:rgba(244, 63, 94, 0.15); color:#f43f5e;" };
     }
 
     async function loadMuscleData() {
@@ -596,8 +314,8 @@
         const trainedMuscles = Object.keys(muscleActivity).length;
         document.getElementById("trainedCount").textContent = trainedMuscles;
 
-        const mostTrained = Object.entries(muscleCount).sort((a, b) => b[1] - a[1])[0];
-        document.getElementById("mostTrained").textContent = mostTrained ? mostTrained[0] : "-";
+        const mostTrainedEntry = Object.entries(muscleCount).sort((a, b) => b[1] - a[1])[0];
+        document.getElementById("mostTrained").textContent = mostTrainedEntry ? mostTrainedEntry[0].toUpperCase() : "-";
 
         const neglected = Object.entries(muscleActivity).filter(([m, date]) => {
           const days = Math.floor((today - new Date(date)) / (1000 * 60 * 60 * 24));
@@ -609,6 +327,22 @@
         console.error("Error loading muscle data:", err);
       }
     }
+
+    // Modal elements and close actions
+    const modal = document.getElementById("muscleModal");
+    const closeBtn = document.getElementById("closeMuscleModal");
+    const okBtn = document.getElementById("modalOkBtn");
+
+    const closeModal = () => {
+      modal.style.opacity = "0";
+      setTimeout(() => { modal.style.display = "none"; }, 150);
+    };
+
+    closeBtn.addEventListener("click", closeModal);
+    okBtn.addEventListener("click", closeModal);
+    modal.addEventListener("click", e => {
+      if (e.target === modal) closeModal();
+    });
 
     // Click handlers
     document.querySelectorAll(".muscle").forEach(el => {
@@ -622,14 +356,15 @@
         document.getElementById("muscleName").textContent = name;
         document.getElementById("lastTrained").textContent = lastDate === "Never" ? "Never" : new Date(lastDate).toLocaleDateString();
         document.getElementById("daysSince").textContent = days === 999 ? "Never" : `${days} days`;
-        document.getElementById("totalWorkouts").textContent = count;
+        document.getElementById("totalWorkouts").textContent = count || 0;
 
         const status = getStatus(days);
         const statusEl = document.getElementById("muscleStatus");
         statusEl.textContent = status.text;
-        statusEl.className = `status-badge ${status.class}`;
+        statusEl.style.cssText = `font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600; text-transform: uppercase; ${status.style}`;
 
-        document.getElementById("infoPanel").classList.add("active");
+        modal.style.display = "flex";
+        setTimeout(() => { modal.style.opacity = "1"; }, 10);
       });
     });
 
