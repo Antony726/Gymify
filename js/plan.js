@@ -3,74 +3,121 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/f
 import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 import { initCustomDropdown, refreshCustomDropdown } from "./custom-dropdown.js";
 
-const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const container = document.getElementById("days-container");
 const form = document.getElementById("plan-form");
 const backBtn = document.getElementById("back-btn");
 
 let userId = null;
+let planType = "days";
+let slotsCount = 3;
+let categoriesList = ["Upper", "Lower", "Push", "Pull", "Legs", "Cardio"];
+let keys = [];
 
-// Build dynamic form for each day with premium accordion styling
-days.forEach(day => {
-  const div = document.createElement("div");
-  div.classList.add("day", "glass-card");
-  div.style.margin = "12px 0";
-  div.innerHTML = `
-    <div class="day-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
-      <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-        📅 <span class="day-title">${day}</span> 
-        <span class="day-badge" style="font-size: 11px; background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); padding: 2px 8px; border-radius: 20px;">Rest</span>
-      </h3>
-      <span class="accordion-arrow" style="transition: transform 0.3s ease; transform: rotate(0deg); font-size: 12px; color: var(--text-secondary);">▼</span>
-    </div>
-    <div class="day-content" style="display: none; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-      <div style="margin-bottom: 12px;">
-        <label style="font-size: 12px; margin-bottom: 6px;">Workout Type</label>
-        <select name="${day}-type" style="margin: 0;">
-          <option value="Rest">Rest Day</option>
-          <option value="Upper">Upper Body</option>
-          <option value="Lower">Lower Body</option>
-          <option value="Push">Push</option>
-          <option value="Pull">Pull</option>
-          <option value="Legs">Legs</option>
-          <option value="Core">Core</option>
-          <option value="Cardio">Cardio</option>
-        </select>
-      </div>
-      <div>
-        <label style="font-size: 12px; margin-bottom: 6px;">Exercises (comma separated)</label>
-        <textarea name="${day}-exercises" placeholder="Bench Press, Dips, Push-ups" style="margin: 0; height: 80px; resize: vertical;"></textarea>
-      </div>
-    </div>
-  `;
-  container.appendChild(div);
-
-  const header = div.querySelector(".day-header");
-  const content = div.querySelector(".day-content");
-  const arrow = div.querySelector(".accordion-arrow");
-  const typeSelect = div.querySelector(`[name="${day}-type"]`);
-  const badge = div.querySelector(".day-badge");
-  initCustomDropdown(typeSelect);
-
-  // Accordion toggle
-  header.addEventListener("click", () => {
-    const isVisible = content.style.display === "block";
-    content.style.display = isVisible ? "none" : "block";
-    arrow.style.transform = isVisible ? "rotate(0deg)" : "rotate(180deg)";
-  });
-
-  // Dynamic Badge update on type change
-  typeSelect.addEventListener("change", () => {
-    badge.textContent = typeSelect.value;
-    if (typeSelect.value === "Rest") {
-      badge.style.background = "rgba(255, 255, 255, 0.08)";
-      badge.style.color = "var(--text-secondary)";
+// Helper function to map AI days workout structure to slots
+function mapDaysPlanToSlots(generatedDaysPlan, count) {
+  // Extract all non-Rest days in order
+  const activeDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    .map(d => ({ day: d, data: generatedDaysPlan[d] }))
+    .filter(item => item.data && item.data.type !== "Rest");
+    
+  const slotsPlan = {};
+  for (let i = 1; i <= count; i++) {
+    const key = `Slot ${i}`;
+    const activeItem = activeDays[i - 1];
+    if (activeItem) {
+      slotsPlan[key] = {
+        type: activeItem.data.type,
+        exercises: activeItem.data.exercises
+      };
     } else {
-      badge.style.background = "rgba(16, 185, 129, 0.15)";
-      badge.style.color = "var(--color-success)";
+      slotsPlan[key] = {
+        type: "Rest",
+        exercises: ""
+      };
     }
+  }
+  return slotsPlan;
+}
+
+// Build dynamic form for each day/slot with premium accordion styling
+function renderPlanForm(type, count, categories, currentPlanData) {
+  container.innerHTML = "";
+
+  keys.forEach(key => {
+    const div = document.createElement("div");
+    div.classList.add("day", "glass-card");
+    div.style.margin = "12px 0";
+    
+    // Display name in UI
+    const displayName = type === "slots" ? `Workout ${key}` : key;
+    
+    // Generate dropdown options dynamically
+    let optionsHtml = `<option value="Rest">Rest Day</option>`;
+    categories.forEach(cat => {
+      optionsHtml += `<option value="${cat}">${cat}</option>`;
+    });
+
+    div.innerHTML = `
+      <div class="day-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+        <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+          ${type === "slots" ? "🔄" : "📅"} <span class="day-title">${displayName}</span> 
+          <span class="day-badge" style="font-size: 11px; background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); padding: 2px 8px; border-radius: 20px;">Rest</span>
+        </h3>
+        <span class="accordion-arrow" style="transition: transform 0.3s ease; transform: rotate(0deg); font-size: 12px; color: var(--text-secondary);">▼</span>
+      </div>
+      <div class="day-content" style="display: none; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 12px; margin-bottom: 6px;">Workout Type</label>
+          <select name="${key}-type" style="margin: 0;">
+            ${optionsHtml}
+          </select>
+        </div>
+        <div>
+          <label style="font-size: 12px; margin-bottom: 6px;">Exercises (comma separated)</label>
+          <textarea name="${key}-exercises" placeholder="Bench Press, Dips, Push-ups" style="margin: 0; height: 80px; resize: vertical;"></textarea>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+
+    const header = div.querySelector(".day-header");
+    const content = div.querySelector(".day-content");
+    const arrow = div.querySelector(".accordion-arrow");
+    const typeSelect = div.querySelector(`[name="${key}-type"]`);
+    const badge = div.querySelector(".day-badge");
+
+    // Populate initial value if found in db
+    if (currentPlanData[key]) {
+      typeSelect.value = currentPlanData[key].type || "Rest";
+      const exercisesTextarea = div.querySelector(`[name="${key}-exercises"]`);
+      exercisesTextarea.value = currentPlanData[key].exercises || "";
+    }
+
+    initCustomDropdown(typeSelect);
+
+    // Accordion toggle
+    header.addEventListener("click", () => {
+      const isVisible = content.style.display === "block";
+      content.style.display = isVisible ? "none" : "block";
+      arrow.style.transform = isVisible ? "rotate(0deg)" : "rotate(180deg)";
+    });
+
+    // Dynamic Badge update on type change
+    typeSelect.addEventListener("change", () => {
+      badge.textContent = typeSelect.value;
+      if (typeSelect.value === "Rest") {
+        badge.style.background = "rgba(255, 255, 255, 0.08)";
+        badge.style.color = "var(--text-secondary)";
+      } else {
+        badge.style.background = "rgba(16, 185, 129, 0.15)";
+        badge.style.color = "var(--color-success)";
+      }
+    });
+
+    // Dispatch change event to set initial badge color correctly
+    typeSelect.dispatchEvent(new Event("change"));
   });
-});
+}
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -79,29 +126,46 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   userId = user.uid;
-  const planRef = doc(db, "users", userId, "data", "plan");
+
+  if (window.GymifyLoader) window.GymifyLoader.show("Loading personalization settings...");
 
   try {
-    const planSnap = await getDoc(planRef);
-    if (planSnap.exists()) {
-      const plan = planSnap.data();
-      days.forEach(day => {
-        const typeSelect = document.querySelector(`[name='${day}-type']`);
-        const exercisesTextarea = document.querySelector(`[name='${day}-exercises']`);
-        
-        if (typeSelect && plan[day]?.type) {
-          typeSelect.value = plan[day].type;
-          refreshCustomDropdown(typeSelect);
-          typeSelect.dispatchEvent(new Event("change"));
-        }
-        if (exercisesTextarea && plan[day]?.exercises) {
-          exercisesTextarea.value = plan[day].exercises;
-        }
-      });
+    // 1. Fetch Personalization settings
+    const personalizeRef = doc(db, "users", userId, "data", "personalization");
+    const personalizeSnap = await getDoc(personalizeRef);
+
+    if (personalizeSnap.exists()) {
+      const pData = personalizeSnap.data();
+      planType = pData.planType || "days";
+      slotsCount = pData.slotsCount || 3;
+      categoriesList = pData.categories || ["Upper", "Lower", "Push", "Pull", "Legs", "Cardio"];
     }
+
+    // Determine layout keys
+    const titleEl = document.querySelector("h2.glow-text");
+    if (planType === "slots") {
+      keys = Array.from({ length: slotsCount }, (_, i) => `Slot ${i + 1}`);
+      if (titleEl) titleEl.textContent = "🔄 Cycle Workout Plan";
+    } else {
+      keys = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      if (titleEl) titleEl.textContent = "📅 Weekly Workout Plan";
+    }
+
+    // 2. Fetch Plan structure
+    const planRef = doc(db, "users", userId, "data", "plan");
+    const planSnap = await getDoc(planRef);
+    let currentPlanData = {};
+    if (planSnap.exists()) {
+      currentPlanData = planSnap.data();
+    }
+
+    // Render forms
+    renderPlanForm(planType, slotsCount, categoriesList, currentPlanData);
   } catch (err) {
-    console.error("🔥 Error loading plan:", err);
+    console.error("🔥 Error loading settings/plan:", err);
     if (window.showToast) window.showToast("⚠️ Failed to load plan data.", "error");
+  } finally {
+    if (window.GymifyLoader) window.GymifyLoader.hide();
   }
 });
 
@@ -114,11 +178,11 @@ form.addEventListener("submit", async (e) => {
   }
 
   const plan = {};
-  days.forEach(day => {
-    const typeSelect = document.querySelector(`[name='${day}-type']`);
-    const exercisesTextarea = document.querySelector(`[name='${day}-exercises']`);
+  keys.forEach(key => {
+    const typeSelect = document.querySelector(`[name='${key}-type']`);
+    const exercisesTextarea = document.querySelector(`[name='${key}-exercises']`);
     
-    plan[day] = {
+    plan[key] = {
       type: typeSelect?.value || "Rest",
       exercises: exercisesTextarea?.value || ""
     };
@@ -192,15 +256,15 @@ importBtn.addEventListener("click", async () => {
     await setDoc(planRef, decodedPlan);
 
     // update UI immediately
-    days.forEach(day => {
-      const typeSelect = document.querySelector(`[name='${day}-type']`);
-      const exercisesTextarea = document.querySelector(`[name='${day}-exercises']`);
+    keys.forEach(key => {
+      const typeSelect = document.querySelector(`[name='${key}-type']`);
+      const exercisesTextarea = document.querySelector(`[name='${key}-exercises']`);
 
-      if (decodedPlan[day]) {
-        typeSelect.value = decodedPlan[day].type || "Rest";
+      if (decodedPlan[key]) {
+        typeSelect.value = decodedPlan[key].type || "Rest";
         refreshCustomDropdown(typeSelect);
         typeSelect.dispatchEvent(new Event("change"));
-        exercisesTextarea.value = decodedPlan[day].exercises || "";
+        exercisesTextarea.value = decodedPlan[key].exercises || "";
       }
     });
 
@@ -266,18 +330,25 @@ if (aiWizardBtn && aiModal) {
   aiGenerateBtn?.addEventListener("click", () => {
     const generated = generatePlan(aiSelections.level, aiSelections.goal, aiSelections.days);
     
-    days.forEach(day => {
-      const typeSelect = document.querySelector(`[name='${day}-type']`);
-      const exercisesTextarea = document.querySelector(`[name='${day}-exercises']`);
+    let finalPlan = {};
+    if (planType === "slots") {
+      finalPlan = mapDaysPlanToSlots(generated, slotsCount);
+    } else {
+      finalPlan = generated;
+    }
+
+    keys.forEach(key => {
+      const typeSelect = document.querySelector(`[name='${key}-type']`);
+      const exercisesTextarea = document.querySelector(`[name='${key}-exercises']`);
       
-      if (generated[day]) {
+      if (finalPlan[key]) {
         if (typeSelect) {
-          typeSelect.value = generated[day].type;
+          typeSelect.value = finalPlan[key].type;
           refreshCustomDropdown(typeSelect);
           typeSelect.dispatchEvent(new Event("change"));
         }
         if (exercisesTextarea) {
-          exercisesTextarea.value = generated[day].exercises;
+          exercisesTextarea.value = finalPlan[key].exercises;
         }
       }
     });
@@ -298,7 +369,8 @@ function showAiStep(stepNum) {
 
 function generatePlan(level, goal, daysCount) {
   const plan = {};
-  days.forEach(d => {
+  const tempDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  tempDays.forEach(d => {
     plan[d] = { type: "Rest", exercises: "" };
   });
 

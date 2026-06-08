@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍎 Diet Planner | Gymify</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    body { padding-bottom: 80px; }
+
+    .diet-hero {
+      text-align: center;
+      padding: 25px 0 15px;
+    }
+    .diet-hero h2 {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 0%, var(--color-accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+    .diet-hero p {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .diet-section {
+      background: var(--bg-card);
+      backdrop-filter: blur(var(--blur-amount));
+      -webkit-backdrop-filter: blur(var(--blur-amount));
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-premium);
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .section-title .num-badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--color-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* Result Dashboard Grid */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    @media (max-width: 480px) {
+      .results-grid { grid-template-columns: 1fr; }
+    }
+    .result-card {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+    .result-card h4 {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .result-card p {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    /* Macro Bar chart styling */
+    .macro-container {
+      margin-top: 15px;
+    }
+    .macro-bar {
+      height: 8px;
+      border-radius: 4px;
+      display: flex;
+      overflow: hidden;
+      margin: 10px 0;
+      background: rgba(255,255,255,0.05);
+    }
+    .macro-fill { height: 100%; }
+    .macro-fill.protein { background: var(--color-accent); width: 30%; }
+    .macro-fill.carbs { background: var(--color-warning); width: 45%; }
+    .macro-fill.fats { background: var(--color-danger); width: 25%; }
+    .macro-legend {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 5px;
+    }
+
+    /* Logging food list */
+    .food-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-color);
+      margin-bottom: 8px;
+    }
+    .food-item span.name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .food-item span.details {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .food-item button {
+      background: none !important;
+      border: none !important;
+      color: var(--color-danger);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0 !important;
+    }
+
+    /* Calorie budget progress circle representation */
+    .budget-gauge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px 0;
+    }
+    .progress-bar-wrap {
+      width: 100%;
+      height: 12px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--color-accent), var(--color-success));
+      border-radius: 10px;
+      transition: width 0.4s ease;
+    }
+
+    .warning-box {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px dashed var(--color-warning);
+      border-radius: 10px;
+      padding: 12px;
+      margin: 12px 0;
+      font-size: 12px;
+      color: var(--color-warning);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 400px) {
+      .field-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" style="margin-top: 15px;">
+    <!-- Hero Header -->
+    <div class="diet-hero">
+      <h2>🍎 Gymify Diet Planner</h2>
+      <p>Calculate metabolic rates, set physical targets, and log daily nutrition.</p>
+    </div>
+
+    <!-- Section 1: Diet Profile Setup -->
+    <div class="diet-section">
+      <div class="section-title">
+        <span class="num-badge">1</span>
+        Your Body Metrics & Goals
+      </div>
+      <form id="dietSetupForm">
+        <div class="field-row">
+          <div>
+            <label for="dietHeight">📏 Height (cm)</label>
+            <input type="number" id="dietHeight" placeholder="e.g. 175" required />
+          </div>
+          <div>
+            <label for="dietWeight">⚖️ Current Weight (kg)</label>
+            <input type="number" id="dietWeight" placeholder="e.g. 70" step="0.1" required />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="dietAge">🎂 Age (years)</label>
+            <input type="number" id="dietAge" placeholder="e.g. 25" required />
+          </div>
+          <div>
+            <label for="dietGender">👤 Gender</label>
+            <select id="dietGender">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="dietActivity">⚡ Physical Activity Level</label>
+        <select id="dietActivity">
+          <option value="1.2">Sedentary (Office job, little/no exercise)</option>
+          <option value="1.375">Lightly Active (Light exercise 1-3 days/week)</option>
+          <option value="1.55">Moderately Active (Moderate exercise 3-5 days/week)</option>
+          <option value="1.725">Very Active (Heavy training 6-7 days/week)</option>
+        </select>
+
+        <label for="dietGoal">🎯 Target Goal</label>
+        <select id="dietGoal">
+          <option value="cut">Lose Fat (Cutting - 500 kcal deficit)</option>
+          <option value="maintain">Maintain Weight (TDEE Calories)</option>
+          <option value="bulk">Gain Muscle (Bulking + 300 kcal surplus)</option>
+        </select>
+
+        <div class="field-row">
+          <div>
+            <label for="dietTargetWeight">⚖️ Target Weight (kg)</label>
+            <input type="number" id="dietTargetWeight" placeholder="e.g. 75" step="0.1" />
+          </div>
+          <div>
+            <label for="dietTimeframe">📅 Timeframe (weeks)</label>
+            <input type="number" id="dietTimeframe" placeholder="e.g. 8" />
+          </div>
+        </div>
+
+        <!-- Safe Goal Validation Warning (Shown via JS) -->
+        <div id="dietGoalWarning" class="warning-box" style="display: none;"></div>
+
+        <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">💾 Calculate & Save Setup</button>
+      </form>
+    </div>
+
+    <!-- Section 2: Results Display Panel -->
+    <div class="diet-section" id="resultsPanel" style="display: none;">
+      <div class="section-title">
+        <span class="num-badge">2</span>
+        Nutrition Dashboard
+      </div>
+      <div class="results-grid">
+        <div class="result-card">
+          <h4>BMI Index</h4>
+          <p id="bmiVal">-</p>
+          <span id="bmiCategory" style="font-size: 11px; font-weight: 700;">Normal</span>
+        </div>
+        <div class="result-card">
+          <h4>Maintenance (TDEE)</h4>
+          <p><span id="tdeeVal">-</span> <span style="font-size: 12px; color: var(--text-secondary);">kcal</span></p>
+        </div>
+      </div>
+
+      <div class="results-grid" style="grid-template-columns: 1fr; margin-top: 12px;">
+        <div class="result-card" style="border-color: rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.04);">
+          <h4 style="color: var(--color-success);">Target Daily Calories</h4>
+          <p style="font-size: 26px; color: var(--color-success);"><span id="targetCalVal">-</span> <span style="font-size: 14px; color: var(--text-secondary);">kcal / day</span></p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Section 3: Daily Intake Log -->
+    <div class="diet-section" id="loggingPanel" style="display: none;">
+      <div class="section-title">
+        <span class="num-badge">3</span>
+        Daily Intake Logs
+      </div>
+
+      <div class="budget-gauge">
+        <span style="font-size: 14px; color: var(--text-secondary);">Intake Tracker</span>
+        <span style="font-size: 26px; font-weight: 800; color: #fff; margin-top: 4px;">
+          <span id="intakeEaten">0</span> / <span id="intakeTarget">2000</span> kcal
+        </span>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="intakeProgressFill"></div>
+        </div>
+        <span id="intakeStateMsg" style="font-size: 11px; color: var(--text-secondary);">Under budget. You have X kcal remaining today!</span>
+      </div>
+
+      <!-- Add Food Form -->
+      <form id="addFoodForm" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+        <h4 style="font-size: 12px; color: #fff; margin-bottom: 10px;">🍴 Log Food Item</h4>
+        <div class="field-row">
+          <input type="text" id="foodName" placeholder="Food name (e.g. Oats)" required style="margin: 0;" />
+          <input type="number" id="foodCalories" placeholder="Calories (kcal)" required style="margin: 0;" />
+        </div>
+        <div class="field-row" style="margin-top: 10px;">
+          <input type="number" id="foodProtein" placeholder="Protein (g, optional)" style="margin: 0;" />
+          <button type="submit" class="btn" style="padding: 10px; margin: 0; font-size: 12px; height:44px;">➕ Log Item</button>
+        </div>
+      </form>
+
+      <!-- Food items logged today -->
+      <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Logged Today:</h4>
+      <div id="foodList">
+        <!-- Log items dynamically rendered -->
+      </div>
+    </div>
+
+    <!-- Section 4: History logs -->
+    <div class="diet-section" id="historyPanel" style="display: none;">
+      <div class="section-title">
+        <span class="num-badge">4</span>
+        Caloric Log History
+      </div>
+      <div id="historyList" style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- Loaded dynamically -->
+      </div>
+    </div>
+
+    <button class="back-btn btn btn-secondary" onclick="window.location.href='dashboard.html'" style="width: 100%; margin-top: 5px; margin-bottom: 10px;">⬅ Back to Dashboard</button>
+  </div>
+
+  <script type="module" src="js/diet.js"></script>
+  <script type="module" src="js/navigation.js"></script>
+</body>
+</html>

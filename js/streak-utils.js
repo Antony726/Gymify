@@ -1,4 +1,4 @@
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
 /** Local calendar date as YYYY-MM-DD */
 export function toLocalDateStr(date = new Date()) {
@@ -131,6 +131,17 @@ export async function processWorkoutLogStats({
   logDate,
   gainedXP = 0,
 }) {
+  let planType = "days";
+  try {
+    const persRef = doc(db, "users", userId, "data", "personalization");
+    const persSnap = await getDoc(persRef);
+    if (persSnap.exists()) {
+      planType = persSnap.data().planType || "days";
+    }
+  } catch (err) {
+    console.warn("Could not load planType in streak check:", err);
+  }
+
   const normalizedLogDate = logDate.split("T")[0];
   let currentStats = {
     xp: stats.xp || 0,
@@ -148,7 +159,8 @@ export async function processWorkoutLogStats({
     resetXP: false,
   };
 
-  if (currentStats.lastLogDate && throughDate >= addDays(currentStats.lastLogDate, 0)) {
+  // Only calculate missed days if they are NOT on a day-free slot cycle
+  if (planType !== "slots" && currentStats.lastLogDate && throughDate >= addDays(currentStats.lastLogDate, 0)) {
     const fromStr = currentStats.streakCheckDate
       ? addDays(currentStats.streakCheckDate, 1)
       : addDays(currentStats.lastLogDate, 1);
@@ -196,6 +208,17 @@ export async function processWorkoutLogStats({
 
 /** Check missed workout days through yesterday when the dashboard loads. */
 export async function processDailyStreakCheck({ db, userId, stats, plan }) {
+  let planType = "days";
+  try {
+    const persRef = doc(db, "users", userId, "data", "personalization");
+    const persSnap = await getDoc(persRef);
+    if (persSnap.exists()) {
+      planType = persSnap.data().planType || "days";
+    }
+  } catch (err) {
+    console.warn("Could not check planType in daily streak check:", err);
+  }
+
   const yesterday = addDays(toLocalDateStr(), -1);
   const currentStats = {
     xp: stats.xp || 0,
@@ -205,7 +228,8 @@ export async function processDailyStreakCheck({ db, userId, stats, plan }) {
     streakCheckDate: stats.streakCheckDate || "",
   };
 
-  if (!currentStats.lastLogDate) {
+  // Skip penalties if they are in slot mode
+  if (planType === "slots" || !currentStats.lastLogDate) {
     return { stats: currentStats, changed: false, missedDays: [], lostHeart: false, resetXP: false };
   }
 

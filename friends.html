@@ -462,6 +462,7 @@
       <div class="loader-progress-fill" id="loaderProgressFill"></div>
     </div>
     <div class="loader-progress-label" id="loaderProgressLabel">0%</div>
+    <p id="loaderQuote" style="color: var(--color-accent); font-style: italic; font-size: 12px; margin-top: 10px; max-width: 280px; margin-left: auto; margin-right: auto; line-height: 1.4; opacity: 0.85; text-align: center;"></p>
   </div>
 
   <div class="container" style="margin-top: 15px;">
@@ -601,6 +602,7 @@
     import { createBuddyChallenge, getActiveChallenges, refreshBuddyChallengeProgress } from "./js/buddy-challenges.js";
     import { initSocialCommunityTab } from "./js/community-social.js";
     import { injectFeatureSpotlight } from "./js/feature-spotlight.js";
+    import { enhanceAllSelects, refreshCustomDropdown } from "./js/custom-dropdown.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -608,6 +610,24 @@
 
     let currentUser = null;
     const pageLoader = document.getElementById("pageLoader");
+
+    const loaderQuotes = [
+      "No comfort zones here. You have to earn the strength.",
+      "Pain is temporary. Pride is forever.",
+      "Discipline beats motivation every single day.",
+      "If it doesn't challenge you, it won't change you.",
+      "The only bad workout is the one that didn't happen.",
+      "Be stronger than your strongest excuse.",
+      "Consistency is the quiet key to transformation.",
+      "Your future self is thanking you right now.",
+      "Suffer the pain of discipline, or the pain of regret.",
+      "What seems impossible today will one day be your warm-up."
+    ];
+    const quoteEl = document.getElementById("loaderQuote");
+    if (quoteEl) {
+      const randomQuote = loaderQuotes[Math.floor(Math.random() * loaderQuotes.length)];
+      quoteEl.textContent = `"${randomQuote}"`;
+    }
 
     function hideLoader() {
       if (pageLoader) {
@@ -1098,6 +1118,7 @@
           const f = fd.data();
           friendSelect.innerHTML += `<option value="${f.friendId}">${f.username || "Friend"}</option>`;
         }
+        refreshCustomDropdown(friendSelect);
 
         const challenges = await getActiveChallenges(db, currentUser.uid);
         if (challenges.length === 0) {
@@ -1165,6 +1186,8 @@
         return;
       }
       currentUser = user;
+
+      enhanceAllSelects();
 
       injectFeatureSpotlight("social-spotlight");
 

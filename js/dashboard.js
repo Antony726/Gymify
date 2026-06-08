@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/fireba
 import {
   getAuth,
   onAuthStateChanged,
-  signOut,
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import {
   getFirestore,
@@ -23,6 +22,10 @@ import { refreshBuddyChallengeProgress } from "./buddy-challenges.js";
 import { injectFeatureSpotlight } from "./feature-spotlight.js";
 
 let latestRecap = null;
+let waterGoal = 10;
+let planType = "days";
+let slotsCount = 3;
+let currentSlotIndex = 0;
 
 document.getElementById("download-recap-btn")?.addEventListener("click", () => {
   if (latestRecap) downloadWeeklyRecapPDF(latestRecap);
@@ -35,7 +38,6 @@ const db = getFirestore(app);
 
 // 🧱 UI Elements
 const usernameEl = document.getElementById("username");
-const logoutBtn = document.getElementById("logout-btn");
 const workoutSplitEl = document.getElementById("workout-split");
 const questBtn = document.getElementById("complete-quest");
 const questEl = document.getElementById("daily-quest");
@@ -64,12 +66,19 @@ const quotes = [
   "Stop being soft. You cannot become a monster by staying in your comfort zone.",
   "The only time you grow, the only time you get better, is when you hit that point of wanting to quit and you keep going instead.",
   "No pain, no gain – but no rest, no growth either.",
-   "Why do we fall, Bruce? So we can learn to pick ourselves up",
+  "Why do we fall, Bruce? So we can learn to pick ourselves up",
   "Show up today for a stronger you tomorrow.",
   "Discipline beats motivation every time.",
   "If it doesn't challenge you, it won't change you.",
   "Small progress is still progress!",
 ];
+
+// Populate loader quote right away
+const randomLoaderQuote = quotes[Math.floor(Math.random() * quotes.length)];
+const loaderQuoteEl = document.getElementById("loader-quote");
+if (loaderQuoteEl) {
+  loaderQuoteEl.textContent = `"${randomLoaderQuote}"`;
+}
 
 // 🧩 Level calculation — 200 XP per level
 function getLevelFromXP(xp) {
@@ -105,17 +114,29 @@ async function loadNextWorkout(user) {
     }
 
     const plan = planSnap.data();
-    const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
+    
+    // Determine active target key & display name based on planType
+    let targetKey = "";
+    let displayName = "";
 
-    if (!plan[todayName] || !plan[todayName].exercises || plan[todayName].type === "Rest") {
-      todayDiv.textContent = `🗓️ Rest day or no plan found for ${todayName}.`;
+    if (planType === "slots") {
+      const slotNum = (currentSlotIndex % slotsCount) + 1;
+      targetKey = `Slot ${slotNum}`;
+      displayName = `Workout Slot ${slotNum}`;
+    } else {
+      targetKey = new Date().toLocaleDateString("en-US", { weekday: "long" });
+      displayName = targetKey;
+    }
+
+    if (!plan[targetKey] || !plan[targetKey].exercises || plan[targetKey].type === "Rest") {
+      todayDiv.textContent = `🗓️ Rest day or no plan found for ${displayName}.`;
       nextDiv.textContent = "";
       if (startActiveBtn) startActiveBtn.style.display = "none";
       return;
     }
 
-    // 💪 Exercises for today
-    const todayExercises = plan[todayName].exercises.split(",").map(e => e.trim());
+    // Exercises for today
+    const todayExercises = plan[targetKey].exercises.split(",").map(e => e.trim());
 
     // 🕒 Get today's logs
     const logsRef = collection(db, "users", user.uid, "logs");
@@ -151,7 +172,7 @@ async function loadNextWorkout(user) {
 
     // 🧾 Update today's workout section
     todayDiv.innerHTML = `
-      <b>${todayName} Workout:</b><br>
+      <b>${displayName} Workout (${plan[targetKey].type}):</b><br>
       ${todayExercises.map(ex => {
         const baseName = getBaseName(ex);
         const isDone = cleanDoneExercises.some(d => d.toLowerCase() === baseName.toLowerCase());
@@ -266,7 +287,6 @@ questBtn?.addEventListener("click", async () => {
   questBtn.textContent = "✅ Quest Completed";
 });
 
-// 🚪 Logout
 // Progress bar controller helper
 let isLongLoad = false;
 const setLoadProgress = (percentage, statusText) => {
@@ -343,10 +363,66 @@ onAuthStateChanged(auth, async (user) => {
   // Profile
   const profileRef = doc(db, "users", user.uid, "data", "profile");
   const profileSnap = await getDoc(profileRef);
-  usernameEl.textContent =
+  const username =
     (profileSnap.exists() && profileSnap.data().username) ||
     user.displayName ||
     user.email.split("@")[0];
+
+  // Fetch Personalization
+  let waterGoalLoaded = 10;
+  let preferredTime = "morning";
+  let theme = "cyan";
+
+  try {
+    const personalizeRef = doc(db, "users", user.uid, "data", "personalization");
+    const personalizeSnap = await getDoc(personalizeRef);
+    if (personalizeSnap.exists()) {
+      const pData = personalizeSnap.data();
+      planType = pData.planType || "days";
+      slotsCount = pData.slotsCount || 3;
+      waterGoalLoaded = pData.waterGoal || 10;
+      preferredTime = pData.preferredTime || "morning";
+      theme = pData.theme || "cyan";
+    }
+  } catch (e) {
+    console.error("Error loading personalization on dashboard:", e);
+  }
+
+  waterGoal = waterGoalLoaded;
+
+  // Apply accent theme
+  const themeColors = {
+    cyan: "#06b6d4",
+    emerald: "#10b981",
+    amber: "#f59e0b",
+    rose: "#f43f5e"
+  };
+  const colorHex = themeColors[theme] || themeColors.cyan;
+  document.documentElement.style.setProperty("--color-accent", colorHex);
+  localStorage.setItem("gymify-theme-accent", colorHex);
+
+  // Customize header greeting based on preferred workout time
+  const hour = new Date().getHours();
+  let currentPeriod = "evening";
+  if (hour >= 5 && hour < 12) currentPeriod = "morning";
+  else if (hour >= 12 && hour < 17) currentPeriod = "afternoon";
+
+  let greeting = `Hi, ${username}`;
+  if (currentPeriod === preferredTime) {
+    greeting = `It's training time, ${username}! ⚡`;
+  } else {
+    const emojis = { morning: "🌅", afternoon: "☀️", evening: "🌌" };
+    greeting = `Ready for a ${preferredTime} session, ${username}? ${emojis[preferredTime] || "💪"}`;
+  }
+  if (usernameEl) {
+    usernameEl.innerHTML = `<span class="glow-text">${greeting}</span>`;
+  }
+
+  // Update water card UI display text dynamically
+  const waterCountEl = document.getElementById("waterCount");
+  if (waterCountEl && waterCountEl.parentElement) {
+    waterCountEl.parentElement.innerHTML = `Drank <span id="waterCount" style="color: #fff; font-weight: 700;">${waterCount}</span>/${waterGoal} glasses`;
+  }
 
   injectFeatureSpotlight("dashboard-spotlight", { title: "✨ Quick access" });
 
@@ -365,6 +441,7 @@ onAuthStateChanged(auth, async (user) => {
         hearts,
         lastLogDate: "",
         streakCheckDate: "",
+        currentSlotIndex: 0,
         updatedAt: serverTimestamp(),
       });
     } else {
@@ -373,11 +450,13 @@ onAuthStateChanged(auth, async (user) => {
       streak = data.streak || 0;
       hearts = data.hearts !== undefined ? data.hearts : 4;
       lastLogDate = data.lastLogDate || "";
+      currentSlotIndex = data.currentSlotIndex !== undefined ? data.currentSlotIndex : 0;
 
       const planRef = doc(db, "users", user.uid, "data", "plan");
       const planSnap = await getDoc(planRef);
       const plan = planSnap.exists() ? planSnap.data() : {};
 
+      // Calculate streaks - skip missed day penalties if slot plan is active
       const dailyCheck = await processDailyStreakCheck({
         db,
         userId: user.uid,
@@ -406,11 +485,11 @@ onAuthStateChanged(auth, async (user) => {
 
         try {
           const lbRef = doc(db, "leaderboard", user.uid);
-          const username =
+          const lbUsername =
             (profileSnap.exists() && profileSnap.data().username) ||
             user.displayName ||
             user.email.split("@")[0];
-          await setDoc(lbRef, { username, xp, streak, updatedAt: new Date().toISOString() });
+          await setDoc(lbRef, { username: lbUsername, xp, streak, updatedAt: new Date().toISOString() });
         } catch (lbErr) {
           console.warn("Could not sync leaderboard after streak check:", lbErr);
         }
@@ -481,16 +560,19 @@ if (lastDate !== today) {
   localStorage.setItem("lastWaterDate", today);
 }
 
-waterCountEl.textContent = waterCount;
+if (waterCountEl) {
+  waterCountEl.textContent = waterCount;
+}
 
 addWaterBtn.addEventListener("click", () => {
-  if (waterCount < 10) {
+  if (waterCount < waterGoal) {
     waterCount++;
     localStorage.setItem("waterCount", waterCount);
     localStorage.setItem("lastWaterDate", today);
-    waterCountEl.textContent = waterCount;
+    const countEl = document.getElementById("waterCount");
+    if (countEl) countEl.textContent = waterCount;
   } else {
-    window.showToast("💧 You've reached your daily goal of 10 glasses!", "success");
+    window.showToast(`💧 You've reached your daily goal of ${waterGoal} glasses!`, "success");
   }
 });
 
@@ -498,33 +580,3 @@ addWaterBtn.addEventListener("click", () => {
 setInterval(() => {
   window.showToast("💧 Time to drink some water!", "info");
 }, 2 * 60 * 60 * 1000); // every 2 hours
-
-
-// ⏱️ Rest Timer Logic
-const startTimerBtn = document.getElementById("startTimer");
-const timerDisplay = document.getElementById("timerDisplay");
-const restInput = document.getElementById("restInput");
-
-// startTimerBtn.addEventListener("click", () => {
-//   let timeLeft = parseInt(restInput.value);
-
-//   if (isNaN(timeLeft) || timeLeft <= 0) {
-//     alert("⏱️ Enter a valid rest time!");
-//     return;
-//   }
-
-//   timerDisplay.textContent = `Time Left: ${timeLeft}s`;
-
-//   const interval = setInterval(() => {
-//     timeLeft--;
-//     timerDisplay.textContent = `Time Left: ${timeLeft}s`;
-
-//     if (timeLeft <= 0) {
-//       clearInterval(interval);
-//       timerDisplay.textContent = "🔥 Time's up! Get back to work!";
-//       const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-//       audio.play();
-//     }
-//   }, 1000);
-// });
-// Dead hamburger menu listeners removed. Bottom nav handles menu actions.

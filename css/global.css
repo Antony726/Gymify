@@ -281,6 +281,10 @@ label {
 .custom-dropdown-native {
   display: none !important;
 }
+select option {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
 
 /* Custom Bottom Navigation Bar styling */
 .bottom-nav {

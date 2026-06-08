@@ -423,8 +423,15 @@ profileForm.addEventListener("submit", async (e) => {
     if (window.showToast) window.showToast("✅ Profile Saved!", "success");
     else alert("✅ Profile Saved!");
 
+    const personalizationRef = doc(db, "users", userUID, "data", "personalization");
+    const personalizationSnap = await getDoc(personalizationRef);
+
     setTimeout(() => {
-      window.location.href = "dashboard.html";
+      if (!personalizationSnap.exists()) {
+        window.location.href = "personalize.html?new=true";
+      } else {
+        window.location.href = "dashboard.html";
+      }
     }, 1200);
   } catch (err) {
     console.error("Error saving profile:", err);

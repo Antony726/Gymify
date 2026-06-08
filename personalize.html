@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚙️ Personalization | Gymify</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    body { padding-bottom: 80px; }
+
+    .personalize-hero {
+      text-align: center;
+      padding: 25px 0 15px;
+    }
+    .personalize-hero h2 {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 0%, var(--color-accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+    .personalize-hero p {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .setup-container {
+      background: var(--bg-card);
+      backdrop-filter: blur(var(--blur-amount));
+      -webkit-backdrop-filter: blur(var(--blur-amount));
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-premium);
+    }
+
+    .setup-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .setup-title .setup-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--color-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* Plan Type Selection Grid */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 450px) {
+      .plan-grid { grid-template-columns: 1fr; }
+    }
+    .plan-option {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .plan-option:hover {
+      border-color: rgba(6, 182, 212, 0.3);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .plan-option.selected {
+      border-color: var(--color-accent);
+      background: rgba(6, 182, 212, 0.08);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+    }
+    .plan-option h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .plan-option p {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* Slots Control Widget */
+    .slots-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .slot-val {
+      font-size: 20px;
+      font-weight: 800;
+      min-width: 30px;
+      text-align: center;
+    }
+    .slot-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .slot-btn:hover {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+    }
+
+    /* Category Tag Management */
+    .category-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .category-tag {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .category-tag button {
+      background: none !important;
+      border: none !important;
+      padding: 0 !important;
+      color: var(--color-danger);
+      font-size: 14px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .add-category-row {
+      display: flex;
+      gap: 10px;
+    }
+    .add-category-row input {
+      flex: 1;
+      margin-bottom: 0 !important;
+    }
+    .add-category-row button {
+      min-width: 44px;
+      height: 44px;
+      padding: 0 12px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--color-accent) 0%, #6366f1 100%) !important;
+    }
+
+    /* Theme selection */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .theme-option {
+      background: rgba(255, 255, 255, 0.02);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .theme-option:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .theme-option.selected {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--opt-color);
+      box-shadow: 0 0 15px var(--opt-color-glow);
+    }
+    .theme-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--opt-color);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .theme-option span {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+    .theme-option.selected span {
+      color: #fff;
+    }
+
+    /* Water Target Slider */
+    .water-input-container {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255,255,255,0.04);
+      padding: 15px;
+      border-radius: 14px;
+      text-align: center;
+    }
+    .water-input-container input[type="range"] {
+      width: 100%;
+      margin: 10px 0;
+      accent-color: var(--color-accent);
+    }
+    .water-val {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--color-accent);
+    }
+
+    /* Onboarding Header Banner */
+    .onboarding-banner {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 16px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      text-align: center;
+      animation: slideDown 0.5s ease;
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .save-personalize-btn {
+      width: 100%;
+      margin-top: 10px;
+      font-size: 16px;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--color-accent) 0%, #6366f1 100%) !important;
+      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3) !important;
+      font-weight: 700;
+      border-radius: 14px;
+    }
+    .save-personalize-btn:hover {
+      box-shadow: 0 6px 25px rgba(6, 182, 212, 0.5) !important;
+    }
+
+    /* Option tabs for workout time */
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .time-option {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .time-option:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .time-option.selected {
+      border-color: var(--color-accent);
+      background: rgba(6, 182, 212, 0.1);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" style="margin-top: 15px;">
+    <!-- Onboarding Welcome Banner -->
+    <div id="onboardingBanner" class="onboarding-banner" style="display: none;">
+      <h3 style="color: #fff; font-size: 18px; margin-bottom: 4px;">🚀 Let's Personalize Your Journey!</h3>
+      <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">Configure Gymify to match your unique style, schedule type, and custom workout categories before entering the main dashboard.</p>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="personalize-hero">
+      <h2>⚙️ Gymify Personalization</h2>
+      <p>Fine-tune plan types, custom categories, theme accents, and tracking targets.</p>
+    </div>
+
+    <form id="personalizeForm">
+      <!-- Section 1: Workout Schedule Type -->
+      <div class="setup-container">
+        <div class="setup-title">
+          <span class="setup-num">1</span>
+          Workout Plan Structure
+        </div>
+        <div class="plan-grid">
+          <div class="plan-option selected" id="opt-days" data-type="days">
+            <h4 style="color: var(--color-accent);">🗓️ Calendar Days</h4>
+            <p>Assign exercises to fixed days (Monday, Tuesday, Wednesday...). Perfect for predictable weekly routines.</p>
+          </div>
+          <div class="plan-option" id="opt-slots" data-type="slots">
+            <h4 style="color: var(--color-success);">🔄 Repetitive Cycle</h4>
+            <p>Create a day-free rolling workout cycle (Workout 1, Workout 2, Workout 3...). Great for erratic schedules.</p>
+          </div>
+        </div>
+
+        <div id="slotsWidget" style="display: none;">
+          <label style="display: block; font-size: 13px; margin-bottom: 8px; color: var(--text-secondary); text-align: center;">Number of Cycle Workout Slots</label>
+          <div class="slots-container">
+            <button type="button" class="slot-btn" id="btn-slot-minus">−</button>
+            <span class="slot-val" id="slot-count">3</span>
+            <button type="button" class="slot-btn" id="btn-slot-plus">＋</button>
+          </div>
+          <p style="text-align: center; font-size: 11px; color: var(--text-secondary); margin-top: 8px;">Each slot represents a unique workout day in your rolling cycle.</p>
+        </div>
+      </div>
+
+      <!-- Section 2: Custom Categories -->
+      <div class="setup-container">
+        <div class="setup-title">
+          <span class="setup-num">2</span>
+          Custom Workout Categories
+        </div>
+        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">Manage the tags you use when classifying exercises or workout splits (e.g. Push, Pull, Legs, upper body, cardio).</p>
+        
+        <div class="category-list" id="categoryList">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="add-category-row">
+          <input type="text" id="newCategoryInput" placeholder="Add custom tag (e.g. Upper Body)" />
+          <button type="button" id="addCategoryBtn" class="btn">Add</button>
+        </div>
+      </div>
+
+      <!-- Section 3: Accent Theme Theme -->
+      <div class="setup-container">
+        <div class="setup-title">
+          <span class="setup-num">3</span>
+          Accent Theme Color
+        </div>
+        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px;">Choose an accent theme color to customize your Gymify interface visual accent.</p>
+        
+        <div class="theme-grid">
+          <div class="theme-option selected" data-theme="cyan" style="--opt-color: #06b6d4; --opt-color-glow: rgba(6, 182, 212, 0.4);">
+            <div class="theme-dot"></div>
+            <span>Cyan Neon</span>
+          </div>
+          <div class="theme-option" data-theme="emerald" style="--opt-color: #10b981; --opt-color-glow: rgba(16, 185, 129, 0.4);">
+            <div class="theme-dot"></div>
+            <span>Emerald</span>
+          </div>
+          <div class="theme-option" data-theme="amber" style="--opt-color: #f59e0b; --opt-color-glow: rgba(245, 158, 11, 0.4);">
+            <div class="theme-dot"></div>
+            <span>Amber Flame</span>
+          </div>
+          <div class="theme-option" data-theme="rose" style="--opt-color: #f43f5e; --opt-color-glow: rgba(244, 63, 94, 0.4);">
+            <div class="theme-dot"></div>
+            <span>Rose Velvet</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Daily Tracking Targets -->
+      <div class="setup-container">
+        <div class="setup-title">
+          <span class="setup-num">4</span>
+          Daily Habits & Routine
+        </div>
+        
+        <label>💧 Daily Water Target (Glasses)</label>
+        <div class="water-input-container" style="margin-bottom: 15px;">
+          <span class="water-val" id="waterValText">10</span> <span style="font-size: 12px; color: var(--text-secondary);">glasses</span>
+          <input type="range" id="waterGoalSlider" min="4" max="30" value="10" />
+          <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Customize your daily glass target (standard size is ~250ml per glass).</p>
+        </div>
+
+        <label style="margin-bottom: 8px; display: block;">⏰ Preferred Workout Time</label>
+        <div class="time-grid" id="timeGrid">
+          <div class="time-option selected" data-time="morning">🌅 Morning</div>
+          <div class="time-option" data-time="afternoon">☀️ Afternoon</div>
+          <div class="time-option" data-time="evening">🌌 Evening</div>
+        </div>
+        <p style="font-size: 11px; color: var(--text-secondary); margin-top: 8px;">Used to show personalized greeting notifications on the dashboard.</p>
+      </div>
+
+      <!-- Section 5: Save Settings -->
+      <div class="setup-container">
+        <button type="submit" class="save-personalize-btn btn" id="submitBtn">💾 Save Settings</button>
+      </div>
+    </form>
+
+    <button class="back-btn btn btn-secondary" onclick="window.location.href='dashboard.html'" id="backBtn" style="width: 100%; margin-top: 5px; margin-bottom: 10px;">⬅ Back to Dashboard</button>
+  </div>
+
+  <script type="module" src="js/personalize.js"></script>
+  <script type="module" src="js/navigation.js"></script>
+</body>
+</html>

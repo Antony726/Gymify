@@ -1,4 +1,10 @@
 // js/navigation.js
+// Apply saved theme color immediately to prevent flash
+const savedTheme = localStorage.getItem("gymify-theme-accent");
+if (savedTheme) {
+  document.documentElement.style.setProperty("--color-accent", savedTheme);
+}
+
 import { auth } from "./firebase-config.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
@@ -54,6 +60,8 @@ window.GymifyLoader = {
           </div>
           <!-- Status message -->
           <p class="loader-text" style="color: var(--text-secondary); font-size: 13px; font-weight: 500; letter-spacing: 0.02em; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Connecting to Gymify...</p>
+          <!-- Random motivational quote -->
+          <p class="loader-quote" style="color: var(--color-accent); font-style: italic; font-size: 12px; margin-top: 10px; max-width: 280px; margin-left: auto; margin-right: auto; line-height: 1.4; opacity: 0.85; text-align: center;"></p>
         </div>
       </div>
     `;
@@ -84,6 +92,24 @@ window.GymifyLoader = {
 
     const textEl = this.element.querySelector(".loader-text");
     textEl.textContent = statusText;
+
+    const loaderQuotes = [
+      "No comfort zones here. You have to earn the strength.",
+      "Pain is temporary. Pride is forever.",
+      "Discipline beats motivation every single day.",
+      "If it doesn't challenge you, it won't change you.",
+      "The only bad workout is the one that didn't happen.",
+      "Be stronger than your strongest excuse.",
+      "Consistency is the quiet key to transformation.",
+      "Your future self is thanking you right now.",
+      "Suffer the pain of discipline, or the pain of regret.",
+      "What seems impossible today will one day be your warm-up."
+    ];
+    const quoteEl = this.element.querySelector(".loader-quote");
+    if (quoteEl) {
+      const randomQuote = loaderQuotes[Math.floor(Math.random() * loaderQuotes.length)];
+      quoteEl.textContent = `"${randomQuote}"`;
+    }
 
     // Trigger transition
     setTimeout(() => {
@@ -334,6 +360,14 @@ document.addEventListener("DOMContentLoaded", () => {
         <a href="profile.html" class="sheet-item">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           <span>Edit Profile</span>
+        </a>
+        <a href="diet.html" class="sheet-item">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor"><path d="M21.21 15.89A10 10 0 1 1 8 2.83M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+          <span>Diet Planner</span>
+        </a>
+        <a href="personalize.html" class="sheet-item">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+          <span>Personalization</span>
         </a>
         <a href="feedback.html" class="sheet-item">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>

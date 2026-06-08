@@ -1,8 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp, writeBatch
+  getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp, writeBatch, query, orderBy, getDocs
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { enhanceAllSelects, initCustomDropdown, refreshCustomDropdown } from "./custom-dropdown.js";
 import { firebaseConfig } from "./firebase-config.js";
 import { processWorkoutLogStats, toLocalDateStr } from "./streak-utils.js";
 import { announcePRs, showPRCelebration } from "./pr-utils.js";
@@ -24,6 +25,11 @@ const skipExBtn = document.getElementById("skip-ex-btn");
 const nextExBtn = document.getElementById("next-ex-btn");
 const finishWorkoutBtn = document.getElementById("finish-workout-btn");
 
+// Queue DOM Elements
+const queueListEl = document.getElementById("queue-list");
+const extraExerciseInput = document.getElementById("extra-exercise-input");
+const addExtraBtn = document.getElementById("add-extra-btn");
+
 // Timer DOM Elements
 const timerOverlay = document.getElementById("restTimerOverlay");
 const timerCircle = document.getElementById("timerCircle");
@@ -39,6 +45,9 @@ let exercisesList = [];
 let currentExIndex = 0;
 let currentExerciseSets = []; // { set, weight, reps, completed }
 let loggedWorkoutLogs = [];   // Compiled exercise logs to save at the end
+let planType = "days";
+let slotsCount = 3;
+let currentSlotIndex = 0;
 
 // Timer State
 let timerInterval = null;
@@ -58,32 +67,53 @@ if (defaultRestDisplay) {
 function parseExercise(exStr) {
   // e.g. "Bench Press (3 sets x 10 reps)" or "Pull-Ups (3 sets)"
   const match = exStr.match(/(.+?)\s*\((.+?)\)/);
+  let name = exStr.trim();
+  let instruction = "3 sets";
+  let defaultSets = 3;
+  let defaultReps = 10;
+  
   if (match) {
-    const name = match[1].trim();
-    const instruction = match[2].trim();
-    
-    // Parse sets
+    name = match[1].trim();
+    instruction = match[2].trim();
     const setsMatch = instruction.match(/(\d+)\s*sets?/i);
-    const setsCount = setsMatch ? parseInt(setsMatch[1]) : 3;
-    
-    // Parse reps
+    defaultSets = setsMatch ? parseInt(setsMatch[1]) : 3;
     const repsMatch = instruction.match(/(\d+)\s*reps?/i);
-    const repsCount = repsMatch ? parseInt(repsMatch[1]) : 10;
-    
-    return { name, instruction, defaultSets: setsCount, defaultReps: repsCount };
+    defaultReps = repsMatch ? parseInt(repsMatch[1]) : 10;
   }
-  return { name: exStr.trim(), instruction: "3 sets", defaultSets: 3, defaultReps: 10 };
+
+  const sets = [];
+  for (let i = 1; i <= defaultSets; i++) {
+    sets.push({
+      set: i,
+      weight: "",
+      reps: defaultReps,
+      completed: false
+    });
+  }
+
+  return {
+    name,
+    instruction,
+    defaultSets,
+    defaultReps,
+    sets,
+    status: "pending"
+  };
 }
 
 // === 🔑 2. Auth State Listener & Autosave Resume ===
+let activeRoutineKey = "today";
+
 function saveSessionProgress() {
-  if (!userUID || exercisesList.length === 0) return;
+  if (!userUID) return;
   const todayStr = toLocalDateStr();
   const progressState = {
     date: todayStr,
     currentExIndex,
     currentExerciseSets,
-    loggedWorkoutLogs
+    loggedWorkoutLogs,
+    exercisesList,
+    activeRoutineKey
   };
   localStorage.setItem(`activeWorkoutState_${userUID}`, JSON.stringify(progressState));
 }
@@ -105,14 +135,22 @@ async function applyActiveWorkoutStats({ logDate, gainedXP, isExitSave = false }
     gainedXP,
   });
 
-  await setDoc(statsRef, {
+  const updateData = {
     xp: result.xp,
     streak: result.streak,
     hearts: result.hearts,
     lastLogDate: result.lastLogDate,
     streakCheckDate: result.streakCheckDate,
     updatedAt: serverTimestamp(),
-  }, { merge: true });
+  };
+
+  // If slot plan finished, advance the slot index
+  if (planType === "slots" && !isExitSave) {
+    const nextSlotIdx = ((existingStats.currentSlotIndex || 0) + 1) % slotsCount;
+    updateData.currentSlotIndex = nextSlotIdx;
+  }
+
+  await setDoc(statsRef, updateData, { merge: true });
 
   const lbRef = doc(db, "leaderboard", userUID);
   await setDoc(lbRef, {
@@ -141,14 +179,349 @@ function showWorkoutCompleteScreen() {
   progressBarEl.style.width = "100%";
 }
 
+// === 🏋️‍♂️ Autofill Progression Weights Logic ===
+async function getAutofillWeights(exName) {
+  try {
+    const logsRef = collection(db, "users", userUID, "logs");
+    const q = query(logsRef, orderBy("timestamp", "desc"));
+    const snap = await getDocs(q);
+    
+    const matchLogs = [];
+    snap.forEach(docSnap => {
+      const log = docSnap.data();
+      const logExName = log.workout?.includes(" - ") ? log.workout.split(" - ")[1].trim() : log.workout?.trim();
+      if (logExName && logExName.toLowerCase() === exName.toLowerCase()) {
+        matchLogs.push(log);
+      }
+    });
+
+    if (matchLogs.length === 0) return null;
+
+    const session1Sets = matchLogs[0].sets || [];
+    const session2Sets = matchLogs.length > 1 ? matchLogs[1].sets : null;
+
+    const w1 = session1Sets.map(s => parseFloat(s.weight)).filter(w => !isNaN(w));
+    const w2 = session2Sets ? session2Sets.map(s => parseFloat(s.weight)).filter(w => !isNaN(w)) : null;
+
+    let identical = false;
+    if (w1 && w2 && w1.length === w2.length) {
+      identical = w1.every((val, index) => val === w2[index]);
+    }
+
+    if (identical) {
+      return session1Sets.map(s => s.weight);
+    } else {
+      const suggested = [];
+      for (let i = 0; i < currentExerciseSets.length; i++) {
+        if (i + 1 < session1Sets.length) {
+          suggested.push(session1Sets[i + 1].weight);
+        } else {
+          const lastWeightVal = parseFloat(session1Sets[session1Sets.length - 1]?.weight);
+          if (!isNaN(lastWeightVal)) {
+            suggested.push((lastWeightVal + 2.5).toString());
+          } else {
+            suggested.push(session1Sets[session1Sets.length - 1]?.weight || "");
+          }
+        }
+      }
+      return suggested;
+    }
+  } catch (err) {
+    console.error("Error fetching autofill weights:", err);
+    return null;
+  }
+}
+
+// === 📋 Exercise Queue rendering ===
+function renderQueueList() {
+  if (!queueListEl) return;
+  queueListEl.innerHTML = "";
+
+  exercisesList.forEach((ex, idx) => {
+    const isCurrent = idx === currentExIndex;
+    const isCompleted = ex.status === 'completed' || ex.status === 'skipped';
+    
+    const queueItem = document.createElement("div");
+    queueItem.className = "queue-item";
+    queueItem.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: ${isCurrent ? "rgba(6, 182, 212, 0.08)" : "rgba(255, 255, 255, 0.02)"};
+      border: 1px solid ${isCurrent ? "var(--color-accent)" : "var(--border-color)"};
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      opacity: ${isCompleted ? "0.5" : "1"};
+    `;
+
+    // Status Indicator
+    let statusText = "⬜";
+    if (isCurrent) statusText = "⚡";
+    if (ex.status === "completed") statusText = "✅";
+    if (ex.status === "skipped") statusText = "⏭️";
+
+    queueItem.innerHTML = `
+      <div style="flex:1; min-width:0; margin-right:8px; display:flex; align-items:center; gap:6px;">
+        <span style="font-size:11px;">${statusText}</span>
+        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:${isCurrent ? '700' : '400'}">${ex.name}</span>
+      </div>
+      <div style="display: flex; gap: 4px; align-items: center;">
+        <button type="button" class="btn btn-secondary queue-up-btn" data-idx="${idx}" style="padding: 2px 6px; font-size: 10px; min-width:auto; height:auto; margin:0;" ${idx === 0 || isCompleted ? 'disabled' : ''}>▲</button>
+        <button type="button" class="btn btn-secondary queue-down-btn" data-idx="${idx}" style="padding: 2px 6px; font-size: 10px; min-width:auto; height:auto; margin:0;" ${idx === exercisesList.length - 1 || isCompleted ? 'disabled' : ''}>▼</button>
+        <button type="button" class="btn btn-secondary queue-del-btn" data-idx="${idx}" style="padding: 2px 6px; font-size: 10px; min-width:auto; height:auto; margin:0; background:rgba(244,63,94,0.1); border-color:rgba(244,63,94,0.2); color:#f43f5e;" ${isCompleted ? 'disabled' : ''}>✕</button>
+      </div>
+    `;
+
+    // Bind Button Click listeners
+    queueItem.querySelector(".queue-up-btn").onclick = (e) => {
+      e.stopPropagation();
+      swapQueueItems(idx, idx - 1);
+    };
+
+    queueItem.querySelector(".queue-down-btn").onclick = (e) => {
+      e.stopPropagation();
+      swapQueueItems(idx, idx + 1);
+    };
+
+    queueItem.querySelector(".queue-del-btn").onclick = (e) => {
+      e.stopPropagation();
+      if (confirm(`🗑️ Remove "${ex.name}" from active workout queue?`)) {
+        removeQueueItem(idx);
+      }
+    };
+
+    queueListEl.appendChild(queueItem);
+  });
+}
+
+function swapQueueItems(i, j) {
+  // Swap positions in list
+  const temp = exercisesList[i];
+  exercisesList[i] = exercisesList[j];
+  exercisesList[j] = temp;
+
+  // Sync active exercise index
+  if (currentExIndex === i) {
+    currentExIndex = j;
+  } else if (currentExIndex === j) {
+    currentExIndex = i;
+  }
+
+  saveSessionProgress();
+  renderCurrentExercise(true);
+}
+
+function removeQueueItem(index) {
+  exercisesList.splice(index, 1);
+  if (currentExIndex > index) {
+    currentExIndex--;
+  } else if (currentExIndex === index) {
+    // We deleted the active exercise
+    if (currentExIndex >= exercisesList.length) {
+      currentExIndex = exercisesList.length - 1;
+      if (currentExIndex < 0) currentExIndex = 0;
+    }
+  }
+
+  saveSessionProgress();
+  renderCurrentExercise(true);
+}
+
+const defaultLibraryExercises = [
+  "Incline Bench Press",
+  "Squats",
+  "Deadlift",
+  "Push-Ups",
+  "Pull-Ups",
+  "Shoulder Press",
+  "Lunges",
+  "Plank",
+  "Bicep Curls",
+  "Tricep Dips",
+  "Leg Raises",
+  "Mountain Climbers"
+];
+
+// Add Extra Exercise trigger
+if (addExtraBtn) {
+  addExtraBtn.addEventListener("click", () => {
+    const selectEl = document.getElementById("extra-exercise-select");
+    const inputEl = document.getElementById("extra-exercise-input");
+    if (!selectEl) return;
+
+    let exStr = "";
+    if (selectEl.value === "custom") {
+      exStr = inputEl.value.trim();
+      if (!exStr) {
+        alert("⚠️ Please type your custom exercise!");
+        return;
+      }
+    } else if (selectEl.value) {
+      exStr = `${selectEl.value} (3 sets x 10 reps)`;
+    } else {
+      alert("⚠️ Please select an exercise or choose 'Custom'!");
+      return;
+    }
+
+    const parsed = parseExercise(exStr);
+    exercisesList.push(parsed);
+    
+    // Reset inputs
+    inputEl.value = "";
+    selectEl.value = "";
+    inputEl.style.display = "none";
+    if (selectEl._customDropdownApi) selectEl._customDropdownApi.updateLabel();
+
+    if (window.showToast) window.showToast(`✅ Added ${parsed.name} to workout!`, "success");
+
+    saveSessionProgress();
+    
+    // If workout was completed, restore layout to render the new item
+    if (currentExIndex >= exercisesList.length - 1) {
+      currentExIndex = exercisesList.length - 1;
+      renderCurrentExercise(false);
+    } else {
+      renderQueueList();
+      // Update progress bar scale
+      const processedCount = exercisesList.filter(e => e.status === "completed" || e.status === "skipped").length;
+      const progressPercent = (processedCount / exercisesList.length) * 100;
+      const progressNum = Math.min(exercisesList.length, processedCount + 1);
+      progressTextEl.textContent = `Exercise ${progressNum} of ${exercisesList.length}`;
+      progressBarEl.style.width = `${progressPercent}%`;
+    }
+  });
+
+  const selectEl = document.getElementById("extra-exercise-select");
+  const inputEl = document.getElementById("extra-exercise-input");
+  if (selectEl && inputEl) {
+    selectEl.addEventListener("change", () => {
+      if (selectEl.value === "custom") {
+        inputEl.style.display = "block";
+        inputEl.required = true;
+      } else {
+        inputEl.style.display = "none";
+        inputEl.required = false;
+      }
+    });
+  }
+}
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
     return;
   }
   userUID = user.uid;
+
+  // 1. Fetch personalization details & populate dropdown list
+  let planData = {};
+  try {
+    const personalizeRef = doc(db, "users", user.uid, "data", "personalization");
+    const personalizeSnap = await getDoc(personalizeRef);
+    if (personalizeSnap.exists()) {
+      const pData = personalizeSnap.data();
+      planType = pData.planType || "days";
+      slotsCount = pData.slotsCount || 3;
+    }
+
+    const planRef = doc(db, "users", user.uid, "data", "plan");
+    const planSnap = await getDoc(planRef);
+    if (planSnap.exists()) {
+      planData = planSnap.data();
+    }
+
+    // Populate Routine Selector
+    const routineSelect = document.getElementById("workout-routine-select");
+    if (routineSelect) {
+      routineSelect.innerHTML = "";
+
+      // Determine today's planned key
+      let todayKey = "";
+      if (planType === "slots") {
+        const statsRef = doc(db, "users", user.uid, "data", "stats");
+        const statsSnap = await getDoc(statsRef);
+        const curSlotIdx = statsSnap.exists() ? (statsSnap.data().currentSlotIndex || 0) : 0;
+        const slotNum = (curSlotIdx % slotsCount) + 1;
+        todayKey = `Slot ${slotNum}`;
+      } else {
+        todayKey = new Date().toLocaleDateString("en-US", { weekday: "long" });
+      }
+
+      // Add "Today's Workout" option
+      if (planData[todayKey] && planData[todayKey].exercises && planData[todayKey].type !== "Rest") {
+        const displayName = planType === "slots" ? `Workout Slot ${((currentSlotIndex || 0) % slotsCount) + 1}` : todayKey;
+        routineSelect.innerHTML += `<option value="today">Today: ${displayName} (${planData[todayKey].type})</option>`;
+      } else {
+        routineSelect.innerHTML += `<option value="today">Today: Rest Day 😴</option>`;
+      }
+
+      // Add all non-Rest planned workouts
+      const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const slotKeys = [];
+      for (let s = 1; s <= slotsCount; s++) slotKeys.push(`Slot ${s}`);
+
+      const targetKeys = planType === "slots" ? slotKeys : weekdays;
+
+      targetKeys.forEach(key => {
+        if (planData[key] && planData[key].exercises && planData[key].type !== "Rest") {
+          const displayName = planType === "slots" ? `Workout ${key}` : key;
+          routineSelect.innerHTML += `<option value="${key}">${displayName} (${planData[key].type})</option>`;
+        }
+      });
+
+      routineSelect.innerHTML += `<option value="custom">✨ Custom Workout (Empty)</option>`;
+
+      // Add change event listener
+      routineSelect.addEventListener("change", async () => {
+        const selectedVal = routineSelect.value;
+        const completedSetsCount = loggedWorkoutLogs.length + (currentExerciseSets.filter(s => s.completed).length);
+        if (completedSetsCount > 0) {
+          if (!confirm("⚠️ Changing workout routine will discard your active session progress. Proceed?")) {
+            routineSelect.value = activeRoutineKey;
+            refreshCustomDropdown(routineSelect);
+            return;
+          }
+        }
+
+        activeRoutineKey = selectedVal;
+        await loadSelectedRoutine(selectedVal, planData);
+      });
+    }
+
+    const selectEl = document.getElementById("extra-exercise-select");
+    if (selectEl) {
+      selectEl.innerHTML = `<option value="">-- Select Exercise --</option>`;
+      
+      // Default library options
+      defaultLibraryExercises.forEach(exName => {
+        selectEl.innerHTML += `<option value="${exName}">${exName}</option>`;
+      });
+
+      // User custom library options
+      try {
+        const customRef = collection(db, "users", user.uid, "customExercises");
+        const customSnap = await getDocs(customRef);
+        customSnap.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data.name && !defaultLibraryExercises.includes(data.name)) {
+            selectEl.innerHTML += `<option value="${data.name}">${data.name} (Custom)</option>`;
+          }
+        });
+      } catch (err) {
+        console.warn("Could not load custom exercises for selector:", err);
+      }
+
+      selectEl.innerHTML += `<option value="custom">➕ Custom Exercise...</option>`;
+    }
+  } catch (e) {
+    console.error("Error loading personalization in active workout:", e);
+  }
   
-  // Check for saved session from today
+  // Enhance all selects
+  enhanceAllSelects();
+
+  // 2. Check for saved session from today
   const todayStr = toLocalDateStr();
   const savedState = localStorage.getItem(`activeWorkoutState_${userUID}`);
   if (savedState) {
@@ -163,6 +536,12 @@ onAuthStateChanged(auth, async (user) => {
           document.getElementById("resume-yes-btn").onclick = async () => {
             resumeModal.style.opacity = "0";
             setTimeout(() => { resumeModal.style.display = "none"; }, 300);
+            activeRoutineKey = state.activeRoutineKey || "today";
+            const routineSelect = document.getElementById("workout-routine-select");
+            if (routineSelect) {
+              routineSelect.value = activeRoutineKey;
+              refreshCustomDropdown(routineSelect);
+            }
             await loadTodayWorkout(true);
           };
           
@@ -180,9 +559,20 @@ onAuthStateChanged(auth, async (user) => {
                     const planSnap = await getDoc(planRef);
                     if (planSnap.exists()) {
                       const plan = planSnap.data();
-                      const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
-                      if (plan[todayName] && plan[todayName].exercises) {
-                        const rawExs = plan[todayName].exercises.split(",").map(e => e.trim()).filter(Boolean);
+                      
+                      let targetKey = "";
+                      if (planType === "slots") {
+                        const statsRef = doc(db, "users", userUID, "data", "stats");
+                        const statsSnap = await getDoc(statsRef);
+                        const curSlotIdx = statsSnap.exists() ? (statsSnap.data().currentSlotIndex || 0) : 0;
+                        const slotNum = (curSlotIdx % slotsCount) + 1;
+                        targetKey = `Slot ${slotNum}`;
+                      } else {
+                        targetKey = new Date().toLocaleDateString("en-US", { weekday: "long" });
+                      }
+                      
+                      if (plan[targetKey] && plan[targetKey].exercises) {
+                        const rawExs = plan[targetKey].exercises.split(",").map(e => e.trim()).filter(Boolean);
                         const parsedExs = rawExs.map(parseExercise);
                         const ex = parsedExs[state.currentExIndex];
                         if (ex) {
@@ -251,10 +641,58 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // === 🏋️‍♂️ 3. Load Split from Firestore ===
-async function loadTodayWorkout(isResume = false) {
-  const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
+async function loadSelectedRoutine(routineKey, plan) {
+  if (routineKey === "today") {
+    let todayKey = "";
+    if (planType === "slots") {
+      const slotNum = (currentSlotIndex % slotsCount) + 1;
+      todayKey = `Slot ${slotNum}`;
+    } else {
+      todayKey = new Date().toLocaleDateString("en-US", { weekday: "long" });
+    }
 
+    if (!plan[todayKey] || !plan[todayKey].exercises || plan[todayKey].type === "Rest") {
+      loadEmptyCustomWorkout();
+      return;
+    }
+
+    rawExercises = plan[todayKey].exercises.split(",").map(e => e.trim()).filter(Boolean);
+    exercisesList = rawExercises.map(parseExercise);
+  } else if (routineKey === "custom") {
+    loadEmptyCustomWorkout();
+    return;
+  } else {
+    if (plan[routineKey] && plan[routineKey].exercises) {
+      rawExercises = plan[routineKey].exercises.split(",").map(e => e.trim()).filter(Boolean);
+      exercisesList = rawExercises.map(parseExercise);
+    } else {
+      loadEmptyCustomWorkout();
+      return;
+    }
+  }
+
+  currentExIndex = 0;
+  loggedWorkoutLogs = [];
+  saveSessionProgress();
+  renderCurrentExercise(false);
+}
+
+function loadEmptyCustomWorkout() {
+  exercisesList = [];
+  currentExIndex = 0;
+  loggedWorkoutLogs = [];
+  saveSessionProgress();
+  showWorkoutCompleteScreen();
+}
+
+async function loadTodayWorkout(isResume = false) {
   try {
+    const statsRef = doc(db, "users", userUID, "data", "stats");
+    const statsSnap = await getDoc(statsRef);
+    if (statsSnap.exists()) {
+      currentSlotIndex = statsSnap.data().currentSlotIndex || 0;
+    }
+
     const planRef = doc(db, "users", userUID, "data", "plan");
     const planSnap = await getDoc(planRef);
 
@@ -265,14 +703,32 @@ async function loadTodayWorkout(isResume = false) {
     }
 
     const plan = planSnap.data();
-    if (!plan[todayName] || !plan[todayName].exercises || plan[todayName].type === "Rest") {
-      alert("🗓️ Today is a Rest Day! Redirecting to dashboard.");
-      window.location.href = "dashboard.html";
+
+    // Determine targets
+    let targetKey = "";
+    let displayName = "";
+
+    if (planType === "slots") {
+      const slotNum = (currentSlotIndex % slotsCount) + 1;
+      targetKey = `Slot ${slotNum}`;
+      displayName = `Workout Slot ${slotNum}`;
+    } else {
+      targetKey = new Date().toLocaleDateString("en-US", { weekday: "long" });
+      displayName = targetKey;
+    }
+
+    if (!plan[targetKey] || !plan[targetKey].exercises || plan[targetKey].type === "Rest") {
+      loadEmptyCustomWorkout();
+      const routineSelect = document.getElementById("workout-routine-select");
+      if (routineSelect) {
+        routineSelect.value = "today";
+        refreshCustomDropdown(routineSelect);
+      }
       return;
     }
 
     // Split exercises and parse them
-    rawExercises = plan[todayName].exercises.split(",").map(e => e.trim()).filter(Boolean);
+    rawExercises = plan[targetKey].exercises.split(",").map(e => e.trim()).filter(Boolean);
     exercisesList = rawExercises.map(parseExercise);
 
     if (isResume) {
@@ -282,6 +738,11 @@ async function loadTodayWorkout(isResume = false) {
         currentExIndex = state.currentExIndex;
         currentExerciseSets = state.currentExerciseSets;
         loggedWorkoutLogs = state.loggedWorkoutLogs;
+        
+        // Restore exercisesList if it was saved, otherwise fallback
+        if (state.exercisesList) {
+          exercisesList = state.exercisesList;
+        }
         
         renderCurrentExercise(true);
         return;
@@ -297,8 +758,9 @@ async function loadTodayWorkout(isResume = false) {
 
 // === 📝 4. Render Exercise & Sets ===
 function renderCurrentExercise(isResume = false) {
-  if (currentExIndex >= exercisesList.length) {
+  if (exercisesList.length === 0 || currentExIndex >= exercisesList.length) {
     showWorkoutCompleteScreen();
+    renderQueueList();
     return;
   }
 
@@ -307,8 +769,9 @@ function renderCurrentExercise(isResume = false) {
   exerciseTargetEl.textContent = `Target: ${ex.instruction}`;
   
   // Progress Indicators
-  const progressNum = currentExIndex + 1;
-  const progressPercent = (currentExIndex / exercisesList.length) * 100;
+  const processedCount = exercisesList.filter(e => e.status === "completed" || e.status === "skipped").length;
+  const progressPercent = exercisesList.length > 0 ? (processedCount / exercisesList.length) * 100 : 0;
+  const progressNum = Math.min(exercisesList.length, processedCount + 1);
   progressTextEl.textContent = `Exercise ${progressNum} of ${exercisesList.length}`;
   progressBarEl.style.width = `${progressPercent}%`;
 
@@ -316,20 +779,30 @@ function renderCurrentExercise(isResume = false) {
   nextExBtn.style.display = "none";
   finishWorkoutBtn.style.display = "none";
 
-  if (!isResume) {
-    // Build sets structure for fresh load
-    currentExerciseSets = [];
-    for (let i = 1; i <= ex.defaultSets; i++) {
-      currentExerciseSets.push({
-        set: i,
-        weight: "",
-        reps: ex.defaultReps,
-        completed: false
-      });
-    }
-  }
+  renderQueueList();
+
+  currentExerciseSets = ex.sets || [];
 
   renderSetsTable();
+
+  // If no sets are completed yet and it's a fresh load (not isResume)
+  const hasAnyCompleted = currentExerciseSets.some(s => s.completed);
+  if (!hasAnyCompleted && !isResume) {
+    // Trigger autofill weights check from logs history
+    getAutofillWeights(ex.name).then(suggestedWeights => {
+      if (suggestedWeights) {
+        suggestedWeights.forEach((w, idx) => {
+          if (currentExerciseSets[idx]) {
+            currentExerciseSets[idx].weight = w;
+          }
+        });
+        renderSetsTable();
+        if (suggestedWeights.some(w => w)) {
+          if (window.showToast) window.showToast("💡 Weights autofilled from history!", "info");
+        }
+      }
+    });
+  }
 }
 
 function renderSetsTable() {
@@ -348,12 +821,16 @@ function renderSetsTable() {
       <div style="display:flex; justify-content:center;">
         <input type="checkbox" class="set-checkbox" id="check-${idx}" ${s.completed ? "checked" : ""} />
       </div>
+      <div style="display:flex; justify-content:center;">
+        <button type="button" class="delete-set-btn" data-idx="${idx}" style="background:none; border:none; color:var(--color-danger); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;">🗑️</button>
+      </div>
     `;
     setsContainer.appendChild(row);
 
     const checkbox = row.querySelector(".set-checkbox");
     const weightInput = row.querySelector(`#weight-${idx}`);
     const repsInput = row.querySelector(`#reps-${idx}`);
+    const deleteBtn = row.querySelector(".delete-set-btn");
 
     weightInput.addEventListener("input", (e) => {
       s.weight = e.target.value.trim();
@@ -394,6 +871,18 @@ function renderSetsTable() {
       saveSessionProgress();
       checkExerciseCompletion();
     });
+
+    deleteBtn.addEventListener("click", () => {
+      // Remove set
+      currentExerciseSets.splice(idx, 1);
+      // Re-index sets
+      currentExerciseSets.forEach((setObj, i) => {
+        setObj.set = i + 1;
+      });
+      saveSessionProgress();
+      renderSetsTable();
+      checkExerciseCompletion();
+    });
   });
 }
 
@@ -404,7 +893,7 @@ addSetBtn.addEventListener("click", () => {
   currentExerciseSets.push({
     set: newSetNum,
     weight: "",
-    reps: ex.defaultReps,
+    reps: ex ? ex.defaultReps : 10,
     completed: false
   });
   renderSetsTable();
@@ -413,7 +902,23 @@ addSetBtn.addEventListener("click", () => {
 
 skipExBtn.addEventListener("click", () => {
   if (confirm("⏭️ Are you sure you want to skip this exercise?")) {
-    currentExIndex++;
+    if (currentExIndex < exercisesList.length) {
+      exercisesList[currentExIndex].status = "skipped";
+    }
+
+    // Find next pending exercise
+    const nextPendingIdx = exercisesList.findIndex((ex, idx) => idx > currentExIndex && ex.status === "pending");
+    if (nextPendingIdx !== -1) {
+      currentExIndex = nextPendingIdx;
+    } else {
+      const firstPendingIdx = exercisesList.findIndex(ex => ex.status === "pending");
+      if (firstPendingIdx !== -1) {
+        currentExIndex = firstPendingIdx;
+      } else {
+        currentExIndex = exercisesList.length;
+      }
+    }
+
     saveSessionProgress();
     renderCurrentExercise();
   }
@@ -421,11 +926,10 @@ skipExBtn.addEventListener("click", () => {
 
 // Check if all sets are marked complete
 function checkExerciseCompletion() {
-  if (exercisesList.length === 0) return;
-  const allDone = currentExerciseSets.every(s => s.completed);
+  if (exercisesList.length === 0 || currentExIndex >= exercisesList.length) return;
+  const ex = exercisesList[currentExIndex];
+  const allDone = currentExerciseSets.length > 0 && currentExerciseSets.every(s => s.completed);
   if (allDone) {
-    const ex = exercisesList[currentExIndex];
-    // Check if already logged in loggedWorkoutLogs to prevent duplicates
     const loggedIdx = loggedWorkoutLogs.findIndex(log => log.workout.toLowerCase() === ex.name.toLowerCase());
     const logEntry = {
       workout: ex.name,
@@ -433,12 +937,14 @@ function checkExerciseCompletion() {
     };
 
     if (loggedIdx >= 0) {
-      loggedWorkoutLogs[loggedIdx] = logEntry; // update it
+      loggedWorkoutLogs[loggedIdx] = logEntry;
     } else {
-      loggedWorkoutLogs.push(logEntry); // add it
+      loggedWorkoutLogs.push(logEntry);
     }
 
-    if (currentExIndex === exercisesList.length - 1) {
+    // Check if all exercises are processed (completed or skipped)
+    const allProcessed = exercisesList.every((e, idx) => idx === currentExIndex || e.status === "completed" || e.status === "skipped");
+    if (allProcessed) {
       finishWorkoutBtn.style.display = "block";
       nextExBtn.style.display = "none";
     } else {
@@ -452,7 +958,23 @@ function checkExerciseCompletion() {
 }
 
 nextExBtn.addEventListener("click", () => {
-  currentExIndex++;
+  if (currentExIndex < exercisesList.length) {
+    exercisesList[currentExIndex].status = "completed";
+  }
+
+  // Find next pending exercise
+  const nextPendingIdx = exercisesList.findIndex((ex, idx) => idx > currentExIndex && ex.status === "pending");
+  if (nextPendingIdx !== -1) {
+    currentExIndex = nextPendingIdx;
+  } else {
+    const firstPendingIdx = exercisesList.findIndex(ex => ex.status === "pending");
+    if (firstPendingIdx !== -1) {
+      currentExIndex = firstPendingIdx;
+    } else {
+      currentExIndex = exercisesList.length;
+    }
+  }
+
   saveSessionProgress();
   renderCurrentExercise();
 });
@@ -462,7 +984,9 @@ function startRestTimer(durationSeconds) {
   clearInterval(timerInterval);
   timerTotalTime = durationSeconds;
   timerTimeLeft = durationSeconds;
-  timerExerciseNameEl.textContent = `Up next: Set ${getPendingSetNumber()} of ${exercisesList[currentExIndex].name}`;
+  
+  const nextEx = exercisesList[currentExIndex];
+  timerExerciseNameEl.textContent = nextEx ? `Up next: Set ${getPendingSetNumber()} of ${nextEx.name}` : "Resting...";
 
   updateTimerDisplay();
   timerOverlay.style.display = "flex";
@@ -539,15 +1063,17 @@ async function saveWorkoutSession(isExitSave = false) {
     const currentCompletedSets = currentExerciseSets.filter(s => s.completed);
     if (currentCompletedSets.length > 0) {
       const ex = exercisesList[currentExIndex];
-      const loggedIdx = loggedWorkoutLogs.findIndex(log => log.workout.toLowerCase() === ex.name.toLowerCase());
-      const logEntry = {
-        workout: ex.name,
-        sets: currentCompletedSets.map(s => ({ set: s.set, weight: s.weight, reps: s.reps }))
-      };
-      if (loggedIdx >= 0) {
-        loggedWorkoutLogs[loggedIdx] = logEntry;
-      } else {
-        loggedWorkoutLogs.push(logEntry);
+      if (ex) {
+        const loggedIdx = loggedWorkoutLogs.findIndex(log => log.workout.toLowerCase() === ex.name.toLowerCase());
+        const logEntry = {
+          workout: ex.name,
+          sets: currentCompletedSets.map(s => ({ set: s.set, weight: s.weight, reps: s.reps }))
+        };
+        if (loggedIdx >= 0) {
+          loggedWorkoutLogs[loggedIdx] = logEntry;
+        } else {
+          loggedWorkoutLogs.push(logEntry);
+        }
       }
     }
   }

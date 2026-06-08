@@ -216,6 +216,12 @@
       border: 1px solid var(--border-color);
       box-shadow: var(--shadow-premium);
     }
+    .exercise-video-preview:hover .play-btn-overlay {
+      transform: scale(1.15);
+      background: rgba(255, 255, 255, 0.25) !important;
+      border-color: var(--color-accent) !important;
+      box-shadow: 0 10px 40px rgba(6, 182, 212, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -264,6 +270,32 @@
       <input type="text" id="searchInput" placeholder="🔍 Search exercise (e.g. Squats, Bench)..." style="margin: 0;" />
     </div>
 
+    <!-- Add Custom Exercise Card -->
+    <details class="glass-card" style="margin-bottom: 20px; padding: 15px;">
+      <summary style="font-size: 14px; font-weight: 700; color: #fff; cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center;">
+        <span>➕ Create Custom Exercise</span>
+        <span style="font-size: 11px; color: var(--text-secondary); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 6px;">Tap to Expand</span>
+      </summary>
+      <form id="customExerciseForm" style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+        <label for="custName" style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:5px;">Exercise Name</label>
+        <input type="text" id="custName" placeholder="e.g. Incline Cable Flyes" required style="width:100%; margin-bottom:12px;" />
+
+        <label for="custMuscles" style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:5px;">Target Muscle(s) (comma separated)</label>
+        <input type="text" id="custMuscles" placeholder="e.g. Chest, Shoulders" required style="width:100%; margin-bottom:12px;" />
+
+        <label for="custEquipment" style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:5px;">Equipment</label>
+        <input type="text" id="custEquipment" placeholder="e.g. Cable Machine" required style="width:100%; margin-bottom:12px;" />
+
+        <label for="custSteps" style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:5px;">Instructions / Guide (period-separated steps)</label>
+        <textarea id="custSteps" placeholder="Place feet. Stand tall. Curl weights." style="height: 70px; width:100%; margin-bottom:12px;" required></textarea>
+
+        <label for="custVideo" style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:5px;">Video Demo Link (YouTube embed link or watch URL)</label>
+        <input type="url" id="custVideo" placeholder="e.g. https://www.youtube.com/watch?v=..." style="width:100%; margin-bottom:15px;" />
+
+        <button type="submit" class="btn" style="width: 100%;">💾 Save Custom Exercise</button>
+      </form>
+    </details>
+
     <div id="exerciseList"></div>
   </div>
 
@@ -271,12 +303,29 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
     import { firebaseConfig } from "./js/firebase-config.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    window.playExerciseVideo = function(container, videoUrl) {
+      let embedUrl = videoUrl;
+      if (videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be")) {
+        if (videoUrl.includes("watch?v=")) {
+          embedUrl = videoUrl.replace("watch?v=", "embed/");
+        }
+        if (embedUrl.includes("?")) {
+          embedUrl += "&autoplay=1";
+        } else {
+          embedUrl += "?autoplay=1";
+        }
+        container.outerHTML = `<iframe class="exercise-media" src="${embedUrl}" style="height: 200px; width:100%; border:none; margin-top:12px; border-radius:12px;" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+      } else {
+        container.outerHTML = `<video class="exercise-media" src="${videoUrl}" autoplay controls style="height: 200px; width:100%; margin-top:12px; border-radius:12px;"></video>`;
+      }
+    };
 
     // Global set of planned exercises to display badges
     const plannedExercisesSet = new Set();
@@ -289,7 +338,7 @@
         steps: ["Set bench to 30–45° incline.", "Lie back with feet flat on floor.", "Hold dumbbells and press up.", "Lower slowly to chest level."],
         tips: ["Keep elbows slightly bent at top.", "Do not arch lower back excessively."],
         image: "inc.jpg",
-        video: ""
+        video: "https://www.youtube.com/embed/SrqOu55lrYU"
       },
       {
         name: "Squats",
@@ -298,7 +347,7 @@
         steps: ["Stand with feet shoulder-width apart.", "Lower your body by bending knees and hips.", "Keep chest upright and back straight.", "Push through heels to return to standing."],
         tips: ["Do not let knees collapse inward.", "Go as low as comfortable without pain."],
         image: "sq.jpg",
-        video: ""
+        video: "https://www.youtube.com/embed/UlWGcf6eLRY"
       },
       {
         name: "Deadlift",
@@ -307,7 +356,7 @@
         steps: ["Stand with feet hip-width apart, bar over mid-foot.", "Grip the bar shoulder-width, keep chest up.", "Lift the bar by extending hips and knees simultaneously.", "Lower bar under control to the floor."],
         tips: ["Keep back straight throughout the lift.", "Engage core and lats to avoid injury."],
         image: "dead.jpg",
-        video: ""
+        video: "https://www.youtube.com/embed/y1r3XBz-Ax0"
       },
       {
         name: "Push-Ups",
@@ -316,7 +365,7 @@
         steps: ["Place hands shoulder-width apart on the floor.", "Keep body straight from head to heels.", "Lower chest to floor.", "Push back up to starting position."],
         tips: ["Avoid sagging hips.", "Keep elbows at ~45° to torso."],
         image: "push.jpg",
-        video: ""
+        video: "https://www.youtube.com/embed/IODxDxX7oi4"
       },
       {
         name: "Pull-Ups",
@@ -325,7 +374,7 @@
         steps: ["Grip bar slightly wider than shoulders.", "Hang fully extended.", "Pull chin above the bar.", "Lower under control."],
         tips: ["Do not swing body.", "Engage back muscles, not just arms."],
         image: "pullljpg.jpg",
-        video: ""
+        video: "https://www.youtube.com/embed/eGo4IYlbE5g"
       },
       {
         name: "Shoulder Press",
@@ -334,7 +383,7 @@
         steps: ["Sit or stand with back straight.", "Hold dumbbells at shoulder height.", "Press up until arms fully extended.", "Lower slowly back down."],
         tips: ["Do not arch back.", "Keep core tight."],
         image: "sh.jpg",
-        video: ""
+        video: "https://www.youtube.com/embed/qEwKCR5JCog"
       },
       {
         name: "Lunges",
@@ -343,7 +392,7 @@
         steps: ["Step forward with one leg.", "Lower body until both knees are ~90°.", "Push back to start position.", "Repeat on other leg."],
         tips: ["Keep chest up.", "Do not let front knee go past toes."],
         image: "",
-        video: ""
+        video: "https://www.youtube.com/embed/QOVaHwm-Q6U"
       },
       {
         name: "Plank",
@@ -352,7 +401,7 @@
         steps: ["Place forearms on floor, elbows under shoulders.", "Keep body straight from head to heels.", "Hold position for desired time."],
         tips: ["Avoid sagging hips.", "Engage core fully."],
         image: "",
-        video: ""
+        video: "https://www.youtube.com/embed/pSHjTRCQxIw"
       },
       {
         name: "Bicep Curls",
@@ -361,7 +410,7 @@
         steps: ["Stand upright with dumbbells in hand.", "Curl weights to shoulders.", "Lower slowly back down."],
         tips: ["Avoid swinging arms.", "Keep elbows close to torso."],
         image: "",
-        video: ""
+        video: "https://www.youtube.com/embed/ykJgrb560_Y"
       },
       {
         name: "Tricep Dips",
@@ -370,7 +419,7 @@
         steps: ["Place hands on bench, legs extended.", "Lower body by bending elbows.", "Push back up."],
         tips: ["Do not lock elbows.", "Keep shoulders down."],
         image: "",
-        video: ""
+        video: "https://www.youtube.com/embed/0326dx5cTj4"
       },
       {
         name: "Leg Raises",
@@ -379,7 +428,7 @@
         steps: ["Lie flat on back, legs straight.", "Lift legs to 90°.", "Lower slowly without touching floor."],
         tips: ["Do not arch lower back.", "Engage core throughout."],
         image: "",
-        video: ""
+        video: "https://www.youtube.com/embed/l41NoNYT550"
       },
       {
         name: "Mountain Climbers",
@@ -388,7 +437,7 @@
         steps: ["Start in push-up position.", "Bring knees alternately towards chest rapidly.", "Maintain plank form throughout."],
         tips: ["Keep hips low.", "Move legs quickly but controlled."],
         image: "",
-        video: ""
+        video: "https://www.youtube.com/embed/zTfZjshYVeM"
       }
     ];
 
@@ -718,8 +767,29 @@
               ${getMuscleSVG(ex.muscles)}
             </div>
           </div>
-          ${ex.image ? `<img class="exercise-media" src="${ex.image}" alt="${ex.name}">` : ""}
-          ${ex.video ? `<video class="exercise-media" src="${ex.video}" controls></video>` : ""}
+          ${(function() {
+            if (ex.video) {
+              const bgStyle = ex.image 
+                ? `background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url(${ex.image}); background-size: cover; background-position: center;`
+                : `background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(9, 13, 22, 0.8) 100%);`;
+              return `
+                <div class="exercise-video-preview" style="${bgStyle} height: 200px; width:100%; margin-top:12px; border-radius:12px; position:relative; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; border: 1px solid var(--border-color);" onclick="playExerciseVideo(this, '${ex.video}')">
+                  <!-- Premium Floating Play Button Overlay -->
+                  <div class="play-btn-overlay" style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display:flex; align-items:center; justify-content:center; border: 1px solid rgba(255, 255, 255, 0.3); transition: transform 0.2s ease, background 0.2s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+                    <svg width="20" height="22" viewBox="0 0 20 22" fill="none" style="margin-left: 3px;">
+                      <path d="M19 11L1 21V1L19 11Z" fill="#ffffff" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <span style="position:absolute; bottom:10px; right:12px; font-size:10px; color:#ffffff; background:rgba(0,0,0,0.6); padding:3px 8px; border-radius:6px; font-weight:600; letter-spacing:0.05em; display:flex; align-items:center; gap:4px;">
+                    ▶️ WATCH DEMO
+                  </span>
+                </div>
+              `;
+            } else if (ex.image) {
+              return `<img class="exercise-media" src="${ex.image}" alt="${ex.name}" style="height: 200px; width:100%; object-fit: cover; margin-top:12px; border-radius:12px;">`;
+            }
+            return "";
+          })()}
         `;
         exerciseList.appendChild(div);
       });
@@ -868,9 +938,100 @@
       }
     });
 
+    // --- 💾 Custom Exercise form submit handler ---
+    const customForm = document.getElementById("customExerciseForm");
+    if (customForm) {
+      customForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        if (!user) {
+          alert("Please log in to save custom exercises.");
+          return;
+        }
+
+        const name = document.getElementById("custName").value.trim();
+        const musclesStr = document.getElementById("custMuscles").value.trim();
+        const equipment = document.getElementById("custEquipment").value.trim();
+        const stepsStr = document.getElementById("custSteps").value.trim();
+        const video = document.getElementById("custVideo").value.trim();
+
+        const muscles = musclesStr.split(",").map(m => m.trim()).filter(Boolean);
+        const steps = stepsStr.split(".").map(s => s.trim()).filter(Boolean);
+
+        const payload = {
+          name,
+          muscles,
+          equipment,
+          steps,
+          tips: ["Control the weight and maintain target tension.", "Perform with full range of motion."],
+          video,
+          createdAt: new Date().toISOString()
+        };
+
+        try {
+          if (window.GymifyLoader) window.GymifyLoader.show("Saving custom exercise...");
+          
+          const customRef = collection(db, "users", user.uid, "customExercises");
+          await addDoc(customRef, payload);
+
+          // Add to local list
+          exercises.push({
+            name,
+            muscles,
+            equipment,
+            steps,
+            tips: payload.tips,
+            image: "",
+            video
+          });
+
+          if (window.GymifyLoader) window.GymifyLoader.hide();
+          if (window.showToast) window.showToast("✅ Custom exercise saved successfully!", "success");
+
+          // Reset and close
+          customForm.reset();
+          const detailsParent = customForm.parentElement;
+          if (detailsParent) detailsParent.removeAttribute("open");
+
+          renderExercises();
+        } catch (err) {
+          console.error("Error saving custom exercise:", err);
+          if (window.GymifyLoader) window.GymifyLoader.hide();
+          if (window.showToast) window.showToast("❌ Could not save custom exercise.", "error");
+        }
+      });
+    }
+
+    async function loadUserCustomExercises(user) {
+      try {
+        const customRef = collection(db, "users", user.uid, "customExercises");
+        const snap = await getDocs(customRef);
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          const exists = exercises.some(ex => ex.name.toLowerCase() === data.name.toLowerCase());
+          if (!exists) {
+            exercises.push({
+              name: data.name,
+              muscles: data.muscles || [],
+              equipment: data.equipment || "Gym Equipment",
+              steps: data.steps || [],
+              tips: data.tips || [],
+              image: "",
+              video: data.video || ""
+            });
+          }
+        });
+        renderExercises();
+      } catch (err) {
+        console.error("Error loading custom exercises:", err);
+      }
+    }
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        loadUserPlannedExercises(user);
+        loadUserCustomExercises(user).then(() => {
+          loadUserPlannedExercises(user);
+        });
       }
     });
   </script>
